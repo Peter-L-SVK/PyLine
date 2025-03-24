@@ -2,7 +2,7 @@
 
 ![PyLine Demo](demo.png) 
 
-PyLine is a minimalist command-line text editor designed for Linux/BSD systems, written in Python 3. Originally created in 2018, it has been modernized with improved text buffer management while maintaining its simple, line by line workflow. 
+PyLine is a minimalist command-line text editor designed for Linux/BSD systems, written in Python 3 and borrowing BASH calls. Originally created in 2018, it has been modernized with improved text buffer management while maintaining its simple, line by line workflow. 
 
 ## Features
 
