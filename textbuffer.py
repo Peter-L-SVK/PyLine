@@ -1,5 +1,9 @@
 import os
 import readline 
+import sys
+import tty
+import termios
+import fcntl
 
 class TextBuffer:
     def __init__(self):
@@ -13,7 +17,7 @@ class TextBuffer:
         self.edit_history = {}
 
     def load_file(self, filename):
-        #Load file contents into buffer
+        # Load file contents into buffer
         try:
             with open(filename, 'r') as f:
                 self.lines = [line.rstrip('\n') for line in f.readlines()]
@@ -26,7 +30,7 @@ class TextBuffer:
             return False
 
     def save(self):
-        #Save buffer contents to file
+        # Save buffer contents to file
         if not self.filename:
             return False
             
@@ -39,7 +43,7 @@ class TextBuffer:
             return False
 
     def display(self):
-        #Display visible portion of buffer with line numbers
+        # Display visible portion of buffer with line numbers
         os.system('clear')
         print(f"Editing: {self.filename or 'New file'}")
         print("Commands: ↑/↓ - Navigate, Enter - Edit, S - Save, Q - Quit")
@@ -52,7 +56,7 @@ class TextBuffer:
             print(f"{prefix}{line_num:4d}: {self.lines[i]}")
 
     def navigate(self, direction):
-        #Move cursor up/down
+        # Move cursor up/down
         if direction == 'up' and self.current_line > 0:
             self.current_line -= 1
         elif direction == 'down' and self.current_line < len(self.lines) - 1:
@@ -65,7 +69,7 @@ class TextBuffer:
             self.display_start = self.current_line - self.display_lines + 1
 
     def edit_current_line(self):
-        #Edit the current line with previous text available
+        # Edit the current line with previous text available
         if not self.lines:
             self.lines.append("")
             
@@ -89,32 +93,68 @@ class TextBuffer:
             readline.set_startup_hook(None)
 
     def insert_line(self):
-        #Insert a new line after current position
+        # Insert a new line after current position
         self.lines.insert(self.current_line + 1, "")
         self.current_line += 1
         self.dirty = True
 
     def delete_line(self):
-        #Delete current line
+        # Delete current line
         if self.lines:
             del self.lines[self.current_line]
             if self.current_line >= len(self.lines) and self.current_line > 0:
                 self.current_line -= 1
             self.dirty = True
 
+            
+    def get_key_input(self):
+        # Read a single key press, including arrow keys
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+            if ch == '\x1b':  # Possible arrow key
+                # Set non-blocking mode temporarily
+                fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+                fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+                try:
+                    ch2 = sys.stdin.read(2)
+                    if len(ch2) == 2 and ch2[0] == '[':
+                        return ch + ch2  # Return full arrow key sequence
+                except:
+                    pass
+                finally:
+                    fcntl.fcntl(fd, fcntl.F_SETFL, fl)
+                return ch  # Return just ESC if not arrow
+            return ch.lower()  # Return regular key as lowercase
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            
     def edit_interactive(self):
-        #Main editing interface with enhanced line editing
+        # Main editing interface with proper key handling
         while True:
             self.display()
             try:
-                cmd = input("Command [up, down, E(dit), I(nsert), D(el), S(ave), Q(uit)]: ").lower()
+                sys.stdout.write("Command [↑↓, E(dit), I(nsert), D(el), S(ave), Q(uit)]: ")
+                sys.stdout.flush()
                 
-                if cmd in ('', 'e'):
+                cmd = self.get_key_input()
+                
+                # Handle arrow keys
+                if cmd in ('\x1b[A', '\x1b[B'):
+                    sys.stdout.write('\n')
+                    if cmd == '\x1b[A':
+                        self.navigate('up')
+                    elif cmd == '\x1b[B':
+                        self.navigate('down')
+                    continue
+                
+                # Echo and process other commands
+                sys.stdout.write(cmd + '\n')
+                
+                if cmd in ('', 'e', '\r', '\n'):
                     self.edit_current_line()
-                elif cmd == '↑' or cmd == 'up':
-                    self.navigate('up')
-                elif cmd == '↓' or cmd == 'down':
-                    self.navigate('down')
                 elif cmd == 'i':
                     self.insert_line()
                 elif cmd == 'd':
@@ -125,16 +165,26 @@ class TextBuffer:
                         self.edit_history.clear()
                     else:
                         print("Error saving file!")
-                        input("Press Enter to continue...")
+                        os.system('read -p "Press enter to continue..."')
                 elif cmd == 'q':
                     if self.dirty:
-                        save = input("Save changes? (Y/N): ").lower()
+                        save = input("Save changes? (y/n): ").lower()
                         if save == 'y':
                             self.save()
-                    break
-                
+                        elif save == 'n':
+                            print("File not saved...")
+                            os.system('read -p "Press enter to continue..."')
+                            break
+                        else:
+                            print("Only Y/N!")
+                            os.system('read -p "Press enter to continue..."')
+                else:
+                    # Handle invalid key press
+                    print("Invalid key. Please use: ↑, ↓, E, Enter, I, D, S, Q")
+                    os.system('read -p "Press enter to continue..."')
+
             except EOFError:
-                if self.lines:  # Only if there are lines
+                if self.lines:
                     self.current_line = len(self.lines) - 1
                     self.display_start = max(0, len(self.lines) - self.display_lines)
                 continue
