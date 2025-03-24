@@ -71,7 +71,7 @@ def main():
                                 continue
                             
                             buffer.filename = name_of_file
-                            buffer.edit()
+                            buffer.edit_interactive()
                             if buffer.dirty:
                                 if buffer.save():
                                     print('File created and saved.')
@@ -106,7 +106,7 @@ def main():
                             
                             buffer.filename = name_of_file
                             buffer.lines = []  # Truncate by clearing buffer
-                            buffer.edit()
+                            buffer.edit_interactive()
                             if buffer.save():
                                 print('File', name_of_file, 'created / truncated.')
                             else:
