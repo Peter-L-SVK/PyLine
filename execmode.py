@@ -2,6 +2,7 @@
 
 import os
 import dirops
+from editor import prompt_continue
 
 def execmode(original_destination):
     os.system('clear')
@@ -28,10 +29,10 @@ def execmode(original_destination):
                                 current_dir = dirops.cd(new_dir)
                             except OSError:
                                 print('Invalid path or directory doesn\'t exist!\n')
+                                prompt_continue()
                                 continue
                             print(f'Current working directory changed to: {current_dir}\n')
-                            os.system('read -p "Press enter to continue..."')
-                            os.system('clear')
+                            prompt_continue()
                             break
                         
                     except EOFError:
@@ -47,15 +48,14 @@ def execmode(original_destination):
                             dirops.change_default_path(original_destination)
                         except OSError:
                             print('Invalid path or directory doesn\'t exist!\n')
+                            prompt_continue()
                             continue
                         current_dir = dirops.currentdir()
-                        os.system('read -p "Press enter to continue..."')
-                        os.system('clear')
+                        prompt_continue()
                         break
                     elif answer == 'n':
                         print('Ok, won\'t change default path.\n')
-                        os.system('read -p "Press enter to continue..."')
-                        os.system('clear')
+                        prompt_continue()
                         break
                     else:
                         print('Only Y/N!\n')
@@ -73,9 +73,9 @@ def execmode(original_destination):
                                         continue
                                 except OSError:
                                     print('Error, directory must have a name!')
+                                    prompt_continue()
                                     continue
-                                os.system('read -p "Press enter to continue..."')
-                                os.system('clear')
+                                prompt_continue()
                                 break
                             
                             except EOFError:
@@ -84,8 +84,7 @@ def execmode(original_destination):
                             
                     elif answer == 'n':
                         print('Ok, I won\'t create any directory.')
-                        os.system('read -p "Press enter to continue..."')
-                        os.system('clear')
+                        prompt_continue()
                         break
                     else:
                         print('Only Y/N!\n')
