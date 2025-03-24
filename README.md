@@ -72,7 +72,7 @@ chmod +x editor.py
 
 ## License
 
-GNU GPL v3 - See [LICENSE](https://license/) file for details.
+GNU GPL v3 - See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html) file for details.
 
 ## Contributing
 
