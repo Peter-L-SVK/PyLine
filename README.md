@@ -66,9 +66,9 @@ chmod +x editor.py
 
 ## Requirements
 
-- Python 3.6+
-    
+- Python 3.6+   
 - Linux/BSD system (tested on Fedora 27 and later on Fedora 40)
+- Bash shell
 
 ## License
 
