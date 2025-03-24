@@ -26,7 +26,7 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
 ## Installation
 
 ```bash
-git clone https://github.com/Peter-L-SVK/pyline.git
+git clone https://github.com/Peter-L-SVK/PyLine.git
 cd pyline
 chmod +x editor.py
 ```
