@@ -7,14 +7,14 @@ def currentdir():
 def contentdir():
     #List the contents of the current directory.
     print('Current directory content is: ')
-    current_dir_cont = currentdir()
-    for r, d, f in os.walk(current_dir_cont):
-        for dirs in d:
-            print(dirs, '-dir')
     
-    with os.scandir() as i:
-        for entry in i:
-            if entry.is_file():
+    with os.scandir() as entries:
+        # Create list of entries and sort with dirs first then alphabetical
+        sorted_entries = sorted(entries, key=lambda e: (not e.is_dir(), e.name.lower()))
+        for entry in sorted_entries:
+            if entry.is_dir():
+                print(entry.name, '-dir')
+            elif entry.is_file():
                 print(entry.name)
     print('\n')
 
