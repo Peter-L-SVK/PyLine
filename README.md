@@ -51,7 +51,7 @@ chmod +x editor.py
 |`s`|Save file|
 |`q`|Quit editor|
 |`Ctrl+D`|Jump to end of file|
-|`x`|Enter file management mode|
+|`x`|Enter file management mode (exec mode)|
 
 ### File Management Mode
 
@@ -59,6 +59,7 @@ chmod +x editor.py
 |---|---|
 |`af`|List all files|
 |`cwd`|Change working directory|
+|`cdp`|Change the default path|
 |`mkdir`|Create new directory|
 |`cls`|Clear screen|
 |`q`|Exit file management|

@@ -52,7 +52,7 @@ class TextBuffer:
             print(f"{prefix}{line_num:4d}: {self.lines[i]}")
 
     def navigate(self, direction):
-        """Move cursor up/down"""
+        #Move cursor up/down
         if direction == 'up' and self.current_line > 0:
             self.current_line -= 1
         elif direction == 'down' and self.current_line < len(self.lines) - 1:
