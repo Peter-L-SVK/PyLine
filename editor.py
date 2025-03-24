@@ -78,8 +78,7 @@ def handle_existing_file(buffer):
                     break
                 else:
                     print(f'No file with name: {name_of_file}!\n')
-                    continue
-                    
+                    continue                   
         elif answer == 'n':
             print('Ok, won\'t edit anything.\n')
             prompt_continue()
@@ -107,6 +106,12 @@ def handle_new_file(buffer):
                     print('File created and saved.')
                     prompt_continue()
                     break
+        elif answer == 'n':
+            print('Ok, won\'t create anything.\n')
+            prompt_continue()
+            break      
+        else:
+            print('Only Y/N!\n')
 
 def handle_truncate_file(buffer):
     os.system('clear')
@@ -129,6 +134,13 @@ def handle_truncate_file(buffer):
                     print(f'File {name_of_file} created/truncated.')
                     prompt_continue()
                     break
+                
+        elif answer == 'n':
+            print('Ok, won\'t create anything.\n')
+            prompt_continue()
+            break        
+        else:
+            print('Only Y/N!\n')
 
 def show_info(original_destination):
     os.system('clear')
