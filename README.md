@@ -87,4 +87,4 @@ Contributions are welcome! Please open an issue or pull request for any:
 
 ---
 
-_Created by Peter Leukanič in 2018 - A simple editor for when you need to edit text files quickly without leaving the terminal. (not a propper app yet)_
+_Created by Peter Leukanič in 2018 - A simple editor for when you need to edit text files quickly without leaving the terminal. _
