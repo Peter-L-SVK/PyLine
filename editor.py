@@ -143,7 +143,7 @@ def main():
                 os.system('clear')
                 print('Only choices from the menu!\n')
 
-        except:
+        except EOFError:
             os.system('clear')
             print('\nTo quit, enter Q !\n')
             continue
