@@ -150,6 +150,13 @@ class TextBuffer:
                         self.navigate('down')
                     continue
                 
+                # Handle Ctrl+D (EOF) first before other commands
+                if cmd == '\x04':  # ASCII code for Ctrl+D
+                    if self.lines:
+                        self.current_line = len(self.lines) - 1
+                        self.display_start = max(0, len(self.lines) - self.display_lines)
+                    continue
+                
                 # Echo and process other commands
                 sys.stdout.write(cmd + '\n')
                 
@@ -165,25 +172,29 @@ class TextBuffer:
                         self.edit_history.clear()
                     else:
                         print("Error saving file!")
-                        os.system('read -p "Press enter to continue..."')
+                    os.system('read -p "Press enter to continue..."')
                 elif cmd == 'q':
                     if self.dirty:
-                        save = input("Save changes? (y/n): ").lower()
-                        if save == 'y':
-                            self.save()
-                        elif save == 'n':
-                            print("File not saved...")
-                            os.system('read -p "Press enter to continue..."')
-                            break
-                        else:
-                            print("Only Y/N!")
-                            os.system('read -p "Press enter to continue..."')
+                        while True:
+                            save = input("Save changes? (y/n): ").lower()
+                            if save == 'y':
+                                self.save()
+                                break
+                            elif save == 'n':
+                                print("File not saved...")
+                                os.system('read -p "Press enter to continue..."')
+                                break
+                            else:
+                                print("Only Y/N!")
+                                continue
+                    break
                 else:
                     # Handle invalid key press
                     print("Invalid key. Please use: ↑, ↓, E, Enter, I, D, S, Q")
                     os.system('read -p "Press enter to continue..."')
 
             except EOFError:
+                # Secondary handling of Ctrl+D if it wasn't caught as '\x04'
                 if self.lines:
                     self.current_line = len(self.lines) - 1
                     self.display_start = max(0, len(self.lines) - self.display_lines)
