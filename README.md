@@ -12,7 +12,8 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
   - Create new files
   - Truncate existing files
 - **Navigation**:
-  - Move between lines with arrow keys
+  - Move between lines and scroll file with arrow keys
+  - Scroll file by keys PageUp and PageDown
   - Jump to start/end of file (Ctrl+D for EOF)
 - **Editing**:
   - Line-by-line editing with syntax
@@ -44,7 +45,8 @@ chmod +x editor.py
 |`1`|Edit existing file|
 |`2`|Create new file|
 |`3`|Truncate/create file|
-|`↑`/`↓`|Navigate between lines|
+|`↑`/`↓`|Navigate between lines / Scroll by lines|
+| `PgUp` / `PgDn` | Scroll by 20 lines buffer|
 |`Enter`/`e`|Edit current line|
 |`i`|Insert new line|
 |`d`|Delete current line|

@@ -114,32 +114,44 @@ class TextBuffer:
         try:
             tty.setraw(sys.stdin.fileno())
             ch = sys.stdin.read(1)
-            if ch == '\x1b':  # Possible arrow key
+            if ch == '\x1b':  # Possible arrow key or other special key
                 # Set non-blocking mode temporarily
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
                 try:
-                    ch2 = sys.stdin.read(2)
-                    if len(ch2) == 2 and ch2[0] == '[':
-                        return ch + ch2  # Return full arrow key sequence
+                    ch2 = sys.stdin.read(2)  # Try to read 2 more characters
+                    if len(ch2) == 2:
+                        if ch2[0] == '[':
+                            if ch2[1] in 'AB':  # Arrow keys
+                                return ch + ch2
+                            elif ch2[1] == '5':  # PgUp
+                                ch3 = sys.stdin.read(1)
+                                if ch3 == '~':
+                                    return '\x1b[5~'
+                            elif ch2[1] == '6':  # PgDn
+                                ch3 = sys.stdin.read(1)
+                                if ch3 == '~':
+                                    return '\x1b[6~'
                 except:
                     pass
                 finally:
                     fcntl.fcntl(fd, fcntl.F_SETFL, fl)
-                return ch  # Return just ESC if not arrow
-            return ch.lower()  # Return regular key as lowercase
+                return ch  # Return just ESC if not special key
+            return ch.lower() if ch else ''  # Return regular key as lowercase or empty string if no input
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-            
+
     def edit_interactive(self):
         # Main editing interface with proper key handling
         while True:
             self.display()
             try:
-                sys.stdout.write("Command [↑↓, E(dit), I(nsert), D(el), S(ave), Q(uit)]: ")
+                sys.stdout.write("Command [↑↓, PgUp/PgDn, E(dit), I(nsert), D(el), S(ave), Q(uit)]: ")
                 sys.stdout.flush()
                 
                 cmd = self.get_key_input()
+                if not cmd:  # Skip if no command received
+                    continue
                 
                 # Handle arrow keys
                 if cmd in ('\x1b[A', '\x1b[B'):
@@ -149,6 +161,19 @@ class TextBuffer:
                     elif cmd == '\x1b[B':
                         self.navigate('down')
                     continue
+            
+                # Handle PgUp/PgDn
+                if cmd in ('\x1b[5~', '\x1b[6~'):
+                    sys.stdout.write('\n')
+                    if cmd == '\x1b[5~':  # PgUp
+                        self.display_start = max(0, self.display_start - self.display_lines)
+                        self.current_line = max(0, self.current_line - self.display_lines)
+                    elif cmd == '\x1b[6~':  # PgDn
+                        self.display_start = min(len(self.lines) - self.display_lines, 
+                                                 self.display_start + self.display_lines)
+                        self.current_line = min(len(self.lines) - 1, 
+                                                self.current_line + self.display_lines)
+                    continue
                 
                 # Handle Ctrl+D (EOF) first before other commands
                 if cmd == '\x04':  # ASCII code for Ctrl+D
@@ -156,7 +181,7 @@ class TextBuffer:
                         self.current_line = len(self.lines) - 1
                         self.display_start = max(0, len(self.lines) - self.display_lines)
                     continue
-                
+            
                 # Echo and process other commands
                 sys.stdout.write(cmd + '\n')
                 
@@ -187,12 +212,12 @@ class TextBuffer:
                             else:
                                 print("Only Y/N!")
                                 continue
-                    break
+                    return  # Exit the edit loop
                 else:
                     # Handle invalid key press
-                    print("Invalid key. Please use: ↑, ↓, E, Enter, I, D, S, Q")
+                    print("Invalid key. Please use: ↑, ↓, PgUp, PgDn, E, Enter, I, D, S, Q")
                     os.system('read -p "Press enter to continue..."')
-
+                
             except EOFError:
                 # Secondary handling of Ctrl+D if it wasn't caught as '\x04'
                 if self.lines:
