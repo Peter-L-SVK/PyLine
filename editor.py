@@ -102,10 +102,19 @@ def handle_new_file(buffer):
                 
                 buffer.filename = name_of_file
                 buffer.edit_interactive()
-                if buffer.dirty and buffer.save():
-                    print('File created and saved.')
-                    prompt_continue()
-                    break
+                
+                # Modified section starts here
+                if buffer.dirty:  
+                    if buffer.save():
+                        print('File created and saved.')
+                    else:
+                        print('Error: Failed to save file!')
+                else:
+                    print('No changes made to file.')
+                prompt_continue()
+                break
+                # Modified section ends here
+                
         elif answer == 'n':
             print('Ok, won\'t create anything.\n')
             prompt_continue()
@@ -130,11 +139,16 @@ def handle_truncate_file(buffer):
                 buffer.filename = name_of_file
                 buffer.lines = []  # Truncate by clearing buffer
                 buffer.edit_interactive()
-                if buffer.save():
-                    print(f'File {name_of_file} created/truncated.')
-                    prompt_continue()
-                    break
-                
+                if buffer.dirty:  
+                    if buffer.save():
+                        print('File trucated/edited and saved.')
+                    else:
+                        print('Error: Failed to save file!')
+                else:
+                    print('No changes made to file.')
+                prompt_continue()
+                break
+            
         elif answer == 'n':
             print('Ok, won\'t create anything.\n')
             prompt_continue()
