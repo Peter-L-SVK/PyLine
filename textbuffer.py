@@ -46,7 +46,7 @@ class TextBuffer:
         # Display visible portion of buffer with line numbers
         os.system('clear')
         print(f"Editing: {self.filename or 'New file'}")
-        print("Commands: ↑/↓ - Navigate, Enter - Edit, S - Save, Q - Quit")
+        print("Commands: ↑/↓, PgUp/PgDn - Navigate, Enter - Edit, S - Save, Q - Quit")
         print("-" * 80)
         
         end_line = min(self.display_start + self.display_lines, len(self.lines))
