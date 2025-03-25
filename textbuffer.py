@@ -203,16 +203,20 @@ class TextBuffer:
                         while True:
                             save = input("Save changes? (y/n): ").lower()
                             if save == 'y':
-                                self.save()
-                                break
+                                if self.save():
+                                    print("Changes saved.")
+                                    self.edit_history.clear()
+                                    self.dirty = False
+                                    return True  # Indicate save was performed
+                                else:
+                                    print("Error saving file!")
+                                    continue
                             elif save == 'n':
-                                print("File not saved...")
-                                os.system('read -p "Press enter to continue..."')
-                                break
+                                print("Changes not saved.")
+                                return False  # Indicate no save was performed
                             else:
                                 print("Only Y/N!")
-                                continue
-                    return  # Exit the edit loop
+                    return None  # Indicate no changes needed saving
                 else:
                     # Handle invalid key press
                     print("Invalid key. Please use: ↑, ↓, PgUp, PgDn, E, Enter, I, D, S, Q")

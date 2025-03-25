@@ -74,7 +74,7 @@ def handle_existing_file(buffer):
                 
                 if buffer.load_file(name_of_file):
                     buffer.edit_interactive()
-                    os.system('clear')
+                    prompt_continue()
                     break
                 else:
                     print(f'No file with name: {name_of_file}!\n')
@@ -101,19 +101,20 @@ def handle_new_file(buffer):
                     continue
                 
                 buffer.filename = name_of_file
-                buffer.edit_interactive()
+                 # Get save status from editor
+                save_status = buffer.edit_interactive()
                 
-                # Modified section starts here
-                if buffer.dirty:  
+                # Only show additional message if editor didn't handle saving
+                if save_status is None and buffer.dirty:
                     if buffer.save():
-                        print('File created and saved.')
+                        print('File edited and saved.')
                     else:
                         print('Error: Failed to save file!')
-                else:
+                elif save_status is None:
                     print('No changes made to file.')
+
                 prompt_continue()
                 break
-                # Modified section ends here
                 
         elif answer == 'n':
             print('Ok, won\'t create anything.\n')
@@ -138,14 +139,20 @@ def handle_truncate_file(buffer):
                 
                 buffer.filename = name_of_file
                 buffer.lines = []  # Truncate by clearing buffer
-                buffer.edit_interactive()
-                if buffer.dirty:  
+                buffer.dirty = True  # Mark as dirty immediately after truncation
+                
+                # Get save status from editor
+                save_status = buffer.edit_interactive()
+                
+                # Only show additional message if editor didn't handle saving
+                if save_status is None and buffer.dirty:
                     if buffer.save():
-                        print('File trucated/edited and saved.')
+                        print('File truncated/edited and saved.')
                     else:
                         print('Error: Failed to save file!')
-                else:
+                elif save_status is None:
                     print('No changes made to file.')
+
                 prompt_continue()
                 break
             
