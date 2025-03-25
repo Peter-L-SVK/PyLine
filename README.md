@@ -38,13 +38,22 @@ chmod +x editor.py
 ```bash
 ./editor.py
 ```
-### Editor Controls
+### Editor Menu
 
 |Command|Action|
 |---|---|
 |`1`|Edit existing file|
 |`2`|Create new file|
-|`3`|Truncate/create file|
+|`3`|Truncate existing or create new file|
+|`cls`|Cleer screen|
+|`x`|Enter file management mode (exec mode)|
+|`i`|Info|
+|`q`|Exit program|
+|`Ctrl+D`|Escape from function|
+|`Ctrl+C`|Interupt the program|
+
+### Editor Controls
+|---|---|
 |`↑`/`↓`|Navigate between lines / Scroll by lines|
 | `PgUp` / `PgDn` | Scroll by 20 lines buffer|
 |`Enter`/`e`|Edit current line|
@@ -53,7 +62,6 @@ chmod +x editor.py
 |`s`|Save file|
 |`q`|Quit editor|
 |`Ctrl+D`|Jump to end of file|
-|`x`|Enter file management mode (exec mode)|
 
 ### File Management Mode
 
@@ -65,6 +73,7 @@ chmod +x editor.py
 |`mkdir`|Create new directory|
 |`cls`|Clear screen|
 |`q`|Exit file management|
+|`Ctrl+D`|Escape from function|
 
 ## Requirements
 
