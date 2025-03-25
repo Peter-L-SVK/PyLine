@@ -70,13 +70,18 @@ class TextBuffer:
 
     def edit_current_line(self):
         # Edit the current line with previous text available
-        if not self.lines:
+        if not self.lines:  # If buffer is completely empty
             self.lines.append("")
+            self.current_line = 0
             
+        # Ensure current_line is within bounds
+        if self.current_line >= len(self.lines):
+            self.current_line = len(self.lines) - 1
+        
         # Store original line in history if not already there
         if self.current_line not in self.edit_history:
             self.edit_history[self.current_line] = self.lines[self.current_line]
-        
+            
         # Set up readline with existing line content
         readline.set_startup_hook(lambda: readline.insert_text(self.lines[self.current_line]))
         
@@ -96,6 +101,9 @@ class TextBuffer:
         # Insert a new line after current position
         self.lines.insert(self.current_line + 1, "")
         self.current_line += 1
+        # Ensure we don't go out of bounds
+        if self.current_line >= len(self.lines):
+            self.current_line = len(self.lines) - 1
         self.dirty = True
 
     def delete_line(self):
