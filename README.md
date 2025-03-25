@@ -53,6 +53,7 @@ chmod +x editor.py
 |`Ctrl+C`|Interupt the program|
 
 ### Editor Controls
+|Command|Action|
 |---|---|
 |`↑`/`↓`|Navigate between lines / Scroll by lines|
 | `PgUp` / `PgDn` | Scroll by 20 lines buffer|
