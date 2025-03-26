@@ -13,7 +13,7 @@ class TextBuffer:
         self.current_line = 0
         self.current_col = 0
         self.display_start = 0
-        self.display_lines = 20
+        self.display_lines = 40
         self.edit_history = {}
 
     def load_file(self, filename):

@@ -5,6 +5,8 @@
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
 
+import signal
+import time
 import sys
 import os
 import dirops
@@ -13,6 +15,9 @@ import info
 from textbuffer import TextBuffer
 
 def main():
+    # Register signal handler (for OS-level interrupts)
+    signal.signal(signal.SIGINT, handle_sigint)
+
     os.system('clear')
     original_dir = dirops.currentdir()
     dirops.original_path(original_dir)
@@ -58,8 +63,7 @@ def main():
                 continue
                 
     except KeyboardInterrupt:
-        print('\nProgram interrupted. Exiting...')
-        sys.exit(130)  # 128 + SIGINT(2)
+        pass
         
     clean_exit()
 
@@ -178,6 +182,11 @@ def prompt_continue():
     os.system('read -p "Press enter to continue..."')
     os.system('clear')
 
+def handle_sigint(signum, frame):
+    sys.stdout.write('\nProgram interrupted. Exiting gracefully...\n')
+    sys.stdout.flush()
+    sys.exit(128 + signum)
+    
 def clean_exit():
     os.system('clear')
     print('\nProgram closed.\n')
