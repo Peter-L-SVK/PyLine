@@ -56,7 +56,7 @@ chmod +x editor.py
 |Command|Action|
 |---|---|
 |`↑`/`↓`|Navigate between lines / Scroll by lines|
-| `PgUp` / `PgDn` | Scroll by 20 lines buffer|
+| `PgUp` / `PgDn` | Scroll by 40 lines buffer|
 |`Enter`/`e`|Edit current line|
 |`i`|Insert new line|
 |`d`|Delete current line|
