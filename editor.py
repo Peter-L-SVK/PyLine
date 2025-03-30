@@ -83,10 +83,14 @@ def count_words():
                     print('Error, file must have a name!\n')
                     continue
 
-                num_of_words = dirops. count_words_in_file(name_of_file)
+                num_of_words, num_of_lines, num_of_chars = dirops.count_words_in_file(name_of_file)
                 if not num_of_words == 'error':
+                    
                     print('************************************************************')
-                    print(name_of_file,'contains exactly', num_of_words,'words.')
+                    print(f"{name_of_file} contains:")
+                    print(f"- {num_of_words} words")
+                    print(f"- {num_of_lines} lines") 
+                    print(f"- {num_of_chars} characters")
                     print('************************************************************\n')
                     break
                 else:

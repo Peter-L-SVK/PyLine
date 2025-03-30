@@ -86,25 +86,34 @@ def change_default_path(original_destination):
 
 def count_words_in_file(filename):
     """
-    Count the number of words in a text file.
+    Count the number of words in a text file with improved punctuation handling.
     
     Args:
         filename (str): Path to the file to be read.
         
     Returns:
-        int: Number of words in the file.
+        tuple: (word_count, line_count, char_count) or (0, 0, 0) on error
     """
     try:
         with open(filename, 'r') as file:
-            content = file.read()
-            # Split content into words (split by whitespace)
-            words = content.split()
+            line_count = 0
+            word_count = 0
+            char_count = 0
+            
+            for line in file:
+                line_count += 1
+                char_count += len(line)
+                # Split on whitespace and filter out empty strings
+                words = [word.strip(",.!?;:\"\'()[]") for word in line.split() if word]
+                word_count += len(words)
             os.system('clear')
-            return len(words)
+            return word_count, line_count, char_count
+            
     except FileNotFoundError:
         os.system('clear')
-        print(f"Error: File '{filename}' not found!")
-        return 'error' 
+        print(f"Error: File '{filename}' not found.")
+        return 'error', 0, 0
     except Exception as e:
+        os.system('clear')
         print(f"An error occurred: {e}")
-        return 'error'
+        return 'error', 0, 0
