@@ -46,6 +46,7 @@ chmod +x editor.py
 |`2`|Create new file|
 |`3`|Truncate existing or create new file|
 |`cls`|Cleer screen|
+|`cw`|Count words in the file|
 |`x`|Enter file management mode (exec mode)|
 |`i`|Info|
 |`q`|Exit program|
