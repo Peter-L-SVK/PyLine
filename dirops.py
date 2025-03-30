@@ -104,7 +104,7 @@ def count_words_in_file(filename):
     except FileNotFoundError:
         os.system('clear')
         print(f"Error: File '{filename}' not found!")
-        return 0 
+        return 'error' 
     except Exception as e:
         print(f"An error occurred: {e}")
-        return 0
+        return 'error'
