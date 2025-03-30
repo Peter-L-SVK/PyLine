@@ -83,3 +83,26 @@ def change_default_path(original_destination):
                 print('Default path set to:', new_current_path, '\n')
     except EOFError:
         os.system('clear')
+
+def count_words_in_file(filename):
+    """
+    Count the number of words in a text file.
+    
+    Args:
+        filename (str): Path to the file to be read.
+        
+    Returns:
+        int: Number of words in the file.
+    """
+    try:
+        with open(filename, 'r') as file:
+            content = file.read()
+            # Split content into words (split by whitespace)
+            words = content.split()
+            return len(words)
+    except FileNotFoundError:
+        print(f"Error: File '{filename}' not found.")
+        return 0
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return 0

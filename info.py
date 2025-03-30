@@ -9,9 +9,9 @@ def print_info():
     print('        ####################################################################\n')
 
 def print_license_parts(original_destination):
-    print("\n       For full license details, see the LICENSE file in:")
-    print(f"       {original_destination}/LICENSE")
-    print("\n       Brief excerpt:")
+    print("\n        For full license details, see the LICENSE file in:")
+    print(f"        {original_destination}/LICENSE")
+    print("\n        Brief excerpt:")
     total_path = os.path.join(original_destination, 'license-parts.txt')
     try:
         with open(total_path, 'r') as f:

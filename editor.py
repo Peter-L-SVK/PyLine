@@ -34,7 +34,7 @@ def main():
             buffer = TextBuffer()
             print(f'Current working directory: {current_dir}\n')
             print('Menu: 1 - Existing file, 2 - New file, 3 - Truncate or new file, '
-                  'CLS - Clear screen, X - Exec mode, I - Info, Q - Quit\n')
+                  'CLS - Clear screen, CW - Count words, X - Exec mode, I - Info, Q - Quit\n')
             
             try:
                 choice = input('Your choice: ').lower()
@@ -45,6 +45,8 @@ def main():
                     handle_new_file(buffer)
                 elif choice == '3':
                     handle_truncate_file(buffer)
+                elif choice == 'cw':
+                    count_words()
                 elif choice == 'x':
                     current_dir = execmode.execmode(original_destination)
                 elif choice == 'cls':
@@ -66,6 +68,34 @@ def main():
         pass
         
     clean_exit()
+
+def count_words():
+    os.system('clear')
+    answer = None
+    while answer != 'y':
+        answer = input('Would you like to count words in the file? [Y/N]: ').lower()
+        if answer == 'y':
+            while True:
+                dirops.contentdir()
+                name_of_file = input('\nEnter the name of file to count words: ')
+                if not name_of_file:
+                    os.system('clear')
+                    print('Error, file must have a name!\n')
+                    continue
+
+                num_of_words = dirops. count_words_in_file(name_of_file)
+                os.system('clear')
+                print('************************************************************')
+                print(name_of_file,'contains exactly', num_of_words,'words.')
+                print('************************************************************\n')
+                break
+                
+        elif answer == 'n':
+            print('Ok, won\'t count anything.\n')
+            prompt_continue()
+            break
+        else:
+            print('Only Y/N!\n')
 
 def handle_existing_file(buffer):
     os.system('clear')
