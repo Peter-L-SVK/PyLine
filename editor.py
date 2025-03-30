@@ -84,7 +84,6 @@ def count_words():
                     continue
 
                 num_of_words = dirops. count_words_in_file(name_of_file)
-                os.system('clear')
                 print('************************************************************')
                 print(name_of_file,'contains exactly', num_of_words,'words.')
                 print('************************************************************\n')

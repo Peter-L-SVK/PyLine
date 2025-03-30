@@ -99,10 +99,12 @@ def count_words_in_file(filename):
             content = file.read()
             # Split content into words (split by whitespace)
             words = content.split()
+            os.system('clear')
             return len(words)
     except FileNotFoundError:
-        print(f"Error: File '{filename}' not found.")
-        return 0
+        os.system('clear')
+        print(f"Error: File '{filename}' not found!")
+        return 0 
     except Exception as e:
         print(f"An error occurred: {e}")
         return 0
