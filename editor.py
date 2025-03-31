@@ -125,6 +125,7 @@ def handle_existing_file(buffer):
                     break
 
                 else:
+                    os.system('clear')
                     print(f'No file with name: {name_of_file}!\n')
                     continue                   
 
