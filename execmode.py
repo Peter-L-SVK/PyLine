@@ -16,8 +16,7 @@ def execmode(original_destination):
             choice_exec = input('Your choice: ').lower()
             if choice_exec == 'af':
                 os.system('clear')
-                dirops.contentdir()
-                
+                dirops.contentdir()    
             elif choice_exec == 'cwd':
                 while True:
                     try:
@@ -31,6 +30,7 @@ def execmode(original_destination):
                                 print('Invalid path or directory doesn\'t exist!\n')
                                 prompt_continue()
                                 continue
+                            
                             print(f'Current working directory changed to: {current_dir}\n')
                             prompt_continue()
                             break
@@ -50,13 +50,16 @@ def execmode(original_destination):
                             print('Invalid path or directory doesn\'t exist!\n')
                             prompt_continue()
                             continue
+                        
                         current_dir = dirops.currentdir()
                         prompt_continue()
                         break
+                    
                     elif answer == 'n':
                         print('Ok, won\'t change default path.\n')
                         prompt_continue()
                         break
+                    
                     else:
                         print('Only Y/N!\n')
                         
@@ -71,10 +74,12 @@ def execmode(original_destination):
                                 try:
                                     if dirops.mkdir(dir_name):
                                         continue
+                                    
                                 except OSError:
                                     print('Error, directory must have a name!')
                                     prompt_continue()
                                     continue
+                                
                                 prompt_continue()
                                 break
                             
@@ -86,17 +91,17 @@ def execmode(original_destination):
                         print('Ok, I won\'t create any directory.')
                         prompt_continue()
                         break
+                    
                     else:
                         print('Only Y/N!\n')
                         
             elif choice_exec == 'cls':
-                os.system('clear')
-                
+                os.system('clear')     
             elif choice_exec == 'q':
                 os.system('clear')
                 print('Returned from exec mode.\n')
                 return current_dir
-            
+
             else:
                 os.system('clear')
                 print('Only choices from the menu!\n')

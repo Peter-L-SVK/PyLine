@@ -92,7 +92,7 @@ def count_words_in_file(filename):
         filename (str): Path to the file to be read.
         
     Returns:
-        tuple: (word_count, line_count, char_count) or (0, 0, 0) on error
+        tuple: (word_count, line_count, char_count) or (error, 0, 0) on error
     """
     try:
         with open(filename, 'r') as file:

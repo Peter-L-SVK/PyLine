@@ -84,8 +84,7 @@ def count_words():
                     continue
 
                 num_of_words, num_of_lines, num_of_chars = dirops.count_words_in_file(name_of_file)
-                if not num_of_words == 'error':
-                    
+                if not num_of_words == 'error':                    
                     print('************************************************************')
                     print(f"{name_of_file} contains:")
                     print(f"- {num_of_words} words")
@@ -93,13 +92,16 @@ def count_words():
                     print(f"- {num_of_chars} characters")
                     print('************************************************************\n')
                     break
+                
                 else:
+                    print('\n')
                     break
                 
         elif answer == 'n':
             print('Ok, won\'t count anything.\n')
             prompt_continue()
             break
+        
         else:
             print('Only Y/N!\n')
 
@@ -121,13 +123,16 @@ def handle_existing_file(buffer):
                     buffer.edit_interactive()
                     prompt_continue()
                     break
+
                 else:
                     print(f'No file with name: {name_of_file}!\n')
                     continue                   
+
         elif answer == 'n':
             print('Ok, won\'t edit anything.\n')
             prompt_continue()
             break
+
         else:
             print('Only Y/N!\n')
 
@@ -165,6 +170,7 @@ def handle_new_file(buffer):
             print('Ok, won\'t create anything.\n')
             prompt_continue()
             break      
+
         else:
             print('Only Y/N!\n')
 
@@ -205,6 +211,7 @@ def handle_truncate_file(buffer):
             print('Ok, won\'t create anything.\n')
             prompt_continue()
             break        
+
         else:
             print('Only Y/N!\n')
 
