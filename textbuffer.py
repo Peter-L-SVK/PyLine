@@ -48,14 +48,16 @@ class TextBuffer:
             return False
 
     def display(self):
-        # Display visible portion of buffer with line numbers
         os.system('clear')
         print(f"Editing: {self.filename or 'New file'}")
         print("Commands: ↑/↓, PgUp/PgDn - Navigate, Enter - Edit, S - Save, Q - Quit")
         print("-" * 80)
         
-        end_line = min(self.display_start + self.display_lines, len(self.lines))
-        for i in range(self.display_start, end_line):
+        # Clamp display range to valid lines
+        start = self.display_start
+        end = min(start + self.display_lines, len(self.lines))
+    
+        for i in range(start, end):  # Now guaranteed safe
             line_num = i + 1
             prefix = ">" if i == self.current_line else " "
             print(f"{prefix}{line_num:4d}: {self.lines[i]}")
@@ -182,10 +184,16 @@ class TextBuffer:
                         self.display_start = max(0, self.display_start - self.display_lines)
                         self.current_line = max(0, self.current_line - self.display_lines)
                     elif cmd == '\x1b[6~':  # PgDn
-                        self.display_start = min(len(self.lines) - self.display_lines, 
-                                                 self.display_start + self.display_lines)
-                        self.current_line = min(len(self.lines) - 1, 
-                                                self.current_line + self.display_lines)
+                        sys.stdout.write('\n')
+                        new_start = min(
+                            len(self.lines) - self.display_lines,  # Don't overshoot
+                            self.display_start + self.display_lines  # Normal jump
+                        )
+                        self.display_start = max(0, new_start)  # Clamp to 0
+                        self.current_line = min(
+                            len(self.lines) - 1,
+                            self.current_line + self.display_lines
+                        )
                     continue
                 
                 # Handle Ctrl+D (EOF) and Ctrl+C first before other commands
@@ -252,4 +260,4 @@ class TextBuffer:
                 continue
 
             except KeyboardInterrupt:
-                pass # Passing the interupt signal
+                pass  # Passing the interupt signal
