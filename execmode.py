@@ -2,7 +2,7 @@
 
 import os
 import dirops
-from editor import prompt_continue
+from utils import prompt_continue
 
 def execmode(original_destination):
     os.system('clear')

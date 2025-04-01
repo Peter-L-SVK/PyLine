@@ -4,6 +4,11 @@ import sys
 import tty
 import termios
 import fcntl
+import signal
+import utils
+
+# Register signal handler (for OS-level interrupts)
+signal.signal(signal.SIGINT, utils.handle_sigint)
 
 class TextBuffer:
     def __init__(self):
@@ -183,13 +188,22 @@ class TextBuffer:
                                                 self.current_line + self.display_lines)
                     continue
                 
-                # Handle Ctrl+D (EOF) first before other commands
-                if cmd == '\x04':  # ASCII code for Ctrl+D
-                    if self.lines:
-                        self.current_line = len(self.lines) - 1
-                        self.display_start = max(0, len(self.lines) - self.display_lines)
-                    continue
-            
+                # Handle Ctrl+D (EOF) and Ctrl+C first before other commands
+                if cmd in ('\x04', '\x03'):
+                    if cmd == '\x04': 
+                        if self.lines:
+                            self.current_line = len(self.lines) - 1
+                            self.display_start = max(0, len(self.lines) - self.display_lines)
+                        continue
+
+                    elif cmd == '\x03':  # ASCII code for Ctrl+C
+                        # Show a message and continue editing
+                        print()
+                        print("^C - Use 'Q' to quit or continue editing")
+                        os.system('read -p "Press enter to continue..."')
+                        continue
+                    
+                
                 # Echo and process other commands
                 sys.stdout.write(cmd + '\n')
                 
@@ -236,3 +250,6 @@ class TextBuffer:
                     self.current_line = len(self.lines) - 1
                     self.display_start = max(0, len(self.lines) - self.display_lines)
                 continue
+
+            except KeyboardInterrupt:
+                pass # Passing the interupt signal

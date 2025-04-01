@@ -6,17 +6,16 @@
 # This is free software with NO WARRANTY.
 
 import signal
-import time
 import sys
 import os
 import dirops
 import execmode
-import info
+import utils
 from textbuffer import TextBuffer
 
 def main():
     # Register signal handler (for OS-level interrupts)
-    signal.signal(signal.SIGINT, handle_sigint)
+    signal.signal(signal.SIGINT, utils.handle_sigint)
 
     os.system('clear')
     original_dir = dirops.currentdir()
@@ -52,7 +51,7 @@ def main():
                 elif choice == 'cls':
                     os.system('clear')
                 elif choice == 'i':
-                    show_info(original_destination)
+                    utils.show_info(original_destination)
                 elif choice == 'q':
                     break
                 else:
@@ -65,9 +64,9 @@ def main():
                 continue
                 
     except KeyboardInterrupt:
-        pass
+        pass # Passing the interupt signal
         
-    clean_exit()
+    utils.clean_exit()
 
 def count_words():
     os.system('clear')
@@ -99,7 +98,7 @@ def count_words():
                 
         elif answer == 'n':
             print('Ok, won\'t count anything.\n')
-            prompt_continue()
+            utils.prompt_continue()
             break
         
         else:
@@ -121,7 +120,7 @@ def handle_existing_file(buffer):
                 
                 if buffer.load_file(name_of_file):
                     buffer.edit_interactive()
-                    prompt_continue()
+                    utils.prompt_continue()
                     break
 
                 else:
@@ -131,7 +130,7 @@ def handle_existing_file(buffer):
 
         elif answer == 'n':
             print('Ok, won\'t edit anything.\n')
-            prompt_continue()
+            utils.prompt_continue()
             break
 
         else:
@@ -164,12 +163,12 @@ def handle_new_file(buffer):
                 elif save_status is None:
                     print('No changes made to file.')
 
-                prompt_continue()
+                utils.prompt_continue()
                 break
                 
         elif answer == 'n':
             print('Ok, won\'t create anything.\n')
-            prompt_continue()
+            utils.prompt_continue()
             break      
 
         else:
@@ -205,37 +204,16 @@ def handle_truncate_file(buffer):
                 elif save_status is None:
                     print('No changes made to file.')
 
-                prompt_continue()
+                utils.prompt_continue()
                 break
             
         elif answer == 'n':
             print('Ok, won\'t create anything.\n')
-            prompt_continue()
+            utils.prompt_continue()
             break        
 
         else:
             print('Only Y/N!\n')
-
-def show_info(original_destination):
-    os.system('clear')
-    info.print_info()
-    info.print_license_parts(original_destination)
-    print('\n')
-
-def prompt_continue():
-    os.system('read -p "Press enter to continue..."')
-    os.system('clear')
-
-def handle_sigint(signum, frame):
-    sys.stdout.write('\nProgram interrupted. Exiting gracefully...\n')
-    sys.stdout.flush()
-    sys.exit(128 + signum)
-    
-def clean_exit():
-    os.system('clear')
-    print('\nProgram closed.\n')
-    prompt_continue()
-    sys.exit(0)
 
 if __name__ == "__main__":
     main()
