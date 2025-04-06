@@ -4,11 +4,6 @@ import sys
 import tty
 import termios
 import fcntl
-import signal
-import utils
-
-# Register signal handler (for OS-level interrupts)
-signal.signal(signal.SIGINT, utils.handle_sigint)
 
 class TextBuffer:
     def __init__(self):
@@ -50,7 +45,7 @@ class TextBuffer:
     def display(self):
         os.system('clear')
         print(f"Editing: {self.filename or 'New file'}")
-        print("Commands: ↑/↓, PgUp/PgDn - Navigate, Enter - Edit, S - Save, Q - Quit")
+        print("Commands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, S - Save, Q - Quit")
         print("-" * 80)
         
         # Clamp display range to valid lines
@@ -90,13 +85,11 @@ class TextBuffer:
             self.edit_history[self.current_line] = self.lines[self.current_line]
             
         # Set up readline with existing line content
-        readline.set_startup_hook(lambda: readline.insert_text(self.lines[self.current_line]))
-        
+        readline.set_startup_hook(lambda: readline.insert_text(self.lines[self.current_line]))        
         try:
             # Show prompt with line number and previous text
             prompt = f"{self.current_line+1:4d} [edit]: "
-            new_line = input(prompt).rstrip('\n')
-            
+            new_line = input(prompt).rstrip('\n')               
             if new_line != self.lines[self.current_line]:
                 self.lines[self.current_line] = new_line
                 self.dirty = True
@@ -147,6 +140,9 @@ class TextBuffer:
                                 ch3 = sys.stdin.read(1)
                                 if ch3 == '~':
                                     return '\x1b[6~'
+                            elif ch2[1] == 'F':  # End key
+                                return '\x1b[F'
+
                 except:
                     pass
                 finally:
@@ -161,7 +157,7 @@ class TextBuffer:
         while True:
             self.display()
             try:
-                sys.stdout.write("Command [↑↓, PgUp/PgDn, E(dit), I(nsert), D(el), S(ave), Q(uit)]: ")
+                sys.stdout.write("Command [↑↓, PgUp/PgDn/End, E(dit), I(nsert), D(el), S(ave), Q(uit)]: ")
                 sys.stdout.flush()
                 
                 cmd = self.get_key_input()
@@ -196,9 +192,9 @@ class TextBuffer:
                         )
                     continue
                 
-                # Handle Ctrl+D (EOF) and Ctrl+C first before other commands
-                if cmd in ('\x04', '\x03'):
-                    if cmd == '\x04': 
+                # Handle Ctrl+D (EOF), End and Ctrl+C first before other commands
+                if cmd in ('\x04', '\x1b[F', '\x03'):
+                    if cmd == '\x04' or cmd == '\x1b[F': 
                         if self.lines:
                             self.current_line = len(self.lines) - 1
                             self.display_start = max(0, len(self.lines) - self.display_lines)
@@ -249,7 +245,7 @@ class TextBuffer:
                     return None  # Indicate no changes needed saving
                 else:
                     # Handle invalid key press
-                    print("Invalid key. Please use: ↑, ↓, PgUp, PgDn, E, Enter, I, D, S, Q")
+                    print("Invalid key. Please use: ↑, ↓, PgUp, PgDn, End, E, Enter, I, D, S, Q")
                     os.system('read -p "Press enter to continue..."')
                 
             except EOFError:
@@ -260,4 +256,8 @@ class TextBuffer:
                 continue
 
             except KeyboardInterrupt:
-                pass  # Passing the interupt signal
+                # Show a message and continue editing
+                print()
+                print("^C - Use 'Q' to quit or continue editing")
+                os.system('read -p "Press enter to continue..."')
+                continue

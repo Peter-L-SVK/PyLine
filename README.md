@@ -63,7 +63,7 @@ chmod +x editor.py
 |`d`|Delete current line|
 |`s`|Save file|
 |`q`|Quit editor|
-|`Ctrl+D`|Jump to end of file|
+|`Ctrl+D` / `End`|Jump to end of file|
 
 ### File Management Mode
 
