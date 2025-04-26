@@ -4,7 +4,59 @@ import sys
 import tty
 import termios
 import fcntl
+import time
 
+class EditCommand:
+    #Base class for all editable commands.
+    def execute(self, buffer):
+        raise NotImplementedError
+    
+    def undo(self, buffer):
+        raise NotImplementedError
+
+class LineEditCommand(EditCommand):
+    #Tracks changes to a single line.
+    def __init__(self, line_num, old_text, new_text):
+        self.line_num = line_num
+        self.old_text = old_text
+        self.new_text = new_text
+    
+    def execute(self, buffer):
+        if self.line_num < len(buffer.lines):
+            buffer.lines[self.line_num] = self.new_text
+    
+    def undo(self, buffer):
+        if self.line_num < len(buffer.lines):
+            buffer.lines[self.line_num] = self.old_text
+
+class InsertLineCommand(EditCommand):
+    #Tracks line insertion.
+    def __init__(self, line_num, text):
+        self.line_num = line_num
+        self.text = text
+    
+    def execute(self, buffer):
+        buffer.lines.insert(self.line_num, self.text)
+    
+    def undo(self, buffer):
+        if self.line_num < len(buffer.lines):
+            del buffer.lines[self.line_num]
+
+class DeleteLineCommand(EditCommand):
+    #Tracks line deletion.
+    def __init__(self, line_num, text):
+        self.line_num = line_num
+        self.text = text
+    
+    def execute(self, buffer):
+        if self.line_num < len(buffer.lines):
+            del buffer.lines[self.line_num]
+    
+    def undo(self, buffer):
+        buffer.lines.insert(self.line_num, self.text)
+
+
+        
 class TextBuffer:
     def __init__(self):
         self.lines = []
@@ -15,7 +67,66 @@ class TextBuffer:
         self.display_start = 0
         self.display_lines = 40
         self.edit_history = {}
+        self.undo_stack = []  # Stack for undo commands
+        self.redo_stack = []  # Stack for redo commands
 
+    def push_undo_command(self, command):
+        #Push a command to the undo stack and clear redo stack.
+        self.undo_stack.append(command)
+        if len(self.undo_stack) > 120:  # Limit history
+            self.undo_stack.pop(0)
+        self.redo_stack.clear()
+
+    def undo(self):
+        """Undo the last action with user-friendly feedback."""
+        if not self.undo_stack:
+            self._show_status_message("Nothing to undo")
+            return
+    
+        command_type = type(self.undo_stack[-1]).__name__
+        action_map = {
+            'LineEditCommand': 'edit',
+            'InsertLineCommand': 'insertion',
+            'DeleteLineCommand': 'deletion'
+        }
+        action = action_map.get(command_type, 'change')
+        
+        self._show_status_message(f"Undoing last {action}")
+        command = self.undo_stack.pop()
+        command.undo(self)
+        self.redo_stack.append(command)
+        self.dirty = True
+
+    def redo(self):
+        """Redo the last undone action with user-friendly feedback."""
+        if not self.redo_stack:
+            self._show_status_message("Nothing to redo")
+            return
+        
+        command_type = type(self.redo_stack[-1]).__name__
+        action_map = {
+            'LineEditCommand': 'edit',
+            'InsertLineCommand': 'insertion',
+            'DeleteLineCommand': 'deletion'
+        }
+        action = action_map.get(command_type, 'change')
+        
+        self._show_status_message(f"Redoing last {action}")
+        command = self.redo_stack.pop()
+        command.execute(self)
+        self.undo_stack.append(command)
+        self.dirty = True
+        
+    def _show_status_message(self, message):
+        """Helper method to display status messages consistently."""
+        print(f"\n{message}", end='')
+        time.sleep(0.355)  # Brief pause so user can read the message
+        sys.stdout.flush()
+        # Move cursor back up to overwrite the status message
+        sys.stdout.write("\033[F")  # Move up one line
+        sys.stdout.write("\033[K")  # Clear the line
+        
+        
     def load_file(self, filename):
         # Load file contents into buffer
         try:
@@ -45,7 +156,8 @@ class TextBuffer:
     def display(self):
         os.system('clear')
         print(f"Editing: {self.filename or 'New file'}")
-        print("Commands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, S - Save, Q - Quit")
+        print("Commands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit,\n"
+              "\t   Ctrl+B/F - Undo/Redo, S - Save, Q - Quit")
         print("-" * 80)
         
         # Clamp display range to valid lines
@@ -79,41 +191,50 @@ class TextBuffer:
         # Ensure current_line is within bounds
         if self.current_line >= len(self.lines):
             self.current_line = len(self.lines) - 1
-        
-        # Store original line in history if not already there
-        if self.current_line not in self.edit_history:
-            self.edit_history[self.current_line] = self.lines[self.current_line]
-            
+                
+        # Store original line for undo
+        old_text = self.lines[self.current_line]
+                
         # Set up readline with existing line content
-        readline.set_startup_hook(lambda: readline.insert_text(self.lines[self.current_line]))        
+        readline.set_startup_hook(lambda: readline.insert_text(old_text))        
         try:
             # Show prompt with line number and previous text
             prompt = f"{self.current_line+1:4d} [edit]: "
-            new_line = input(prompt).rstrip('\n')               
-            if new_line != self.lines[self.current_line]:
-                self.lines[self.current_line] = new_line
+            new_text = input(prompt).rstrip('\n')
+            
+            if new_text != old_text:
+                # Create and execute an undoable command (using class-based approach)
+                cmd = LineEditCommand(self.current_line, old_text, new_text)
+                self.push_undo_command(cmd)
+                cmd.execute(self)
                 self.dirty = True
         finally:
             # Clean up readline hook
             readline.set_startup_hook(None)
 
     def insert_line(self):
-        # Insert a new line after current position
-        self.lines.insert(self.current_line + 1, "")
+        # Create and execute an undoable command (using class-based approach)
+        cmd = InsertLineCommand(self.current_line + 1, "")
+        self.push_undo_command(cmd)
+        cmd.execute(self)
+        
+        # Original logic
         self.current_line += 1
-        # Ensure we don't go out of bounds
         if self.current_line >= len(self.lines):
             self.current_line = len(self.lines) - 1
         self.dirty = True
-
+            
     def delete_line(self):
-        # Delete current line
         if self.lines:
-            del self.lines[self.current_line]
+            # Create and execute an undoable command (using class-based approach)
+            cmd = DeleteLineCommand(self.current_line, self.lines[self.current_line])
+            self.push_undo_command(cmd)
+            cmd.execute(self)
+        
+            # Original logic
             if self.current_line >= len(self.lines) and self.current_line > 0:
                 self.current_line -= 1
             self.dirty = True
-
             
     def get_key_input(self):
         # Read a single key press, including arrow keys
@@ -122,6 +243,13 @@ class TextBuffer:
         try:
             tty.setraw(sys.stdin.fileno())
             ch = sys.stdin.read(1)
+
+            # First check for undo/redo shortcuts (Ctrl+B and Ctrl+F)
+            if ch == '\x02':  # Ctrl+B for undo
+                return 'undo'
+            elif ch == '\x06':  # Ctrl+F for redo
+                return 'redo'
+            
             if ch == '\x1b':  # Possible arrow key or other special key
                 # Set non-blocking mode temporarily
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
@@ -148,7 +276,9 @@ class TextBuffer:
                 finally:
                     fcntl.fcntl(fd, fcntl.F_SETFL, fl)
                 return ch  # Return just ESC if not special key
+
             return ch.lower() if ch else ''  # Return regular key as lowercase or empty string if no input
+
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
@@ -162,6 +292,13 @@ class TextBuffer:
                 
                 cmd = self.get_key_input()
                 if not cmd:  # Skip if no command received
+                    continue
+
+                if cmd == 'undo':   # Ctrl+B for undo
+                    self.undo()
+                    continue
+                elif cmd == 'redo':   # Ctrl+F for redo
+                    self.redo()
                     continue
                 
                 # Handle arrow keys

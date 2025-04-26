@@ -19,6 +19,7 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
   - Line-by-line editing with syntax
   - Preserves existing text when modifying lines
   - Insert/delete line operations
+  - Undo/Redo changes (currently limit set to 120)
 - **File Browser**:
   - List directory contents
   - Change working directories
@@ -58,6 +59,7 @@ chmod +x editor.py
 |---|---|
 |`↑`/`↓`|Navigate between lines / Scroll by lines|
 | `PgUp` / `PgDn` | Scroll by 40 lines buffer|
+|`Ctrl+B` / `Ctrl+F` | Undo/Redo 
 |`Enter`/`e`|Edit current line|
 |`i`|Insert new line|
 |`d`|Delete current line|
