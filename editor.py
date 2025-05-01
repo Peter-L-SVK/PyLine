@@ -11,7 +11,7 @@ import os
 import dirops
 import execmode
 import utils
-from textbuffer import TextBuffer
+from text_buffer import TextBuffer
 
 def main():
     # Register signal handler (for OS-level interrupts)
