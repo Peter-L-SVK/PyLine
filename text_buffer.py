@@ -204,8 +204,8 @@ class TextBuffer:
             if self.filename and self.filename.endswith('.py'):
                 line_text = self._highlight_python(line_text)
 
-                # Ensure RESET at end of each line
-                print(f"\033[0m{prefix}{line_num:4d}: {line_text}\033[0m")
+            # Ensure RESET at end of each line
+            print(f"\033[0m{prefix}{line_num:4d}: {line_text}\033[0m")
 
         sys.stdout.flush()
 
