@@ -1,3 +1,10 @@
+#----------------------------------------------------------------
+# PyLine 0.1 - Line editor (GPLv3)
+# Copyright (C) 2018-2025 Peter Leukanič
+# License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
+# This is free software with NO WARRANTY.
+#----------------------------------------------------------------
+
 import os
 import readline
 import sys
@@ -158,6 +165,7 @@ class TextBuffer:
             self.current_line = 0
             self.current_col = 0
             return True
+
         except IOError:
             return False
 
@@ -171,9 +179,9 @@ class TextBuffer:
                 f.write('\n'.join(self.lines))
             self.dirty = False
             return True
+
         except IOError:
             return False
-
 
     def display(self):
         os.system('clear')
@@ -296,10 +304,12 @@ class TextBuffer:
                                 ch3 = sys.stdin.read(1)
                                 if ch3 == '~':
                                     return '\x1b[5~'
+
                             elif ch2[1] == '6':  # PgDn
                                 ch3 = sys.stdin.read(1)
                                 if ch3 == '~':
                                     return '\x1b[6~'
+
                             elif ch2[1] == 'F':  # End key
                                 return '\x1b[F'
 
@@ -329,6 +339,7 @@ class TextBuffer:
                 if cmd == 'undo':   # Ctrl+B for undo
                     self.undo()
                     continue
+
                 elif cmd == 'redo':   # Ctrl+F for redo
                     self.redo()
                     continue
@@ -402,15 +413,19 @@ class TextBuffer:
                                     self.edit_history.clear()
                                     self.dirty = False
                                     return True  # Indicate save was performed
+
                                 else:
                                     print("Error saving file!")
                                     continue
+
                             elif save == 'n':
                                 print("Changes not saved.")
                                 return False  # Indicate no save was performed
+
                             else:
                                 print("Only Y/N!")
                     return None  # Indicate no changes needed saving
+
                 else:
                     # Handle invalid key press
                     print("Invalid key. Please use: ↑, ↓, PgUp, PgDn, End, E, Enter, I, D, S, Q")
@@ -429,5 +444,3 @@ class TextBuffer:
                 print("^C - Use 'Q' to quit or continue editing")
                 os.system('read -p "Press enter to continue..."')
                 continue
-
-          
