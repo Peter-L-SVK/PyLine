@@ -76,6 +76,8 @@ chmod +x editor.py
 |`cwd`|Change working directory|
 |`cdp`|Change the default path|
 |`mkdir`|Create new directory|
+|`rmdir`|Remove a nonempty/empty directory|
+|`rmfile`|Remove a file|
 |`cls`|Clear screen|
 |`q`|Exit file management|
 |`Ctrl+D`|Escape from function|

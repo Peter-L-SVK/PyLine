@@ -6,6 +6,7 @@
 #----------------------------------------------------------------
 
 import os
+from shutil import rmtree
 
 def currentdir():
     #Get the current working directory.
@@ -29,16 +30,34 @@ def cd(new_dir):
     #Change the current working directory.
     os.chdir(new_dir)
     return currentdir()
-
+    
 def mkdir(dir_name):
     #Create a new directory.
     if not os.path.isdir(dir_name):
         os.makedirs(dir_name)
         print('Directory', dir_name, 'created.\n')
     else:
-        print('Directory or file named', dir_name, 'already exists!\n')
+        print('Directory named', dir_name, 'already exists!\n')
         return 1
 
+def rmfile(file_name):
+    #Remove a file.
+    if os.path.isfile(file_name):
+        os.remove(file_name)
+        print('File', file_name, 'deleted.\n')
+    else:
+        print('File', file_name, 'doesn\'t exists!\n')
+        return 1
+        
+def rmdir(dir_name):
+    #Remove a directory.
+    if os.path.isdir(dir_name):
+        rmtree(dir_name)
+        print('Directory', dir_name, 'deleted.\n')
+    else:
+        print('Directory named', dir_name, 'doesn\'t exists!\n')
+        return 1
+    
 def original_path(original_dir):
     #Save the original directory path to a file.
     with open('defaultpath.dat', 'w') as f:
