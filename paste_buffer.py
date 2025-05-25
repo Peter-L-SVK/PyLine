@@ -63,45 +63,45 @@ class PasteBuffer:
                     break
 
     def get_system_clipboard(self):
-    """Attempt to get text from system clipboard with Wayland/X11/macOS/Windows support."""
-    try:
-        # Detect Wayland (common on modern Linux/BSD GUIs)
-        if os.environ.get('WAYLAND_DISPLAY'):
-            try:
-                return subprocess.check_output(['wl-paste'], text=True)
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                pass  # Fall through to other methods
-
-        # Try X11 (Linux/FreeBSD with xclip)
-        if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
-            try:
-                return subprocess.check_output(
-                    ['xclip', '-selection', 'clipboard', '-o'],
-                    text=True
-                )
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                pass  # Fall through to other methods
-
-        # Try macOS (pbpaste)
-        if sys.platform == 'darwin':
-            try:
-                return subprocess.check_output(['pbpaste'], text=True)
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                pass
-
-        # Try Windows (win32clipboard or WSL)
-        if sys.platform == 'win32':
-            try:
-                import win32clipboard
-                win32clipboard.OpenClipboard()
-                data = win32clipboard.GetClipboardData()
-                win32clipboard.CloseClipboard()
-                return data
-            except (ImportError, RuntimeError):
-                pass  # win32clipboard not available
-
-        # Final fallback (empty string if all methods fail)
-        return ""
+        """Attempt to get text from system clipboard with Wayland/X11/macOS/Windows support."""
+        try:
+            # Detect Wayland (common on modern Linux/BSD GUIs)
+            if os.environ.get('WAYLAND_DISPLAY'):
+                try:
+                    return subprocess.check_output(['wl-paste'], text=True)
+                except (subprocess.CalledProcessError, FileNotFoundError):
+                    pass  # Fall through to other methods
+                
+            # Try X11 (Linux/FreeBSD with xclip)
+            if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
+                try:
+                    return subprocess.check_output(
+                        ['xclip', '-selection', 'clipboard', '-o'],
+                        text=True
+                    )
+                except (subprocess.CalledProcessError, FileNotFoundError):
+                    pass  # Fall through to other methods
+                    
+                # Try macOS (pbpaste)
+                if sys.platform == 'darwin':
+                    try:
+                        return subprocess.check_output(['pbpaste'], text=True)
+                    except (subprocess.CalledProcessError, FileNotFoundError):
+                        pass
+                    
+                    # Try Windows (win32clipboard or WSL)
+                    if sys.platform == 'win32':
+                        try:
+                            import win32clipboard
+                            win32clipboard.OpenClipboard()
+                            data = win32clipboard.GetClipboardData()
+                            win32clipboard.CloseClipboard()
+                            return data
+                        except (ImportError, RuntimeError):
+                            pass  # win32clipboard not available
+                        
+            # Final fallback (empty string if all methods fail)
+            return ""
 
     except Exception:
         return ""  # Catch-all for unexpected errors
