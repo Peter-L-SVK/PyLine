@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.1 - Line editor (GPLv3)
+# PyLine 0.5 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -15,9 +15,11 @@ class Colors:
     VARIABLE = '\033[38;5;27m'    # Dark blue (for variables)
     NUMBER = '\033[38;5;94m'      # Brown (for numbers)
     FUNCTION = '\033[38;5;130m'   # Orange (for built-ins)
-    CLASS = '\033[38;5;95m'       # Dusty rose  (for classes)
+    CLASS = '\033[38;5;95m'       # Dusty rose (for classes)
     ERROR = '\033[38;5;124m'      # Dark red (for exceptions)
     MODULE = '\033[38;5;54m'      # Purple (for imports)
+    DECORATOR = '\033[38;5;92m'   # Dark Purple (for decorators)
+    ANNOTATION = '\033[38;5;67m'  # Light blue (for type hints)
     RESET = '\033[0m'             # Reset color
 
 class SyntaxHighlighter:
@@ -25,11 +27,15 @@ class SyntaxHighlighter:
         self.in_docstring = False
 
     def _highlight_python(self, line):
-        # Store original line for reference
         original_line = line
-        highlighted_chars = [False] * len(original_line)  # Track original character positions
+        highlighted_chars = [False] * len(original_line)
 
         # Define syntax elements to highlight (in order of priority)
+        # --- SOLUTION ---
+        # The "Keywords" rule has been moved before the "Type annotations" rule.
+        # This ensures that keywords like `else:`, `try:`, `except:`, etc., are
+        # matched and colored correctly before the type annotation rule has
+        # a chance to misinterpret them.
         syntax_elements = [
             # Multi-line docstrings (highest priority)
             {
@@ -49,10 +55,61 @@ class SyntaxHighlighter:
                 'color': Colors.COMMENT,
                 'check_strings': True
             },
+
+            # Special case for try/except blocks (ADD THIS)
+            {
+                'pattern': r'(?<!\w)(except|try|finally)\s+(\w+)\s*:',
+                'color': lambda m: (
+                    Colors.KEYWORD + m.group(1) + Colors.RESET + ' ' +
+                    Colors.ERROR + m.group(2) + Colors.RESET + ':'
+                ),
+                'check_strings': True
+            },
+
+            # Keywords
+            {
+                'pattern': r'(?<!\w)('
+                           r'False|None|True|and|as|assert|async|await|break|case|class|continue|def|del|'
+                           r'elif|else|except|finally|for|from|global|if|import|in|is|lambda|match|'
+                           r'nonlocal|not|or|pass|raise|return|self|try|while|with|yield'
+                           r')(?!\w)',
+                'color': Colors.KEYWORD
+            },
+            # Decorators
+            {
+                'pattern': r'^\s*@\w+(?:\.\w+)*\s*$',
+                'color': Colors.DECORATOR,
+                'check_strings': True
+            },
+            # Type annotations (variable: type)
+            {
+                'pattern': r'\b\w+\s*:\s*[\w\[\], \.]*',
+                'color': lambda m: (
+                    m.group(0).split(':')[0] +
+                    ':' + Colors.ANNOTATION +
+                    m.group(0).split(':', 1)[1] + Colors.RESET
+                ),
+                'check_strings': True
+            },
+            # Return annotations (-> type)
+            {
+                'pattern': r'->\s*[\w\[\], \.]*',
+                'color': Colors.ANNOTATION,
+                'check_strings': True
+            },
             # Variable declarations
             {
-                'pattern': r'^\s*(\w+)\s*=\s*',
-                'color': lambda m: m.group(0).replace(m.group(1), Colors.VARIABLE + m.group(1) + Colors.RESET),
+                'pattern': r'^\s*(?P<vars>(?:[a-zA-Z_][a-zA-Z0-9_]*\s*,\s*)*[a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*',
+                'color': lambda m: (
+                    m.group(0).replace(
+                        m.group('vars'),
+                        re.sub(
+                            r'([a-zA-Z_][a-zA-Z0-9_]*)',
+                            lambda x: Colors.VARIABLE + x.group(1) + Colors.RESET,
+                            m.group('vars')
+                        )
+                    )
+                ),
                 'is_declaration': True
             },
             # Function definitions
@@ -69,130 +126,116 @@ class SyntaxHighlighter:
                           .replace(m.group(1), Colors.CLASS + m.group(1) + Colors.RESET),
                 'is_declaration': True
             },
-            # Exceptions
+            # Exceptions pattern
             {
-                'pattern': r'(?<!\w)('
-                           r'Exception|ArithmeticError|FloatingPointError|OverflowError|ZeroDivisionError|'
-                           r'AssertionError|AttributeError|BufferError|EOFError|ExceptionGroup|BaseExceptionGroup|'
-                           r'ImportError|ModuleNotFoundError|LookupError|IndexError|KeyError|MemoryError|'
-                           r'NameError|UnboundLocalError|OSError|BlockingIOError|ChildProcessError|'
-                           r'ConnectionError|BrokenPipeError|ConnectionAbortedError|ConnectionRefusedError|'
-                           r'ConnectionResetError|FileExistsError|FileNotFoundError|InterruptedError|'
-                           r'IsADirectoryError|NotADirectoryError|PermissionError|ProcessLookupError|'
-                           r'TimeoutError|ReferenceError|RuntimeError|NotImplementedError|'
-                           r'PythonFinalizationError|RecursionError|StopAsyncIteration|StopIteration|'
-                           r'SyntaxError|IndentationError|TabError|SystemError|TypeError|ValueError|'
-                           r'UnicodeError|UnicodeDecodeError|UnicodeEncodeError|UnicodeTranslateError'
+                'pattern': r'(?<!\w)(?!except\s+)(?!try\s+)(?!finally\s+)('
+                           r'BaseException|BaseExceptionGroup|GeneratorExit|KeyboardInterrupt|SystemExit|'
+                           r'Exception|ExceptionGroup|'
+                           r'ArithmeticError|FloatingPointError|OverflowError|ZeroDivisionError|'
+                           r'AssertionError|AttributeError|BufferError|EOFError|'
+                           r'ImportError|ModuleNotFoundError|'
+                           r'LookupError|IndexError|KeyError|'
+                           r'MemoryError|'
+                           r'NameError|UnboundLocalError|'
+                           r'OSError|BlockingIOError|ChildProcessError|'
+                           r'ConnectionError|BrokenPipeError|ConnectionAbortedError|ConnectionRefusedError|ConnectionResetError|'
+                           r'FileExistsError|FileNotFoundError|InterruptedError|IsADirectoryError|NotADirectoryError|'
+                           r'PermissionError|ProcessLookupError|TimeoutError|'
+                           r'ReferenceError|'
+                           r'RuntimeError|NotImplementedError|PythonFinalizationError|RecursionError|'
+                           r'StopAsyncIteration|StopIteration|'
+                           r'SyntaxError|IndentationError|TabError|'
+                           r'SystemError|'
+                           r'TypeError|'
+                           r'ValueError|UnicodeError|UnicodeDecodeError|UnicodeEncodeError|UnicodeTranslateError|'
+                           r'Warning|BytesWarning|DeprecationWarning|EncodingWarning|FutureWarning|ImportWarning|'
+                           r'PendingDeprecationWarning|ResourceWarning|RuntimeWarning|SyntaxWarning|UnicodeWarning|UserWarning'
                            r')(?!\w)',
                 'color': Colors.ERROR
-            },
-            # Keywords - only match whole words
-            {
-                'pattern': r'(?<!\w)('
-                           r'False|None|True|and|as|assert|async|await|break|case|class|continue|def|del|'
-                           r'elif|else|except|finally|for|from|global|if|import|in|is|lambda|match|'
-                           r'nonlocal|not|or|pass|raise|return|self|try|while|with|yield'
-                           r')(?!\w)',
-                'color': Colors.KEYWORD
             },
             # Built-in functions
             {
                 'pattern': r'\b('
-                           # I/O and printing
                            r'print|input|open|'
-                           
-                           # Type conversion
                            r'int|float|str|bool|list|dict|set|tuple|frozenset|bytes|bytearray|memoryview|'
                            r'complex|bin|hex|oct|chr|ord|'
-                           
-                           # Math and numbers
                            r'abs|divmod|pow|round|sum|'
-                           
-                           # Sequences and iteration
                            r'len|range|enumerate|zip|reversed|sorted|iter|next|'
-                           
-                           # Object introspection
                            r'type|isinstance|issubclass|callable|hash|id|'
-                           
-                           # Attributes and reflection
                            r'getattr|setattr|hasattr|delattr|vars|dir|property|super|'
-                           
-                           # Modules and imports
                            r'__import__|globals|locals|'
-                           
-                           # Code evaluation
                            r'eval|exec|compile|'
-                           
-                           # Decorators
                            r'staticmethod|classmethod|'
-                           
-                           # Files and I/O
                            r'format|repr|ascii|'
-                           
-                           # Misc
                            r'breakpoint|slice|any|all|min|max|map|filter|'
                            r'help|copyright|credits|license|'
-                           
-                           # Python 3.8+ (walrus operator support)
                            r'__build_class__|'
-                           
-                           # Python 3.10+ (pattern matching)
                            r'match|case'
                            r')\b(?!\w)(?=\s*\()',
-                           'color': Colors.FUNCTION
+                'color': Colors.FUNCTION
             },
-            # Numbers - only whole numbers
+            # Numbers (all formats)
             {
-                'pattern': r'(?<!\w)\d+(?!\w)',
+                'pattern': r'(?<!\w)('
+                           r'0[xX][0-9a-fA-F]+'  # Hex
+                           r'|0[oO]?[0-7]+'      # Octal
+                           r'|0[bB][01]+'        # Binary
+                           r'|\d+\.?\d*([eE][+-]?\d+)?'  # Float/scientific
+                           r'|\.\d+([eE][+-]?\d+)?'      # Float starting with .
+                           r'|\d+'               # Integer
+                           r')(?!\w)',
                 'color': Colors.NUMBER
             }
         ]
 
-        # If we're in a multiline docstring, highlight the line as a comment
+        # Handle docstrings
         if self.in_docstring:
-            if '"""' in line or "'''" in line:  # Check if the docstring ends on this line
+            if '"""' in line or "'''" in line:
                 self.in_docstring = False
-                return Colors.COMMENT + line + Colors.RESET
-            else:
-                return Colors.COMMENT + line + Colors.RESET
+            return Colors.COMMENT + line + Colors.RESET
 
-        # Check if this line starts a multiline docstring
         docstring_start = re.match(r'^\s*(\"{3}|\'{3})', original_line)
         if docstring_start:
             quote_type = docstring_start.group(1)
             if original_line.rstrip().endswith(quote_type) and len(original_line.strip()) > 6:
-                # Single-line docstring
                 return Colors.COMMENT + original_line + Colors.RESET
             else:
-                # Multiline docstring starts
                 self.in_docstring = True
                 return Colors.COMMENT + original_line + Colors.RESET
-        
-        # We'll build the highlighted line incrementally
+
+        # Process line character by character
         result = []
         i = 0
         n = len(original_line)
 
-        # Process line character by character
         while i < n:
             matched = False
-            
-            # Handle f-string variables - skip coloring anything between { } in f-strings
+
+            # Handle f-string expressions (highlight contents of {...})
             if original_line[i] == '{' and 'f"' in original_line[:i]:
                 closing_brace = original_line.find('}', i)
                 if closing_brace == -1:
                     closing_brace = len(original_line)
-                    result.append(original_line[i:closing_brace + 1])
-                    i = closing_brace + 1
-                    continue
 
-            # Skip parentheses, brackets, and braces (keep them black)
+                # Extract the expression inside {}
+                expr = original_line[i+1:closing_brace]
+                if expr.strip():
+                    # Highlight variables and numbers in the expression
+                    highlighted_expr = self._highlight_expr(expr)
+                    result.append('{' + highlighted_expr + '}')
+                else:
+                    result.append('{}')
+
+                i = closing_brace + 1
+                continue
+
+            # Skip parentheses, brackets, and braces
             if original_line[i] in '()[]{}':
                 result.append(original_line[i])
                 i += 1
                 continue
 
-            # Check each syntax element in priority order
+            # Check each syntax element
             for element in syntax_elements:
                 if element.get('is_docstring'):
                     continue
@@ -201,8 +244,7 @@ class SyntaxHighlighter:
                 color = element['color']
                 check_strings = element.get('check_strings', False)
                 is_string = element.get('is_string', False)
-                
-                # Check for matches at current position
+
                 match = re.match(pattern, original_line[i:])
                 if not match:
                     continue
@@ -210,30 +252,27 @@ class SyntaxHighlighter:
                 text = match.group()
                 start, end = i, i + len(text)
 
+                # Skip if already highlighted
+                if any(highlighted_chars[start:end]):
+                    continue
+
                 # Skip if within a string (unless explicitly allowed)
                 if check_strings or is_string:
                     in_string = False
                     for j in range(i):
-                        if original_line[j] in ('"', "'") and (j == 0 or original_line[j - 1] != '\\'):
+                        if original_line[j] in ('"', "'") and (j == 0 or original_line[j-1] != '\\'):
                             in_string = not in_string
                     if in_string and not is_string:
                         continue
-                
-                # Refine keyword highlighting
+
                 if element.get('color') == Colors.KEYWORD:
-                    # Ensure the match is not part of a string
                     in_string = False
                     for j in range(i):
-                        if original_line[j] in ('"', "'") and (j == 0 or original_line[j - 1] != '\\'):
+                        if original_line[j] in ('"', "'") and (j == 0 or original_line[j-1] != '\\'):
                             in_string = not in_string
-                    if in_string:  # Skip if inside a string
+                    if in_string:
                         continue
 
-                # Skip if any of these characters are already highlighted
-                if any(highlighted_chars[i:i + len(text)]):
-                    continue
-                
-                # Apply the color
                 if callable(color):
                     colored_text = color(match)
                 else:
@@ -241,19 +280,44 @@ class SyntaxHighlighter:
 
                 result.append(colored_text)
 
-                # Mark these positions as highlighted
-                for j in range(i, i + len(text)):
+                for j in range(start, end):
                     if j < len(highlighted_chars):
-                       highlighted_chars[j] = True
+                        highlighted_chars[j] = True
 
-                # Move position forward
                 i += len(text)
                 matched = True
                 break
 
             if not matched:
-                # No syntax element matched at this position - keep it black
                 result.append(original_line[i])
                 i += 1
 
         return ''.join(result)
+
+    def _highlight_expr(self, expr):
+        """Helper to highlight f-string expressions"""
+        highlighted = []
+        i = 0
+        n = len(expr)
+
+        while i < n:
+            # Highlight variables
+            var_match = re.match(r'[a-zA-Z_][a-zA-Z0-9_]*', expr[i:])
+            if var_match:
+                var = var_match.group()
+                highlighted.append(Colors.VARIABLE + var + Colors.RESET)
+                i += len(var)
+                continue
+
+            # Highlight numbers
+            num_match = re.match(r'\d+\.?\d*', expr[i:])
+            if num_match:
+                num = num_match.group()
+                highlighted.append(Colors.NUMBER + num + Colors.RESET)
+                i += len(num)
+                continue
+
+            highlighted.append(expr[i])
+            i += 1
+
+        return ''.join(highlighted)

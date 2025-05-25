@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #----------------------------------------------------------------
-# PyLine 0.1 - Line editor (GPLv3)
+# PyLine 0.5 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -26,7 +26,7 @@ def main():
     dirops.default_path(original_destination)
     current_dir = dirops.currentdir()
     
-    print('PyLine 0.1 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
+    print('PyLine 0.5 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
     print('This program comes with ABSOLUTELY NO WARRANTY; for details type \'i\'.\n')
     
     try:

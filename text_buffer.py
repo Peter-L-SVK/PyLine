@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.1 - Line editor (GPLv3)
+# PyLine 0.5 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -13,55 +13,8 @@ import termios
 import fcntl
 import time
 from syntax_highlighter import SyntaxHighlighter
-
-class EditCommand:
-    #Base class for all editable commands.
-    def execute(self, buffer):
-         raise NotImplementedError
-
-    def undo(self, buffer):
-         raise NotImplementedError
-
-class LineEditCommand(EditCommand):
-    #Tracks changes to a single line.
-    def __init__(self, line_num, old_text, new_text):
-        self.line_num = line_num
-        self.old_text = old_text
-        self.new_text = new_text
-
-    def execute(self, buffer):
-        if self.line_num < len(buffer.lines):
-            buffer.lines[self.line_num] = self.new_text
-
-    def undo(self, buffer):
-        if self.line_num < len(buffer.lines):
-            buffer.lines[self.line_num] = self.old_text
-
-class InsertLineCommand(EditCommand):
-    #Tracks line insertion.
-    def __init__(self, line_num, text):
-        self.line_num = line_num
-        self.text = text
-
-    def execute(self, buffer):
-        buffer.lines.insert(self.line_num, self.text)
-
-    def undo(self, buffer):
-        if self.line_num < len(buffer.lines):
-            del buffer.lines[self.line_num]
-
-class DeleteLineCommand(EditCommand):
-    #Tracks line deletion.
-    def __init__(self, line_num, text):
-        self.line_num = line_num
-        self.text = text
-
-    def execute(self, buffer):
-        if self.line_num < len(buffer.lines):
-            del buffer.lines[self.line_num]
-
-    def undo(self, buffer):
-        buffer.lines.insert(self.line_num, self.text)
+from edit_commands import EditCommand, LineEditCommand, InsertLineCommand, DeleteLineCommand
+from paste_buffer import PasteBuffer
 
 class TextBuffer:
     def __init__(self):
@@ -78,6 +31,7 @@ class TextBuffer:
         self.syntax_highlighting = False
         self.syntax_highlighter = SyntaxHighlighter()
         self._init_color_support()
+        self.paste_buffer = PasteBuffer()
 
     def _init_color_support(self):
         #Initialize color support with more thorough checks
@@ -155,6 +109,43 @@ class TextBuffer:
         sys.stdout.write("\033[K")  # Clear the line
 
 
+    def copy_to_clipboard(self, start_line=None, end_line=None):
+        """Copy selected lines to system clipboard"""
+        if start_line is None:
+            start_line = self.current_line
+        if end_line is None:
+            end_line = self.current_line
+                
+        lines = self.lines[start_line:end_line+1]
+        text_to_copy = '\n'.join(lines)
+        if self.paste_buffer.copy_to_clipboard(text_to_copy):
+            self._show_status_message(f"Copied {end_line-start_line+1} lines to clipboard")
+            return True
+        else:
+            self._show_status_message("Failed to copy to clipboard")
+            return False
+
+    def paste_from_buffer(self, mode='insert'):
+        #Paste from buffer with specified mode
+        if mode == 'insert':
+            return self.paste_buffer.paste_into(self)
+
+        else:    
+            return self.paste_buffer.paste_over(self)
+
+    def paste_from_clipboard(self, mode='insert'):
+        #Paste from system clipboard with proper formatting
+        if not self.paste_buffer.load_from_clipboard():
+            self._show_status_message("Clipboard empty or inaccessible")
+            return
+        
+        if mode == 'insert':
+            lines_pasted = self.paste_buffer.paste_into(self)
+        else:
+            lines_pasted = self.paste_buffer.paste_over(self)
+            
+            self._show_status_message(f"Pasted {lines_pasted} lines")
+            
     def load_file(self, filename):
         # Load file contents into buffer
         try:
@@ -191,8 +182,8 @@ class TextBuffer:
 
         # Print header with forced color reset
         print(f"\033[0mEditing: {self.filename or 'New file'}")
-        print("\033[0mCommands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit,")
-        print("\t   Ctrl+B/F - Undo/Redo, S - Save, Q - Quit")
+        print("""\033[0mCommands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
+        C - Copy, V - Paste, O - Overwrite, S - Save, Q - Quit""")
         print("\033[0m" + "-" * 80)  # Reset before line
 
         for idx in range(self.display_start,
@@ -394,6 +385,12 @@ class TextBuffer:
                     self.edit_current_line()
                 elif cmd == 'i':
                     self.insert_line()
+                elif cmd == 'c':  # Copy
+                    self.copy_to_clipboard()
+                elif cmd == 'v':  # Paste insert mode
+                    self.paste_from_clipboard(mode='insert')
+                elif cmd == 'o':  # Paste overwrite mode
+                    self.paste_from_clipboard(mode='overwrite')
                 elif cmd == 'd':
                     self.delete_line()
                 elif cmd == 's':

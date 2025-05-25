@@ -13,18 +13,54 @@ def currentdir():
     return os.getcwd()
 
 def contentdir():
-    #List the contents of the current directory.
-    print('Current directory content is: ')
+    """List directory contents with enhanced formatting and colored output"""
+    print('\nCurrent directory contents:\n')
+    
+    # ANSI color codes (keeping your requested colors)
+    DIR_COLOR = '\033[1;94m'         #Bold Blue for directories
+    EXEC_COLOR = '\033[38;5;28m'   # Dark Green for executables
+    SYM_COLOR = '\033[95m'         # Magenta for symlinks
+    RESET_COLOR = '\033[0m'
+    
+    # Column formatting
+    COLUMN_WIDTH = 28
+    ITEMS_PER_ROW = 3
     
     with os.scandir() as entries:
-        # Create list of entries and sort with dirs first then alphabetical
+        # Sort directories first, then alphabetically
         sorted_entries = sorted(entries, key=lambda e: (not e.is_dir(), e.name.lower()))
+        
+        entries_with_length = []
         for entry in sorted_entries:
-            if entry.is_dir():
-                print(entry.name, '-dir')
-            elif entry.is_file():
-                print(entry.name)
-    print('\n')
+            name = entry.name
+            if entry.is_symlink():
+                target = os.readlink(entry.path)
+                colored = f"{SYM_COLOR}{name} → {target}{RESET_COLOR}"
+                raw_length = len(name) + len(target) + 2  # +2 for arrow/spaces
+            elif entry.is_dir():
+                colored = f"{DIR_COLOR}{name}{RESET_COLOR}"
+                raw_length = len(name)
+            elif os.access(entry.path, os.X_OK):
+                colored = f"{EXEC_COLOR}{name}{RESET_COLOR}"
+                raw_length = len(name)
+            else:
+                colored = name
+                raw_length = len(name)
+            
+            entries_with_length.append((colored, raw_length))
+        
+        # Calculate padding for each entry
+        formatted_entries = []
+        for text, length in entries_with_length:
+            padding = ' ' * (COLUMN_WIDTH - length) if length < COLUMN_WIDTH else ''
+            formatted_entries.append(f"{text}{padding}")
+        
+        # Print in columns
+        for i in range(0, len(formatted_entries), ITEMS_PER_ROW):
+            row = formatted_entries[i:i+ITEMS_PER_ROW]
+            print('  '.join(row))
+    
+    print()  # Extra newline for spacing
 
 def cd(new_dir):
     #Change the current working directory.

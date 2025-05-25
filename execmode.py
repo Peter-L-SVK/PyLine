@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.1 - Line editor (GPLv3)
+# PyLine 0.5 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -16,8 +16,8 @@ def execmode(original_destination):
         current_dir = dirops.currentdir()
         print('Executable mode\n')
         print(f'Current working directory: {current_dir}\n')
-        print(""" Menu: AF - All files, CWD - Change working directory, CDP - Change default path, MKDIR - Make a directory,
-        RMDIR - Remove a directory, RMFILE - Remove a file, CLS - Clear screen, Q - Exit from exec mode\n""")
+        print(""" Menu: AF - All files, CWD - Change working directory, CDP - Change default path, MKDIR - Make a directory, RMDIR - Remove a directory,
+        RMFILE - Remove a file, RENAME - rename a file/directory, CLS - Clear screen, Q - Exit from exec mode\n""")
         try:
             choice_exec = input('Your choice: ').lower()
             if choice_exec == 'af':
@@ -164,7 +164,37 @@ def execmode(original_destination):
                     
                     else:
                         print('Only Y/N!\n')
-                        
+
+            elif choice_exec == 'rename':
+                answer = None
+                while answer != 'y':
+                    answer = input('Would you like to rename a file/directory? [Y/N]: ').lower()
+                    if answer == 'y':
+                        while True:
+                            try:
+                                dirops.contentdir()
+                                old_name = input('\nEnter current name: ')
+                                new_name = input('Enter new name: ')
+                                
+                                if not old_name or not new_name:
+                                    print('Error, names cannot be empty!\n')
+                                    continue
+                                
+                                try:
+                                    os.rename(old_name, new_name)
+                                    print(f'Renamed {old_name} to {new_name}\n')
+                                    prompt_continue()
+                                    break
+                                
+                                except OSError as e:
+                                    print(f'Error renaming: {e}\n')
+                                    prompt_continue()
+                                    continue
+                                
+                            except EOFError:
+                                os.system('clear')
+                                break
+                                
                         
             elif choice_exec == 'cls':
                 os.system('clear')     

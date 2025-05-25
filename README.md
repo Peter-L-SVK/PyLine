@@ -2,7 +2,8 @@
 
 ![PyLine Demo](demo.png) 
 
-PyLine is a minimalist command-line text editor designed for Linux/BSD systems, written in Python 3 and borrowing BASH and system calls. Originally created in 2018, it has been modernized with improved text buffer management while maintaining its simple, line by line workflow. Remember please, it is a hobby project and not a proffesional aplication. 
+PyLine is a minimalist command-line text editor designed for Linux/BSD systems, written in Python 3 with use of systems calls. Originally created in 2018 and modernized in 2025, it combines improved text management with a simple, line-by-line workflow. 
+(*Note: This is a hobby project, not a professional application.*)
 
 ## Features
 
@@ -11,19 +12,24 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
   - Edit existing files
   - Create new files
   - Truncate existing files
+  - Count words, lines and characters
 - **Navigation**:
   - Move between lines and scroll file with arrow keys
   - Scroll file by keys PageUp and PageDown
-  - Jump to start/end of file (Ctrl+D for EOF)
+  - Jump to end of file (Ctrl+D for EOF)
 - **Editing**:
   - Line-by-line editing with syntax
   - Preserves existing text when modifying lines
   - Insert/delete line operations
-  - Undo/Redo changes (currently history limit set to 120)
+  - Undo/Redo changes (history limit set to 120)
+  - Copy and Paste text
   - Syntax highlighting for Python
 - **File Browser**:
   - List directory contents
   - Change working directories
+  - Make new directories
+  - Remove files and directories
+  - Rename files and directories
 - **Cross-Platform**: Works on Linux and BSD systems
 
 ## Installation
@@ -47,7 +53,7 @@ chmod +x editor.py
 |`1`|Edit existing file|
 |`2`|Create new file|
 |`3`|Truncate existing or create new file|
-|`cls`|Cleer screen|
+|`cls`|Clear screen|
 |`cw`|Count words in the file|
 |`x`|Enter file management mode (exec mode)|
 |`i`|Info|
@@ -60,10 +66,13 @@ chmod +x editor.py
 |---|---|
 |`↑`/`↓`|Navigate between lines / Scroll by lines|
 | `PgUp` / `PgDn` | Scroll by 40 lines buffer|
-|`Ctrl+B` / `Ctrl+F` | Undo/Redo 
+|`Ctrl+B` / `F` | Undo/Redo 
 |`Enter`/`e`|Edit current line|
 |`i`|Insert new line|
 |`d`|Delete current line|
+|`c`|Copy current line|
+|`p`|Paste from clipboard|
+|`o`|Overwrite lines|
 |`s`|Save file|
 |`q`|Quit editor|
 |`Ctrl+D` / `End`|Jump to end of file|
@@ -76,7 +85,8 @@ chmod +x editor.py
 |`cwd`|Change working directory|
 |`cdp`|Change the default path|
 |`mkdir`|Create new directory|
-|`rmdir`|Remove a nonempty/empty directory|
+|`rename`|Rename a file/directory|
+|`rmdir`|Remove a non empty/empty directory|
 |`rmfile`|Remove a file|
 |`cls`|Clear screen|
 |`q`|Exit file management|
@@ -85,9 +95,9 @@ chmod +x editor.py
 ## Requirements
 
 - Python 3.6+   
-- Linux/BSD system (tested on Fedora 27 and later on Fedora 40)
+- Linux/BSD system (tested on Fedora 27/30/40/42)
 - Bash shell
-
+- Clipboard: xclip (X11) or wl-clipboard (Wayland) for copy/paste
 ## License
 
 GNU GPL v3 - See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html) file for details.
