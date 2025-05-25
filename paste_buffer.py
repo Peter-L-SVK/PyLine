@@ -103,8 +103,8 @@ class PasteBuffer:
             # Final fallback (empty string if all methods fail)
             return ""
 
-    except Exception:
-        return ""  # Catch-all for unexpected errors
+        except Exception:
+            return ""  # Catch-all for unexpected errors
 
     def load_from_clipboard(self):
         """Load content from system clipboard"""
