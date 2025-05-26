@@ -31,11 +31,6 @@ class SyntaxHighlighter:
         highlighted_chars = [False] * len(original_line)
 
         # Define syntax elements to highlight (in order of priority)
-        # --- SOLUTION ---
-        # The "Keywords" rule has been moved before the "Type annotations" rule.
-        # This ensures that keywords like `else:`, `try:`, `except:`, etc., are
-        # matched and colored correctly before the type annotation rule has
-        # a chance to misinterpret them.
         syntax_elements = [
             # Multi-line docstrings (highest priority)
             {
@@ -56,7 +51,7 @@ class SyntaxHighlighter:
                 'check_strings': True
             },
 
-            # Special case for try/except blocks (ADD THIS)
+            # Special case for try/except blocks
             {
                 'pattern': r'(?<!\w)(except|try|finally)\s+(\w+)\s*:',
                 'color': lambda m: (
@@ -65,7 +60,25 @@ class SyntaxHighlighter:
                 ),
                 'check_strings': True
             },
+            # Function definitions
+            {
+                'pattern': r'^\s*def\s+(\w+)\s*\(',
+                'color': lambda m: m.group(0).replace('def', Colors.KEYWORD + 'def' + Colors.RESET)
+                              .replace(m.group(1), Colors.FUNCTION + m.group(1) + Colors.RESET),
+                'is_declaration': True
+            },
 
+            # Class definitions (only highlight in declarations)
+            {
+                'pattern': r'^\s*(class)\s+([\w_]+)((?:\s*\([\w\.,\s]*\s*\))?)\s*(?=:)',
+                'color': lambda m: (
+                    Colors.KEYWORD + m.group(1) + Colors.RESET + ' ' +
+                    Colors.CLASS + m.group(2) + Colors.RESET +
+                    m.group(3)
+                ),
+                'is_declaration': True
+            },
+            
             # Keywords
             {
                 'pattern': r'(?<!\w)('
@@ -81,6 +94,7 @@ class SyntaxHighlighter:
                 'color': Colors.DECORATOR,
                 'check_strings': True
             },
+
             # Type annotations (variable: type)
             {
                 'pattern': r'\b\w+\s*:\s*[\w\[\], \.]*',
@@ -97,6 +111,7 @@ class SyntaxHighlighter:
                 'color': Colors.ANNOTATION,
                 'check_strings': True
             },
+
             # Variable declarations
             {
                 'pattern': r'^\s*(?P<vars>(?:[a-zA-Z_][a-zA-Z0-9_]*\s*,\s*)*[a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*',
@@ -112,20 +127,7 @@ class SyntaxHighlighter:
                 ),
                 'is_declaration': True
             },
-            # Function definitions
-            {
-                'pattern': r'^\s*def\s+(\w+)\s*\(',
-                'color': lambda m: m.group(0).replace('def', Colors.KEYWORD + 'def' + Colors.RESET)
-                              .replace(m.group(1), Colors.FUNCTION + m.group(1) + Colors.RESET),
-                'is_declaration': True
-            },
-            # Class definitions
-            {
-                'pattern': r'^\s*class\s+(\w+)',
-                'color': lambda m: m.group(0).replace('class', Colors.KEYWORD + 'class' + Colors.RESET)
-                          .replace(m.group(1), Colors.CLASS + m.group(1) + Colors.RESET),
-                'is_declaration': True
-            },
+    
             # Exceptions pattern
             {
                 'pattern': r'(?<!\w)(?!except\s+)(?!try\s+)(?!finally\s+)('
