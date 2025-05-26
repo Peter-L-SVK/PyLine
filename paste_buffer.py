@@ -5,6 +5,7 @@
 # This is free software with NO WARRANTY.
 #----------------------------------------------------------------
 
+import os
 import re
 import sys
 import subprocess
@@ -63,48 +64,69 @@ class PasteBuffer:
                     break
 
     def get_system_clipboard(self):
-        """Attempt to get text from system clipboard with Wayland/X11/macOS/Windows support."""
+        """Universal clipboard getter with X11/Wayland/macOS/Windows support"""
         try:
-            # Detect Wayland (common on modern Linux/BSD GUIs)
-            if os.environ.get('WAYLAND_DISPLAY'):
+            # 1. First try Wayland (newer systems)
+            if 'WAYLAND_DISPLAY' in os.environ:
                 try:
-                    return subprocess.check_output(['wl-paste'], text=True)
-                except (subprocess.CalledProcessError, FileNotFoundError):
-                    pass  # Fall through to other methods
-                
-            # Try X11 (Linux/FreeBSD with xclip)
-            if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
+                    result = subprocess.run(
+                        ['wl-paste'],
+                        capture_output=True,
+                        text=True,
+                        timeout=2
+                    )
+                    if result.returncode == 0:
+                        return result.stdout
+                except (subprocess.SubprocessError, FileNotFoundError):
+                    pass
+
+            # 2. Try X11 (traditional Linux/BSD)
+            if 'DISPLAY' in os.environ:  # X11 session exists
+                try:
+                    result = subprocess.run(
+                        ['xclip', '-selection', 'clipboard', '-o'],
+                        capture_output=True,
+                        text=True,
+                        timeout=2
+                    )
+                    if result.returncode == 0:
+                        return result.stdout
+                except (subprocess.SubprocessError, FileNotFoundError):
+                    pass
+
+            # 3. Try macOS (pbpaste)
+            if sys.platform == 'darwin':
                 try:
                     return subprocess.check_output(
-                        ['xclip', '-selection', 'clipboard', '-o'],
-                        text=True
+                        ['pbpaste'],
+                        text=True,
+                        timeout=2
                     )
                 except (subprocess.CalledProcessError, FileNotFoundError):
-                    pass  # Fall through to other methods
-                    
-                # Try macOS (pbpaste)
-                if sys.platform == 'darwin':
+                    pass
+                
+            # 4. Try Windows (win32clipboard or WSL)
+            if sys.platform == 'win32':
+                try:
+                    import win32clipboard
+                    win32clipboard.OpenClipboard()
+                    data = win32clipboard.GetClipboardData()
+                    win32clipboard.CloseClipboard()
+                    return data
+                except (ImportError, RuntimeError):
+                    # Fallback to win32yank in WSL
                     try:
-                        return subprocess.check_output(['pbpaste'], text=True)
+                        return subprocess.check_output(
+                            ['win32yank.exe', '-o'],
+                            text=True,
+                            timeout=2
+                        )
                     except (subprocess.CalledProcessError, FileNotFoundError):
                         pass
                     
-                    # Try Windows (win32clipboard or WSL)
-                    if sys.platform == 'win32':
-                        try:
-                            import win32clipboard
-                            win32clipboard.OpenClipboard()
-                            data = win32clipboard.GetClipboardData()
-                            win32clipboard.CloseClipboard()
-                            return data
-                        except (ImportError, RuntimeError):
-                            pass  # win32clipboard not available
-                        
-            # Final fallback (empty string if all methods fail)
-            return ""
-
-        except Exception:
-            return ""  # Catch-all for unexpected errors
+        except Exception as e:
+            print(f"Clipboard warning: {str(e)}")
+        return ""
 
     def load_from_clipboard(self):
         """Load content from system clipboard"""
@@ -224,30 +246,66 @@ class PasteBuffer:
             return target_indent + line.lstrip()
 
     def set_system_clipboard(self, text):
-        """Attempt to set text to system clipboard"""
+        """Attempt to set text to system clipboard with Wayland/X11/macOS/Windows support."""
         try:
-            # Try xclip (Linux)
-            if sys.platform.startswith('linux'):
-                p = subprocess.Popen(['xclip', '-selection', 'clipboard'], stdin=subprocess.PIPE)
-                p.communicate(input=text.encode('utf-8'))
-                return True
-            # Try pbcopy (macOS)
-            elif sys.platform == 'darwin':
-                p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
-                p.communicate(input=text.encode('utf-8'))
-                return True
-            # Try Windows clipboard
-            elif sys.platform == 'win32':
-                import win32clipboard
-                win32clipboard.OpenClipboard()
-                win32clipboard.EmptyClipboard()
-                win32clipboard.SetClipboardText(text)
-                win32clipboard.CloseClipboard()
-                return True
-        except:
-            return False
-        return False
-    
+            # Detect Wayland first (modern Linux/BSD)
+            if os.environ.get('WAYLAND_DISPLAY'):
+                try:
+                    p = subprocess.Popen(['wl-copy'], stdin=subprocess.PIPE)
+                    p.communicate(input=text.encode('utf-8'))
+                    return True
+                
+                except (subprocess.SubprocessError, FileNotFoundError):
+                    pass  # Fall through to other methods
+
+            # Try X11 (Linux/BSD)
+            if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
+                try:
+                    p = subprocess.Popen(
+                        ['xclip', '-selection', 'clipboard'],
+                        stdin=subprocess.PIPE
+                    )
+                    p.communicate(input=text.encode('utf-8'))
+                    return True
+
+                except (subprocess.SubprocessError, FileNotFoundError):
+                    pass
+
+            # Try macOS
+            if sys.platform == 'darwin':
+                try:
+                    p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+                    p.communicate(input=text.encode('utf-8'))
+                    return True
+
+                except (subprocess.SubprocessError, FileNotFoundError):
+                    pass
+
+            # Try Windows (native or WSL with win32yank)
+            if sys.platform == 'win32':
+                try:
+                    import win32clipboard
+                    win32clipboard.OpenClipboard()
+                    win32clipboard.EmptyClipboard()
+                    win32clipboard.SetClipboardText(text)
+                    win32clipboard.CloseClipboard()
+                    return True
+
+                except (ImportError, RuntimeError):
+                    # Fallback to win32yank in WSL
+                    try:
+                        p = subprocess.Popen(['win32yank.exe', '-i'], stdin=subprocess.PIPE)
+                        p.communicate(input=text.encode('utf-8'))
+                        return True
+
+                    except (subprocess.SubprocessError, FileNotFoundError):
+                        pass
+
+            return False  # All methods failed
+
+        except Exception:
+            return False  # Catch-all for unexpected errors
+        
     def copy_to_clipboard(self, text):
         """Copy text to system clipboard"""
         return self.set_system_clipboard(text)
