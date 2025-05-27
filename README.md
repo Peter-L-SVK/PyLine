@@ -95,7 +95,7 @@ chmod +x editor.py
 ## Requirements
 
 - Python 3.6+   
-- Linux/BSD system (tested on Fedora 27/30/40/42)
+- Linux/BSD system (tested on Fedora 27 MATE, 40/42 Cinnmanon)
 - Bash shell
 - Clipboard: xclip (X11) or wl-clipboard (Wayland) for copy/paste
 ## License
