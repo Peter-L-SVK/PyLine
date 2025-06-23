@@ -22,6 +22,7 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
   - Preserves existing text when modifying lines
   - Insert/delete line operations
   - Undo/Redo changes (history limit set to 120)
+  - Multi line text selection
   - Copy and Paste text
   - Syntax highlighting for Python
 - **File Browser**:
@@ -73,8 +74,9 @@ chmod +x editor.py
 |`c`|Copy current line|
 |`p`|Paste from clipboard|
 |`o`|Overwrite lines|
-|`s`|Save file|
+|`s`|Start / End of selection|
 |`q`|Quit editor|
+|`w`|Write changes|
 |`Ctrl+D` / `End`|Jump to end of file|
 
 ### File Management Mode

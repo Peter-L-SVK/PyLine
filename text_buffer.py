@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.5 - Line editor (GPLv3)
+# PyLine 0.6 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -32,6 +32,9 @@ class TextBuffer:
         self.syntax_highlighter = SyntaxHighlighter()
         self._init_color_support()
         self.paste_buffer = PasteBuffer()
+        self.selection_start = None  # Line number where selection starts
+        self.selection_end = None    # Line number where selection ends
+        self.in_selection_mode = False  # Whether we're in selection mode
 
     def _init_color_support(self):
         #Initialize color support with more thorough checks
@@ -99,6 +102,49 @@ class TextBuffer:
         self.undo_stack.append(command)
         self.dirty = True
 
+    def start_selection(self):
+        """Start selection at current line"""
+        self.selection_start = self.current_line
+        self.in_selection_mode = True
+        self._show_status_message(f"Selection started at line {self.current_line + 1}")
+
+    def end_selection(self):
+        """End selection at current line"""
+        if not self.in_selection_mode:
+            self._show_status_message("No selection started - use 's' first")
+            return
+            
+        self.selection_end = self.current_line
+        self._show_status_message(f"Selection ended at line {self.current_line + 1}")
+
+    def clear_selection(self):
+        """Clear current selection"""
+        self.selection_start = None
+        self.selection_end = None
+        self.in_selection_mode = False
+
+    def copy_selection(self):
+        """Copy selected lines to both paste buffer and system clipboard"""
+        if self.selection_start is None or self.selection_end is None:
+            self._show_status_message("No selection to copy - use 's' to start/end selection")
+            return False
+        
+        # Ensure start is before end
+        start = min(self.selection_start, self.selection_end)
+        end = max(self.selection_start, self.selection_end)
+        
+        # Get the selected lines
+        selected_lines = self.lines[start:end+1]
+        text_to_copy = '\n'.join(selected_lines)
+        
+        # Copy  system clipboard
+        if self.paste_buffer.copy_to_clipboard(text_to_copy):
+            self._show_status_message(f"Copied {end-start+1} lines to clipboard.")
+        
+        # Clear selection after copy
+        self.clear_selection()
+        return True
+    
     def _show_status_message(self, message):
         #Helper method to display status messages consistently.
         print(f"\n{message}", end='')
@@ -134,17 +180,18 @@ class TextBuffer:
             return self.paste_buffer.paste_over(self)
 
     def paste_from_clipboard(self, mode='insert'):
-        #Paste from system clipboard with proper formatting
+        """Paste from system clipboard with proper formatting"""
         if not self.paste_buffer.load_from_clipboard():
             self._show_status_message("Clipboard empty or inaccessible")
-            return
+            return False
         
         if mode == 'insert':
             lines_pasted = self.paste_buffer.paste_into(self)
         else:
             lines_pasted = self.paste_buffer.paste_over(self)
             
-            self._show_status_message(f"Pasted {lines_pasted} lines")
+        self._show_status_message(f"Pasted {lines_pasted} lines from clipboard")
+        return True
             
     def load_file(self, filename):
         # Load file contents into buffer
@@ -183,21 +230,29 @@ class TextBuffer:
         # Print header with forced color reset
         print(f"\033[0mEditing: {self.filename or 'New file'}")
         print("""\033[0mCommands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
-        C - Copy, V - Paste, O - Overwrite, S - Save, Q - Quit""")
+        C - Copy, V - Paste, O - Overwrite lines, W - Write changes, S - Select,  Q - Quit""")
         print("\033[0m" + "-" * 80)  # Reset before line
 
         for idx in range(self.display_start,
                          min(self.display_start + self.display_lines, len(self.lines))):
             line_num = idx + 1
-            prefix = ">" if idx == self.current_line else " "
+            # Determine prefix based on selection and current line
+            if (self.selection_start is not None and self.selection_end is not None and 
+                idx >= min(self.selection_start, self.selection_end) and 
+                idx <= max(self.selection_start, self.selection_end)):
+                prefix = "\033[1;31m=\033[0m"  # Bold red =
+            elif idx == self.current_line:
+                prefix = ">"
+            else:
+                prefix = " "
+                
             line_text = self.lines[idx]
-
+                
             if self.filename and self.filename.endswith('.py'):
                 line_text = self._highlight_python(line_text)
-
-            # Ensure RESET at end of each line
+                    
             print(f"\033[0m{prefix}{line_num:4d}: {line_text}\033[0m")
-
+                    
         sys.stdout.flush()
 
     def navigate(self, direction):
@@ -320,7 +375,7 @@ class TextBuffer:
         while True:
             self.display()
             try:
-                sys.stdout.write("Command [↑↓, PgUp/PgDn/End, E(dit), I(nsert), D(el), S(ave), Q(uit)]: ")
+                sys.stdout.write("Command [↑↓, PgUp/PgDn/End, E(dit), I(nsert), D(el), S(elect), C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
                 sys.stdout.flush()
 
                 cmd = self.get_key_input()
@@ -385,17 +440,41 @@ class TextBuffer:
                     self.edit_current_line()
                 elif cmd == 'i':
                     self.insert_line()
+                elif cmd == 's':  # Start/end selection
+                    if not self.in_selection_mode:
+                        self.start_selection()
+                    else:
+                        self.end_selection()
                 elif cmd == 'c':  # Copy
-                    self.copy_to_clipboard()
+                    if self.selection_start is not None and self.selection_end is not None:
+                        self.copy_selection()
+                    else:
+                        if self.copy_to_clipboard():
+                            self._show_status_message("Copied current line to clipboard")
                 elif cmd == 'v':  # Paste insert mode
-                    self.paste_from_clipboard(mode='insert')
+                    # Try internal buffer first, then clipboard
+                    if hasattr(self, 'paste_buffer') and self.paste_buffer.buffer:
+                        lines_pasted = self.paste_buffer.paste_into(self)
+                        self._show_status_message(f"Pasted {lines_pasted} lines from buffer")
+                    elif self.paste_from_clipboard(mode='insert'):
+                        pass  # Message already shown by paste_from_clipboard
+                    else:
+                        self._show_status_message("Nothing to paste - copy first")
+                        
                 elif cmd == 'o':  # Paste overwrite mode
-                    self.paste_from_clipboard(mode='overwrite')
+                    # Try internal buffer first, then clipboard
+                    if hasattr(self, 'paste_buffer') and self.paste_buffer.buffer:
+                        lines_pasted = self.paste_buffer.paste_over(self)
+                        self._show_status_message(f"Overwrote with {lines_pasted} lines from buffer")
+                    elif self.paste_from_clipboard(mode='overwrite'):
+                        pass  # Message already shown by paste_from_clipboard
+                    else:
+                        self._show_status_message("Nothing to paste - copy first")
                 elif cmd == 'd':
                     self.delete_line()
-                elif cmd == 's':
+                elif cmd == 'w':
                     if self.save():
-                        print("File saved.")
+                        print("Changes written.")
                         self.edit_history.clear()
                     else:
                         print("Error saving file!")
