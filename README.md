@@ -70,9 +70,9 @@ chmod +x editor.py
 |`Ctrl+B` / `F` | Undo/Redo 
 |`Enter`/`e`|Edit current line|
 |`i`|Insert new line|
-|`d`|Delete current line|
-|`c`|Copy current line|
-|`p`|Paste from clipboard|
+|`d`|Delete current line or multiple selected|
+|`c`|Copy current line or multiple selected|
+|`v`|Paste from clipboard|
 |`o`|Overwrite lines|
 |`s`|Start / End of selection|
 |`q`|Quit editor|

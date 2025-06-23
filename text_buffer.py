@@ -13,7 +13,15 @@ import termios
 import fcntl
 import time
 from syntax_highlighter import SyntaxHighlighter
-from edit_commands import EditCommand, LineEditCommand, InsertLineCommand, DeleteLineCommand
+from edit_commands import (
+    EditCommand,
+    LineEditCommand,
+    InsertLineCommand,
+    DeleteLineCommand,
+    MultiPasteInsertCommand,
+    MultiPasteOverwriteCommand,
+    MultiDeleteCommand
+)
 from paste_buffer import PasteBuffer
 
 class TextBuffer:
@@ -144,6 +152,34 @@ class TextBuffer:
         # Clear selection after copy
         self.clear_selection()
         return True
+
+    def delete_selected_lines(self):
+        """Delete all lines in the current selection range."""
+        if self.selection_start is None or self.selection_end is None:
+            self._show_status_message("No selection to delete - use 's' to start/end selection")
+            return False
+
+        start = min(self.selection_start, self.selection_end)
+        end = max(self.selection_start, self.selection_end)
+
+        # Store deleted lines for undo (in reverse order for correct deletion sequencing)
+        deleted_lines = [
+            (line_num, self.lines[line_num])
+            for line_num in range(end, start - 1, -1)
+            if line_num < len(self.lines)
+        ]
+
+        if deleted_lines:
+            cmd = MultiDeleteCommand(deleted_lines)
+            self.push_undo_command(cmd)
+            cmd.execute(self)
+
+            self.dirty = True
+            self.clear_selection()
+            self._show_status_message(f"Deleted {end - start + 1} lines")
+            return True
+    
+        return False
     
     def _show_status_message(self, message):
         #Helper method to display status messages consistently.
@@ -471,7 +507,10 @@ class TextBuffer:
                     else:
                         self._show_status_message("Nothing to paste - copy first")
                 elif cmd == 'd':
-                    self.delete_line()
+                    if self.selection_start is not None and self.selection_end is not None:
+                        self.delete_selected_lines()
+                    else:
+                        self.delete_line()
                 elif cmd == 'w':
                     if self.save():
                         print("Changes written.")

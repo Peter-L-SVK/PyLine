@@ -9,7 +9,12 @@ import os
 import re
 import sys
 import subprocess
-from edit_commands import InsertLineCommand, LineEditCommand
+from edit_commands import (
+    InsertLineCommand, 
+    LineEditCommand,
+    MultiPasteInsertCommand,
+    MultiPasteOverwriteCommand
+)
 
 class PasteBuffer:
     def __init__(self):
@@ -147,30 +152,19 @@ class PasteBuffer:
         Returns:
             Number of lines pasted
         """
-        if not self.buffer:
-            if not self.load_from_clipboard():
-                return 0
-                
-        if at_line is None:
-            at_line = text_buffer.current_line
-            
-        # Get indentation context
-        context_indent = self._get_context_indent(text_buffer, at_line)
+        if not self.buffer and not self.load_from_clipboard():
+            return 0
+
+        at_line = at_line or text_buffer.current_line
+        adjusted_lines = [
+            self._adjust_line_indent(line, self._get_context_indent(text_buffer, at_line))
+            for line in self.buffer
+        ] if adjust_indent else self.buffer.copy()
         
-        # Prepare lines with proper indentation
-        adjusted_lines = []
-        for i, line in enumerate(self.buffer):
-            if adjust_indent:
-                line = self._adjust_line_indent(line, context_indent)
-            adjusted_lines.append(line)
+        cmd = MultiPasteInsertCommand(at_line, adjusted_lines)
+        text_buffer.push_undo_command(cmd)
+        cmd.execute(text_buffer)
         
-        # Insert lines with undo support
-        for i, line in enumerate(reversed(adjusted_lines)):
-            insert_at = at_line
-            cmd = InsertLineCommand(insert_at, line)
-            text_buffer.push_undo_command(cmd)
-            cmd.execute(text_buffer)
-            
         text_buffer.dirty = True
         return len(adjusted_lines)
 
@@ -184,36 +178,30 @@ class PasteBuffer:
         Returns:
             Number of lines affected
         """
-        if not self.buffer:
-            if not self.load_from_clipboard():
-                return 0
-            
-        if at_line is None:
-            at_line = text_buffer.current_line
+        if not self.buffer and not self.load_from_clipboard():
+            return 0
         
-        affected_lines = 0
+        at_line = at_line or text_buffer.current_line
+        changes = []
+        
         for i, line in enumerate(self.buffer):
-            if at_line + i >= len(text_buffer.lines):
+            target_line = at_line + i
+            if target_line >= len(text_buffer.lines):
                 break
             
-            # Get indentation from target line
-            target_line = text_buffer.lines[at_line + i]
-            indent_match = re.match(r'^(\s*)', target_line)
-            target_indent = indent_match.group(1) if indent_match else ""
+            # Preserve original indentation
+            indent = re.match(r'^\s*', text_buffer.lines[target_line]).group()
+            old_text = text_buffer.lines[target_line]
+            new_text = indent + line.lstrip()
+            changes.append((target_line, old_text, new_text))
             
-            # Preserve source content but use target indentation
-            content = line.lstrip()
-            new_line = target_indent + content
-            
-            # Create and execute edit command
-            old_text = text_buffer.lines[at_line + i]
-            cmd = LineEditCommand(at_line + i, old_text, new_line)
+        if changes:
+            cmd = MultiPasteOverwriteCommand(changes)
             text_buffer.push_undo_command(cmd)
             cmd.execute(text_buffer)
-            affected_lines += 1
+            text_buffer.dirty = True
             
-        text_buffer.dirty = True
-        return affected_lines
+        return len(changes)
 
     def _get_context_indent(self, text_buffer, at_line):
         """Determine appropriate indentation for paste location"""
