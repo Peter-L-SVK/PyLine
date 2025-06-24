@@ -6,7 +6,7 @@
 #----------------------------------------------------------------
 
 class EditCommand:
-    #Base class for all editable commands.
+    """Base class for all editable commands."""
     def execute(self, buffer):
          raise NotImplementedError
 
@@ -14,7 +14,7 @@ class EditCommand:
          raise NotImplementedError
 
 class LineEditCommand(EditCommand):
-    #Tracks changes to a single line.
+    """Tracks changes to a single line."""
     def __init__(self, line_num, old_text, new_text):
         self.line_num = line_num
         self.old_text = old_text
@@ -29,7 +29,7 @@ class LineEditCommand(EditCommand):
             buffer.lines[self.line_num] = self.old_text
 
 class InsertLineCommand(EditCommand):
-    #Tracks line insertion.
+    """Tracks line insertion."""
     def __init__(self, line_num, text):
         self.line_num = line_num
         self.text = text  # Store the actual content
@@ -41,6 +41,19 @@ class InsertLineCommand(EditCommand):
         if self.line_num < len(buffer.lines):
             del buffer.lines[self.line_num]
 
+class DeleteLineCommand(EditCommand):
+    """Tracks line deletion."""
+    def __init__(self, line_num, text):
+        self.line_num = line_num
+        self.text = text
+
+    def execute(self, buffer):
+        if self.line_num < len(buffer.lines):
+            del buffer.lines[self.line_num]
+
+    def undo(self, buffer):
+        buffer.lines.insert(self.line_num, self.text)
+            
 class MultiPasteInsertCommand(EditCommand):
     """Atomic operation for inserting multiple lines"""
     def __init__(self, at_line, lines):
@@ -74,19 +87,6 @@ class MultiPasteOverwriteCommand(EditCommand):
             if line_num < len(buffer.lines):
                 buffer.lines[line_num] = old_text
                 
-class DeleteLineCommand(EditCommand):
-    #Tracks line deletion.
-    def __init__(self, line_num, text):
-        self.line_num = line_num
-        self.text = text
-
-    def execute(self, buffer):
-        if self.line_num < len(buffer.lines):
-            del buffer.lines[self.line_num]
-
-    def undo(self, buffer):
-        buffer.lines.insert(self.line_num, self.text)
-
 class MultiDeleteCommand(EditCommand):
     """Handles deletion of multiple lines as one atomic operation"""
     def __init__(self, lines):
