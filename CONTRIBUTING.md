@@ -1,6 +1,3 @@
-# CONTRIBUTING.md
-
-
 # PyLine Editor Contribution Guidelines
 
 ## Code Attribution Standards
