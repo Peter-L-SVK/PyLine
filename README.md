@@ -106,10 +106,20 @@ GNU GPL v3 - See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html) file for
 
 ## Testing
 
+To run all tests:
+
 ```bash
 cd PyLine/tests/
-python -m unittest <name_of_file>.py
+python -m unittest discover
 ```
+
+Or run a specific test file:
+
+```bash
+python -m unittest test_dirops.py
+```
+
+All tests require only Python’s built-in `unittest` module.
 
 ## Contributing
 
