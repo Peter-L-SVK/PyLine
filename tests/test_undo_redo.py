@@ -17,6 +17,13 @@ class TestUndoRedo(unittest.TestCase):
         ]
         self.tb.current_line = 1  # "Bravo"
 
+    def test_undo_redo_sequence(self):
+        self.tb.insert_line()  # Insert blank line
+        self.tb.lines[2] = "Delta"  # Edit line
+        self.tb.delete_line()  # Delete the new line
+        self.tb.undo()  # Should restore "Delta"
+        self.tb.redo()  # Should delete again
+
     def test_undo_redo_insert_line(self):
         # Insert a blank line after "Bravo" (index 1)
         self.tb.current_line = 1
