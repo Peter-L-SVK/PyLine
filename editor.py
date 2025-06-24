@@ -7,13 +7,17 @@
 # This is free software with NO WARRANTY.
 #----------------------------------------------------------------
 
+# Standard library imports
+import os
 import signal
 import sys
-import os
+
+# Local application imports
 import dirops
 import execmode
 import utils
 from text_buffer import TextBuffer
+
 
 def main():
     # Register signal handler (for OS-level interrupts)
@@ -26,7 +30,7 @@ def main():
     dirops.default_path(original_destination)
     current_dir = dirops.currentdir()
     
-    print('PyLine 0.5 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
+    print('PyLine 0.6 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
     print('This program comes with ABSOLUTELY NO WARRANTY; for details type \'i\'.\n')
     
     try:

@@ -5,12 +5,15 @@
 # This is free software with NO WARRANTY.
 #----------------------------------------------------------------
 
+# Standard library imports
 import os
 import re
-import sys
 import subprocess
+import sys
+
+# Local application imports
 from edit_commands import (
-    InsertLineCommand, 
+    InsertLineCommand,
     LineEditCommand,
     MultiPasteInsertCommand,
     MultiPasteOverwriteCommand

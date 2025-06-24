@@ -5,24 +5,27 @@
 # This is free software with NO WARRANTY.
 #----------------------------------------------------------------
 
+# Standard library imports
+import fcntl
 import os
 import readline
 import sys
-import tty
 import termios
-import fcntl
 import time
-from syntax_highlighter import SyntaxHighlighter
+import tty
+
+# Local application imports
 from edit_commands import (
-    EditCommand,
-    LineEditCommand,
-    InsertLineCommand,
     DeleteLineCommand,
+    EditCommand,
+    InsertLineCommand,
+    LineEditCommand,
+    MultiDeleteCommand,
     MultiPasteInsertCommand,
-    MultiPasteOverwriteCommand,
-    MultiDeleteCommand
+    MultiPasteOverwriteCommand
 )
 from paste_buffer import PasteBuffer
+from syntax_highlighter import SyntaxHighlighter
 
 class TextBuffer:
     def __init__(self):
@@ -184,7 +187,7 @@ class TextBuffer:
     def _show_status_message(self, message):
         #Helper method to display status messages consistently.
         print(f"\n{message}", end='')
-        time.sleep(0.355)  # Brief pause so user can read the message
+        time.sleep(0.455)  # Brief pause so user can read the message
         sys.stdout.flush()
         # Move cursor back up to overwrite the status message
         sys.stdout.write("\033[F")  # Move up one line
@@ -267,7 +270,7 @@ class TextBuffer:
         print(f"\033[0mEditing: {self.filename or 'New file'}")
         print("""\033[0mCommands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
         C - Copy, V - Paste, O - Overwrite lines, W - Write changes, S - Select,  Q - Quit""")
-        print("\033[0m" + "-" * 80)  # Reset before line
+        print("\033[0m" + "-" * 92)  # Reset before line
 
         for idx in range(self.display_start,
                          min(self.display_start + self.display_lines, len(self.lines))):
@@ -543,7 +546,7 @@ class TextBuffer:
 
                 else:
                     # Handle invalid key press
-                    print("Invalid key. Please use: ↑, ↓, PgUp, PgDn, End, E, Enter, I, D, S, Q")
+                    print("Invalid key. Please use: ↑, ↓, PgUp, PgDn, End, E, Enter, I, C, D, E, O, Q, S, W")
                     os.system('read -p "Press enter to continue..."')
 
             except EOFError:

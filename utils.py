@@ -5,10 +5,13 @@
 # This is free software with NO WARRANTY.
 #----------------------------------------------------------------
 
+# Standard library imports
 import os
 import sys
 import signal
 import time
+
+# Local application imports
 import info
 
 def show_info(original_destination):
