@@ -8,11 +8,13 @@
 # Standard library imports
 import fcntl
 import os
-import readline
 import sys
 import termios
 import time
 import tty
+
+# Third-party imports
+import readline
 
 # Local application imports
 from edit_commands import (

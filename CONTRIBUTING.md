@@ -1,6 +1,6 @@
 # CONTRIBUTING.md
 
-```markdown
+
 # PyLine Editor Contribution Guidelines
 
 ## Code Attribution Standards
@@ -143,6 +143,5 @@ are undoable as single actions. Includes tests for:
 3. **Exception Cases:**
    - ANSI color codes may exceed line length
    - Import groupings may ignore alphabetical order when logical
-```
-
----
+   
+   ---

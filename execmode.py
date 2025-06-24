@@ -5,7 +5,10 @@
 # This is free software with NO WARRANTY.
 #----------------------------------------------------------------
 
+# Standard library imports
 import os
+
+# Local application imports
 import dirops
 from utils import prompt_continue
 
