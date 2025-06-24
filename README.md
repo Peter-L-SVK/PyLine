@@ -106,7 +106,7 @@ GNU GPL v3 - See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html) file for
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or pull request for any:
+Contributions are welcome! Please open an issue or pull request for any:  
 See [CONTRIBUTING](https://github.com/Peter-L-SVK/PyLine/blob/main/CONTRIBUTING.md) file for details.
 - Bug fixes
     
