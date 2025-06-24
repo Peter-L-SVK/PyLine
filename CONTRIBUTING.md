@@ -126,13 +126,13 @@ are undoable as single actions. Includes tests for:
 
 1. **Formatting:**
    - 4-space indentation
-   - 79-character line limit
+   - Lines may be up to 120 characters long. We do not enforce an 80 character limit, but please keep lines reasonably readable.
    - Google-style docstrings
 
 2. **Tools:**
    ```bash
    # Required pre-commit hooks
-   flake8 --max-line-length=79 --ignore=E203,W503
+   flake8 --max-line-length=120 --ignore=E203,W503
    black --check --diff .
    mypy --strict .
    ```
