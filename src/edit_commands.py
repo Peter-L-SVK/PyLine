@@ -29,6 +29,7 @@ class LineEditCommand(EditCommand):
             buffer.lines[self.line_num] = self.old_text
 
 class InsertLineCommand(EditCommand):
+    #Tracks line insertion.
     def __init__(self, line_num, text):
         self.line_num = line_num
         self.text = text  # Store the actual content
