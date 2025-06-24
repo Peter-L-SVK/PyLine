@@ -104,6 +104,13 @@ chmod +x editor.py
 
 GNU GPL v3 - See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html) file for details.
 
+## Testing
+
+```bash
+cd PyLine/tests/
+python -m unittest <name_of_file>.py
+```
+
 ## Contributing
 
 Contributions are welcome!  
