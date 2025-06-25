@@ -81,6 +81,44 @@ are undoable as single actions. Includes tests for:
 - Overwrite paste
 - Cross-platform clipboard handling
 ```
+## Branching Strategy
+
+We use a multi-branch workflow to keep development organized and stable:
+
+- **main**: Always stable and production-ready. Only thoroughly tested changes should be merged here.
+- **stage**: Used for integrating, testing, and reviewing new features before they reach `main`. Most pull requests should target this branch.
+- **feat/*** (feature branches): Create a new branch from `stage` for each new feature or bugfix. Use clear, descriptive names (e.g., `feat/theme-support` or `fix/undo-history`).
+
+### How to Contribute
+
+1. **Update your local repository:**
+   ```bash
+   git checkout stage
+   git pull
+   ```
+
+2. **Create a new feature branch:**
+   ```bash
+   git checkout -b feat/your-feature-name
+   ```
+
+3. **Work on your feature or fix.**  
+   Commit changes as needed.
+
+4. **Push your branch and open a Pull Request to `stage`:**
+   ```bash
+   git push -u origin feat/your-feature-name
+   ```
+   Then open a Pull Request targeting the `stage` branch.
+
+5. **After review and testing, your changes will be merged into `stage`.**  
+   Periodically, stable changes from `stage` will be merged into `main`.
+
+6. **Delete feature branches after merging** to keep the repository tidy.
+
+---
+
+Please keep your changes focused and well-documented. If you have questions about the workflow, open an issue or ask in Discussions.
 
 ## Development Workflow
 
