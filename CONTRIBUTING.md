@@ -99,7 +99,7 @@ We use a multi-branch workflow to keep development organized and stable:
 
 2. **Create a new feature branch:**
    ```bash
-   git checkout -b feat/your-feature-name
+   git checkout -b feat/describe-feature
    ```
 
 3. **Work on your feature or fix.**  
@@ -107,7 +107,7 @@ We use a multi-branch workflow to keep development organized and stable:
 
 4. **Push your branch and open a Pull Request to `stage`:**
    ```bash
-   git push -u origin feat/your-feature-name
+   git push -u origin feat/describe-feature
    ```
    Then open a Pull Request targeting the `stage` branch.
 
@@ -122,10 +122,13 @@ Please keep your changes focused and well-documented. If you have questions abou
 
 ## Development Workflow
 
-1. **Branch Naming:**
-   - `feature/describe-feature` (new functionality)
-   - `fix/describe-fix` (bug corrections)
-   - `docs/topic` (documentation updates)
+1. **Branch Naming:**  
+   - Use one of the following prefixes for your branch names:  
+     - `feat/describe-feature` (new functionality)  
+     - `fix/describe-fix` (bug corrections)  
+     - `docs/topic` (documentation updates)
+   - Please keep branch names short and descriptive.
+
 
 2. **Testing Requirements:**
    - New features require:
