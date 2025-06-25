@@ -7,6 +7,12 @@ Items here are not guaranteed to be implemented, but serve as a planning resourc
 
 ## Feature Ideas
 
+- **Advanced Text Input in Edit Mode**
+  - Smarter handling of tabs and indentation when editing lines
+  - Automatically insert spaces instead of tab characters, using 4 spaces for `.py` files, 2 for C/C++ files, or a custom value from config
+  - Make tab width and behavior fully configurable per filetype
+  - Ensure editing “feels” natural and seamless for the user, regardless of underlying tab/space logic
+
 - **Theme Config**
   - Support for user-editable theme files (JSON/YAML/INI)
   - Allow changing syntax colors, UI colors, keybindings
