@@ -137,6 +137,8 @@ class TextBuffer:
             return
             
         self.selection_end = self.current_line
+        if self.selection_start > self.selection_end:
+            self.selection_start, self.selection_end = self.selection_end, self.selection_start
         self._show_status_message(f"Selection ended at line {self.current_line + 1}")
     
     def clear_selection(self):
