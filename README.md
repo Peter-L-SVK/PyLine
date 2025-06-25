@@ -126,7 +126,7 @@ All tests require only Python’s built-in `unittest` module.
 Contributions are welcome!  
 See [CONTRIBUTING](https://github.com/Peter-L-SVK/PyLine/blob/main/CONTRIBUTING.md) file for details.  
 
-For contact please see my email in profile info or use e GitHub’s built-in communication tools.
+For contact please see my email in profile info or use GitHub’s built-in communication tools.
 
 Please open an issue or pull request for any:  
 
