@@ -24,9 +24,18 @@ class PasteBuffer:
         self.buffer = []
         self.original_indents = []
         self.common_prefix = ""
+        self._lock = False 
         
     def set_text(self, text):
         """Load text into the paste buffer from any source"""
+        self.buffer = []  # Clear first
+
+        # Handle empty text case
+        if not text.strip():
+            self.buffer = [""]
+            self._analyze_indentation()
+            return
+        
         # Normalize line endings and split
         lines = text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
         self.buffer = lines
@@ -239,6 +248,10 @@ class PasteBuffer:
     def set_system_clipboard(self, text):
         """Attempt to set text to system clipboard with Wayland/X11/macOS/Windows support."""
         try:
+            # Normalize line endings and encode
+            text = text.replace('\r\n', '\n').replace('\r', '\n')
+            text_bytes = text.encode('utf-8')
+
             # Detect Wayland first (modern Linux/BSD)
             if os.environ.get('WAYLAND_DISPLAY'):
                 try:
@@ -294,7 +307,8 @@ class PasteBuffer:
 
             return False  # All methods failed
 
-        except Exception:
+        except Exception as e:
+            print(f"Clipboard error: {str(e)}")
             return False  # Catch-all for unexpected errors
         
     def copy_to_clipboard(self, text):

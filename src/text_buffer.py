@@ -50,7 +50,7 @@ class TextBuffer:
         self.in_selection_mode = False  # Whether we're in selection mode
 
     def _init_color_support(self):
-        #Initialize color support with more thorough checks
+        """Initialize color support with more thorough checks"""
         self.syntax_highlighting = False
 
         # Check basic terminal support
@@ -68,8 +68,17 @@ class TextBuffer:
     def _highlight_python(self, line):
         return self.syntax_highlighter._highlight_python(line)
 
+    def _show_status_message(self, message):
+        """Helper method to display status messages consistently."""
+        print(f"\n{message}", end='')
+        time.sleep(0.455)  # Brief pause so user can read the message
+        sys.stdout.flush()
+        # Move cursor back up to overwrite the status message
+        sys.stdout.write("\033[F")  # Move up one line
+        sys.stdout.write("\033[K")  # Clear the line
+    
     def push_undo_command(self, command):
-        #Push a command to the undo stack and clear redo stack.
+        """Push a command to the undo stack and clear redo stack."""
         self.undo_stack.append(command)
         if len(self.undo_stack) > 120:  # Limit history
             self.undo_stack.pop(0)
@@ -96,7 +105,7 @@ class TextBuffer:
         self.dirty = True
 
     def redo(self):
-        #Redo the last undone action with user-friendly feedback.
+        """Redo the last undone action with user-friendly feedback."""
         if not self.redo_stack:
             self._show_status_message("Nothing to redo")
             return
@@ -129,15 +138,17 @@ class TextBuffer:
             
         self.selection_end = self.current_line
         self._show_status_message(f"Selection ended at line {self.current_line + 1}")
-
+    
     def clear_selection(self):
         """Clear current selection"""
         self.selection_start = None
         self.selection_end = None
         self.in_selection_mode = False
-
+        # Ensure valid line
+        self.current_line = max(0, min(self.current_line, len(self.lines)-1))
+        
     def copy_selection(self):
-        """Copy selected lines to both paste buffer and system clipboard"""
+        """Copy selected lines to system clipboard"""
         if self.selection_start is None or self.selection_end is None:
             self._show_status_message("No selection to copy - use 's' to start/end selection")
             return False
@@ -149,15 +160,19 @@ class TextBuffer:
         # Get the selected lines
         selected_lines = self.lines[start:end+1]
         text_to_copy = '\n'.join(selected_lines)
-        
-        # Copy  system clipboard
-        if self.paste_buffer.copy_to_clipboard(text_to_copy):
-            self._show_status_message(f"Copied {end-start+1} lines to clipboard.")
-        
-        # Clear selection after copy
         self.clear_selection()
-        return True
+        # (for now intenal buffer is out of use)
+        
+        # Update system clipboard
+        try:
+            if self.paste_buffer.copy_to_clipboard(text_to_copy):
+                self._show_status_message(f"Copied {end-start+1} lines to clipboard")
+                self.clear_selection()
+                return True
 
+        except Exception as e:
+            self._show_status_message(f"Clipboard error: {str(e)}")
+            
     def delete_selected_lines(self):
         """Delete all lines in the current selection range."""
         if self.selection_start is None or self.selection_end is None:
@@ -185,35 +200,30 @@ class TextBuffer:
             return True
     
         return False
-    
-    def _show_status_message(self, message):
-        #Helper method to display status messages consistently.
-        print(f"\n{message}", end='')
-        time.sleep(0.455)  # Brief pause so user can read the message
-        sys.stdout.flush()
-        # Move cursor back up to overwrite the status message
-        sys.stdout.write("\033[F")  # Move up one line
-        sys.stdout.write("\033[K")  # Clear the line
-
 
     def copy_to_clipboard(self, start_line=None, end_line=None):
         """Copy selected lines to system clipboard"""
+        self.clear_selection()
         if start_line is None:
             start_line = self.current_line
         if end_line is None:
             end_line = self.current_line
                 
         lines = self.lines[start_line:end_line+1]
-        text_to_copy = '\n'.join(lines)
-        if self.paste_buffer.copy_to_clipboard(text_to_copy):
-            self._show_status_message(f"Copied {end_line-start_line+1} lines to clipboard")
-            return True
-        else:
-            self._show_status_message("Failed to copy to clipboard")
-            return False
-
+        text_to_copy = '\n'.join(lines) or ""  # Handle empty selection
+        # (for now intenal buffer is out of use)
+        try:
+            if self.paste_buffer.copy_to_clipboard(text_to_copy):
+                self._show_status_message(f"Copied {end_line-start_line+1} lines to clipboard")
+                self.clear_selection()
+                return True
+            
+        except Exception as e:
+            self._show_status_message(f"Clipboard error: {str(e)}")
+    
     def paste_from_buffer(self, mode='insert'):
-        #Paste from buffer with specified mode
+        """Paste from buffer with specified mode"""
+        # (for now intenal buffer is out of use)
         if mode == 'insert':
             return self.paste_buffer.paste_into(self)
 
@@ -222,20 +232,28 @@ class TextBuffer:
 
     def paste_from_clipboard(self, mode='insert'):
         """Paste from system clipboard with proper formatting"""
-        if not self.paste_buffer.load_from_clipboard():
-            self._show_status_message("Clipboard empty or inaccessible")
+        try:
+            if not self.paste_buffer.load_from_clipboard():
+                self._show_status_message("Clipboard empty or inaccessible")
+                return False
+            
+            if mode == 'insert':
+                lines_pasted = self.paste_buffer.paste_into(self)
+            else:
+                lines_pasted = self.paste_buffer.paste_over(self)
+                
+            if lines_pasted > 0:
+                self._show_status_message(f"Pasted {lines_pasted} lines")
+                return True
+            
             return False
         
-        if mode == 'insert':
-            lines_pasted = self.paste_buffer.paste_into(self)
-        else:
-            lines_pasted = self.paste_buffer.paste_over(self)
-            
-        self._show_status_message(f"Pasted {lines_pasted} lines from clipboard")
-        return True
+        except Exception as e:
+            self._show_status_message(f"Paste error: {str(e)}")
+            return False
             
     def load_file(self, filename):
-        # Load file contents into buffer
+        """Load file contents into buffer"""
         try:
             with open(filename, 'r') as f:
                 self.lines = [line.rstrip('\n') for line in f.readlines()]
@@ -249,7 +267,7 @@ class TextBuffer:
             return False
 
     def save(self):
-        # Save buffer contents to file
+        """Save buffer contents to file"""
         if not self.filename:
             return False
 
@@ -297,7 +315,7 @@ class TextBuffer:
         sys.stdout.flush()
 
     def navigate(self, direction):
-        # Move cursor up/down
+        """ Move cursor up/down"""
         if direction == 'up' and self.current_line > 0:
             self.current_line -= 1
         elif direction == 'down' and self.current_line < len(self.lines) - 1:
@@ -310,7 +328,7 @@ class TextBuffer:
             self.display_start = self.current_line - self.display_lines + 1
 
     def edit_current_line(self):
-        # Edit the current line with previous text available
+        """Edit the current line with previous text available"""
         if not self.lines:  # If buffer is completely empty
             self.lines.append("")
             self.current_line = 0
@@ -364,7 +382,7 @@ class TextBuffer:
             self.dirty = True
 
     def get_key_input(self):
-        # Read a single key press, including arrow keys
+        """ Read a single key press, including arrow keys"""
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
@@ -412,11 +430,12 @@ class TextBuffer:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
     def edit_interactive(self):
-        # Main editing interface with proper key handling
+        """Main editing interface with proper key handling"""
         while True:
             self.display()
             try:
-                sys.stdout.write("Command [↑↓, PgUp/PgDn/End, E(dit), I(nsert), D(el), S(elect), C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
+                sys.stdout.write("Command [↑↓, PgUp/PgDn/End, E(dit), I(nsert), D(el), S(elect), /
+C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
                 sys.stdout.flush()
 
                 cmd = self.get_key_input()
@@ -490,24 +509,36 @@ class TextBuffer:
                     if self.selection_start is not None and self.selection_end is not None:
                         self.copy_selection()
                     else:
-                        if self.copy_to_clipboard():
-                            self._show_status_message("Copied current line to clipboard")
+                        self.copy_to_clipboard()
+                            
                 elif cmd == 'v':  # Paste insert mode
-                    # Try internal buffer first, then clipboard
-                    if hasattr(self, 'paste_buffer') and self.paste_buffer.buffer:
-                        lines_pasted = self.paste_buffer.paste_into(self)
-                        self._show_status_message(f"Pasted {lines_pasted} lines from buffer")
-                    elif self.paste_from_clipboard(mode='insert'):
+                #
+                # (for now intenal buffer is out of use)
+                # Try internal buffer first, then clipboard
+                #   if hasattr(self, 'paste_buffer') and self.paste_buffer.buffer:
+                #      lines_pasted = self.paste_buffer.paste_into(self)
+                #       self._show_status_message(f"Pasted {lines_pasted} lines from buffer")
+                #   elif self.paste_from_clipboard(mode='insert'):
+                #       pass  # Message already shown by paste_from_clipboard
+                #   else:
+                #       self._show_status_message("Nothing to paste - copy first")
+                    if self.paste_from_clipboard(mode='insert'):
                         pass  # Message already shown by paste_from_clipboard
                     else:
                         self._show_status_message("Nothing to paste - copy first")
                         
                 elif cmd == 'o':  # Paste overwrite mode
+                    #
+                    # (for now intenal buffer is out of use)
                     # Try internal buffer first, then clipboard
-                    if hasattr(self, 'paste_buffer') and self.paste_buffer.buffer:
-                        lines_pasted = self.paste_buffer.paste_over(self)
-                        self._show_status_message(f"Overwrote with {lines_pasted} lines from buffer")
-                    elif self.paste_from_clipboard(mode='overwrite'):
+                    # if hasattr(self, 'paste_buffer') and self.paste_buffer.buffer:
+                    #     lines_pasted = self.paste_buffer.paste_over(self)
+                    #     self._show_status_message(f"Overwrote with {lines_pasted} lines from buffer")
+                    # elif self.paste_from_clipboard(mode='overwrite'):
+                    #     pass  # Message already shown by paste_from_clipboard
+                    # else:
+                    #    self._show_status_message("Nothing to paste - copy first")
+                    if self.paste_from_clipboard(mode='overwrite'):
                         pass  # Message already shown by paste_from_clipboard
                     else:
                         self._show_status_message("Nothing to paste - copy first")
