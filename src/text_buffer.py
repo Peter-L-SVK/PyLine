@@ -160,7 +160,6 @@ class TextBuffer:
         # Get the selected lines
         selected_lines = self.lines[start:end+1]
         text_to_copy = '\n'.join(selected_lines)
-        self.clear_selection()
         # (for now intenal buffer is out of use)
         
         # Update system clipboard
@@ -172,6 +171,8 @@ class TextBuffer:
 
         except Exception as e:
             self._show_status_message(f"Clipboard error: {str(e)}")
+
+        return False
             
     def delete_selected_lines(self):
         """Delete all lines in the current selection range."""
@@ -220,6 +221,7 @@ class TextBuffer:
             
         except Exception as e:
             self._show_status_message(f"Clipboard error: {str(e)}")
+        return False
     
     def paste_from_buffer(self, mode='insert'):
         """Paste from buffer with specified mode"""
@@ -233,6 +235,7 @@ class TextBuffer:
     def paste_from_clipboard(self, mode='insert'):
         """Paste from system clipboard with proper formatting"""
         try:
+            self.clear_selection()
             if not self.paste_buffer.load_from_clipboard():
                 self._show_status_message("Clipboard empty or inaccessible")
                 return False
@@ -434,7 +437,7 @@ class TextBuffer:
         while True:
             self.display()
             try:
-                sys.stdout.write("Command [↑↓, PgUp/PgDn/End, E(dit), I(nsert), D(el), S(elect), /
+                sys.stdout.write("Command [↑↓, PgUp/PgDn/End, E(dit), I(nsert), D(el), S(elect), \
 C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
                 sys.stdout.flush()
 
