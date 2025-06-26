@@ -1,6 +1,6 @@
 # PyLine - Lightweight Terminal Text Editor
 
-![PyLine Demo](demo.png) 
+![PyLine Demo](scrshots/demo.png) 
 
 PyLine is a minimalist command-line text editor designed for Linux/BSD systems, written in Python 3 with use of systems calls. Originally created in 2018 and modernized in 2025, it combines improved text management with a simple, line-by-line workflow. 
 (*Note: This is a hobby project, not a professional application.*)
@@ -32,6 +32,20 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
   - Remove files and directories
   - Rename files and directories
 - **Cross-Platform**: Works on Linux and BSD systems
+
+## Example screens
+
+PyLine after the initialization:
+![PyLine Init](scrshots/init-scr.png) 
+
+Open file option screen:
+![PyLine Open File](scrshots/edit-file.png)
+
+How copying of selected lines looks:
+![PyLine Copy Selected](scrshots/copy-selected.png)
+
+After pasting the selection from clipboard:
+![PyLine v-Paste Selected](scrshots/paste-lines.png)
 
 ## Installation
 
