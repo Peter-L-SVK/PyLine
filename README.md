@@ -41,7 +41,7 @@ PyLine after the initialization:
 Open file option screen:
 ![PyLine Open File](scrshots/edit-file.png)
 
-How copying of selected lines looks:
+Example of line selection:
 ![PyLine Copy Selected](scrshots/copy-selected.png)
 
 After pasting the selection from clipboard:
@@ -49,18 +49,31 @@ After pasting the selection from clipboard:
 
 ## Installation
 
+1st method: Manual run
 ```bash
 git clone https://github.com/Peter-L-SVK/PyLine.git
 cd PyLine/src/
 chmod +x editor.py
 ```
-
+2nd method (script will run sudo command):
+```bash
+git clone https://github.com/Peter-L-SVK/PyLine.git
+cd PyLine/
+./install.sh
+```
 
 ## Usage
 
+In case of manual run:
 ```bash
 ./editor.py
 ```
+
+If you used install script:
+```bash
+pyline  #works from anywhere
+```
+
 ### Editor Menu
 
 |Command|Action|
