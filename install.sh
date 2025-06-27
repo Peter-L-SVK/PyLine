@@ -26,4 +26,5 @@ sudo cp ./dist/pyline ./license-parts.txt /usr/local/bin/ || {
 # Cleaning up
 rm -rf ./build ./dist
 echo "Installation successful! PyLine is now in /usr/local/bin"
+echo "To run or test, run: pyline"
 exit 0
