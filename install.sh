@@ -7,15 +7,24 @@ if ! command -v pyinstaller >/dev/null 2>&1; then
     pip install pyinstaller || { echo "Failed to install pyinstaller"; exit 1; }
 fi
 
-# Build the binary
+# Build the binary with explicit paths
 cd ./src/
-pyinstaller --onefile editor.py -n pyline
+pyinstaller --onefile --add-data "dirops.py:." --add-data "execmode.py:." --add-data "utils.py:." --add-data "text_buffer.py:." editor.py -n pyline
 
 # Verify build succeeded
 if [ ! -f "./dist/pyline" ]; then
     echo "Error: PyLine binary not found in ./dist/"
     exit 1
 fi
+
+# Verify build succeeded
+if [ ! -f "./dist/pyline" ]; then
+    echo "Error: PyLine binary not found in ./dist/"
+    exit 1
+fi
+
+# Create config dir
+mkdir ~/.pyline
 
 # Copy files to /usr/local/bin (requires sudo)
 sudo cp ./dist/pyline ./license-parts.txt /usr/local/bin/ || {
