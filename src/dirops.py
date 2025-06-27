@@ -8,6 +8,10 @@
 # Standard Library imports
 import os
 from shutil import rmtree
+from pathlib import Path
+
+path_to_config = Path.home() / ".pyline"
+path_to_config.mkdir(exist_ok=True) 
 
 def currentdir():
     #Get the current working directory.
@@ -96,29 +100,38 @@ def rmdir(dir_name):
         return 1
     
 def original_path(original_dir):
-    #Save the original directory path to a file.
-    with open('defaultpath.dat', 'w') as f:
-        f.write(original_dir)
+    """Save the original directory path to a file."""
+    try:
+        with open(path_to_config / 'defaultpath.dat', 'w') as f:
+            f.write(original_dir)
+    except IOError as e:
+        print(f"Error saving path: {e}")
+        return 1
 
 def original_destination():
-    #Retrieve the original directory path from a file.
-    with open('defaultpath.dat', 'r') as f:
-        original_destination = f.readline().strip()
-    return original_destination
+    """Retrieve the original directory path from a file."""
+    try:
+        with open(path_to_config / 'defaultpath.dat', 'r') as f:
+            return f.readline().strip()
+    except FileNotFoundError:
+        return os.getcwd()  # Return current dir if file doesn't exist
+    except IOError as e:
+        print(f"Error reading path: {e}")
+        return os.getcwd()
 
 def safe_path(original_destination):
     #Save the current directory path to a file.
     cd(original_destination)
-    with open('path.dat', 'w') as f:
+    with open(path_to_config / 'path.dat', 'w') as f:
         f.write(original_destination)
 
 def default_path(original_destination):
     #Set the default directory path.
     try:
-        with open('path.dat', 'r') as f:
+        with open(path_to_config / 'path.dat', 'r') as f:
             default_destination = f.readline().strip()
     except OSError:
-        with open('defaultpath.dat', 'r') as f:
+        with open(path_to_config / 'defaultpath.dat', 'r') as f:
             default_destination = f.readline().strip()
 
     if default_destination == original_destination:
@@ -132,20 +145,25 @@ def default_path(original_destination):
             safe_path(original_destination)
 
 def change_default_path(original_destination):
-    #Change the default directory path.
+    """Change the default directory path."""
     try:
-        new_default_path = input('Enter the new path: ')
-        if new_default_path != '0':
-            cd(new_default_path)
-        else:
-            cd(original_destination)
-    
-            new_current_path = currentdir()
-            with open('path.dat', 'w') as f:
-                f.write(new_current_path)
-                print('Default path set to:', new_current_path, '\n')
+        new_default_path = input('Enter the new path (or 0 to reset): ').strip()
+        target_path = original_destination if new_default_path == '0' else new_default_path
+        
+        if not os.path.exists(target_path):
+            print(f"Error: Path '{target_path}' doesn't exist")
+            return 1
+            
+        os.chdir(target_path)
+        with open(path_to_config / 'path.dat', 'w') as f:
+            f.write(target_path)
+        print(f'Default path set to: {target_path}\n')
+        
     except EOFError:
         os.system('clear')
+    except Exception as e:
+        print(f"Error changing path: {e}")
+        return 1
 
 def count_words_in_file(filename):
     """
