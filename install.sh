@@ -17,12 +17,6 @@ if [ ! -f "./dist/pyline" ]; then
     exit 1
 fi
 
-# Verify build succeeded
-if [ ! -f "./dist/pyline" ]; then
-    echo "Error: PyLine binary not found in ./dist/"
-    exit 1
-fi
-
 # Create config dir
 mkdir ~/.pyline
 
