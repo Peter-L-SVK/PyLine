@@ -22,6 +22,11 @@ sudo cp ./dist/pyline ./license-parts.txt /usr/local/bin/ || {
     echo "Error: Failed to copy files to /usr/local/bin (check permissions?)";
     exit 1;
 }
+# Install LICENSE system-wide
+sudo mkdir -p /usr/share/licenses/PyLine && sudo cp ../LICENSE /usr/share/licenses/PyLine/ || {
+    echo "Error: Failed to copy LICENSE to /usr/share/licenses (check permissions?)";
+    exit 1;
+}
 
 # Cleaning up
 rm -rf ./build ./dist
