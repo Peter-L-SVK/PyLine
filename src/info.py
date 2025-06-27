@@ -16,13 +16,31 @@ def print_info():
     print('        ####################################################################\n')
 
 def print_license_parts(original_destination):
+    install_path = "/usr/local/bin"
+    install_license = "/usr/share/licenses/PyLine"
     print("\n        For full license details, see the LICENSE file in:")
-    print(f"        {original_destination}/LICENSE")
+    
+    # Check if LICENSE exists in install_path
+    license_path = os.path.join(install_license, "LICENSE")
+    if os.path.exists(license_path):
+        print(f"        {license_path}")
+    else:
+        print(f"        {os.path.join(original_destination, 'LICENSE')}")
+    
     print("\n        Brief excerpt:")
-    total_path = os.path.join(original_destination, 'license-parts.txt')
-    try:
-        with open(total_path, 'r') as f:
-            for line in f:
-                print(line, end='')
-    except OSError:
-        print('License file not found.\n')
+    # Check license-parts.txt in install_path first
+    parts_path = os.path.join(install_path, "license-parts.txt")
+    if os.path.exists(parts_path):
+        try:
+            with open(parts_path, 'r') as f:
+                print(f.read())
+        except OSError:
+            print("License excerpt not found in installation directory.\n")
+    else:
+        # Fallback to original_destination/src/license-parts.txt
+        fallback_path = os.path.join(original_destination, "src", "license-parts.txt")
+        try:
+            with open(fallback_path, 'r') as f:
+                print(f.read())
+        except OSError:
+            print("License excerpt not found in source directory.\n")
