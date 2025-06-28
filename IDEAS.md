@@ -21,7 +21,7 @@ Items here are not guaranteed to be implemented, but serve as a planning resourc
 - **Hooks/Scripts (Python 3 & Perl 5)**
   - Allow user-defined scripts to be run on editor events (e.g., on_save, on_open)
   - Support both Python 3 and Perl 5 for hooks
-  - Specify hook directories (e.g., `~/.pyline_hooks/`)
+  - Specify hook directories (e.g., `~/.pyline/hooks/`)
   - Pass file/buffer/context info to scripts via env or stdin
 
 - **Custom Commands**
