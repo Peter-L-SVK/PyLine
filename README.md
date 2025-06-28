@@ -73,6 +73,10 @@ If you used install script:
 ```bash
 pyline  #works from anywhere
 ```
+To unninstall the program:
+```bash
+./install.sh -u
+```
 
 ### Editor Menu
 
