@@ -124,9 +124,9 @@ pyline  #works from anywhere
 ## Requirements
 
 - Python 3.6+   
-- Linux/BSD system (tested on Fedora 27 MATE, 40/42 Cinnmanon)
+- Linux(or WSL)/FreeBSD/MacOS system (tested on Fedora 27 MATE, 40/42 Cinnmanon)
 - Bash or Zsh shell
-- Clipboard: xclip (X11) or wl-clipboard (Wayland) for copy/paste
+- Clipboard: xclip (X11) or wl-clipboard (Wayland) for copy/paste (Comes with GUI/DE)
 ## License
 
 GNU GPL v3 - See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html) file for details.
