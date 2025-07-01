@@ -6,6 +6,7 @@
 #----------------------------------------------------------------
 
 # Standard library imports
+import argparse
 import os
 import sys
 import signal
@@ -13,6 +14,14 @@ import time
 
 # Local application imports
 import info
+
+def parse_arguments():
+    """Handle command-line arguments"""    
+    parser = argparse.ArgumentParser(description='PyLine Text Editor')
+    parser.add_argument('filename', nargs='?', help='File to edit')
+    parser.add_argument('-i', '--info', action='store_true', 
+                       help='Show program information and exit')
+    return parser.parse_args()
 
 def show_info(original_destination):
     os.system('clear')
