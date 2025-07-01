@@ -165,6 +165,20 @@ def change_default_path(original_destination):
         print(f"Error changing path: {e}")
         return 1
 
+
+def ensure_directory_exists(filepath):
+    """Create parent directories if they don't exist"""
+    directory = os.path.dirname(filepath)
+    if directory and not os.path.exists(directory):
+        try:
+            os.makedirs(directory)
+            print(f"Created directory: {directory}")
+            return True
+        except OSError as e:
+            print(f"Error creating directory: {e}")
+            return False
+    return True  # Directory already exists
+
 def count_words_in_file(filename):
     """
     Count the number of words in a text file with improved punctuation handling.
