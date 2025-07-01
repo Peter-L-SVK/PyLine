@@ -18,6 +18,12 @@ import execmode
 import utils
 from text_buffer import TextBuffer
 
+def parse_arguments():
+    """Handle command-line arguments"""
+    import argparse
+    parser = argparse.ArgumentParser(description='PyLine Text Editor')
+    parser.add_argument('filename', nargs='?', help='File to edit')
+    return parser.parse_args()
 
 def main():
     # Register signal handler (for OS-level interrupts)
@@ -29,11 +35,33 @@ def main():
     original_destination = dirops.original_destination()
     dirops.default_path(original_destination)
     current_dir = dirops.currentdir()
-    
+
     print('PyLine 0.6 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
     print('This program comes with ABSOLUTELY NO WARRANTY; for details type \'i\'.\n')
     
+    args = parse_arguments()
+    buffer = TextBuffer()
+    
     try:
+        if args.filename:  # File specified via command line
+            filepath = os.path.abspath(args.filename)
+            
+            if os.path.exists(filepath):
+                if buffer.load_file(filepath):
+                    buffer.edit_interactive()
+                else:
+                    print(f"Error: Could not load {filepath}")
+            else:
+                # Create directory structure if needed
+                if dirops.ensure_directory_exists(filepath):
+                    print(f"Creating new file: {filepath}")
+                    buffer.filename = filepath
+                    buffer.edit_interactive()
+                else:
+                    print("Failed to create directory structure")
+            utils.clean_exit()
+            return
+        
         choice = None
         while choice != 'q':
             buffer = TextBuffer()
