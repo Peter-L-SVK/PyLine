@@ -19,8 +19,9 @@ def execmode(original_destination):
         current_dir = dirops.currentdir()
         print('Executable mode\n')
         print(f'Current working directory: {current_dir}\n')
-        print(""" Menu: AF - All files, CWD - Change working directory, CDP - Change default path, MKDIR - Make a directory, RMDIR - Remove a directory,
-        RMFILE - Remove a file, RENAME - rename a file/directory, CLS - Clear screen, Q - Exit from exec mode\n""")
+        print(""" Menu:  AF - All files, CWD - Change working directory, CDP - Change default path,
+        MKDIR - Make a directory, RMDIR - Remove a directory, RMFILE - Remove a file,
+        RENAME - rename a file/directory, CLS - Clear screen, Q - Exit from exec mode\n""")
         try:
             choice_exec = input('Your choice: ').lower()
             if choice_exec == 'af':
