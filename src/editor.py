@@ -66,8 +66,8 @@ def main():
         while choice != 'q':
             buffer = TextBuffer()
             print(f'Current working directory: {current_dir}\n')
-            print('Menu: 1 - Existing file, 2 - New file, 3 - Truncate or new file, '
-                  'CLS - Clear screen, CW - Count words, X - Exec mode, I - Info, Q - Quit\n')
+            print('Menu: 1 - Existing file, 2 - New file, 3 - Truncate or new file,\n '
+                  '     CLS - Clear screen, CW - Count words, X - Exec mode, I - Info, Q - Quit\n')
             
             try:
                 choice = input('Your choice: ').lower()
