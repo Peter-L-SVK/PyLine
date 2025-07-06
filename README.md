@@ -76,10 +76,10 @@ pyline  #works from anywhere
 Editor accpets input arguments:
 ```bash
 # Edit existing file
-./editor.py existing_file.txt
+./editor.py existing_file.txt # pyline existing_file.txt
 
 # Create new file
-./editor.py new_file.txt
+./editor.py new_file.txt  # pyline new_file.txt
 ```
 
 The editor will:
