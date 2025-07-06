@@ -73,6 +73,30 @@ If you used install script:
 ```bash
 pyline  #works from anywhere
 ```
+Editor accpets input arguments:
+```bash
+# Edit existing file
+./editor.py existing_file.txt
+
+# Create new file
+./editor.py new_file.txt
+```
+
+The editor will:
+1. For existing files:
+   - Load the file
+   - Enter edit mode immediately
+2. For new files:
+   - Create new buffer with specified filename
+   - Create new directory in file path if doesn't exist allredy
+   - Enter edit mode
+3. With no arguments:
+   - Show the original interactive menu
+
+4. -i, --info   Show program information and exit
+
+5. -h, --help   show help message and exit
+
 To unninstall the program:
 ```bash
 ./install.sh -u
