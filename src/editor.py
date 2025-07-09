@@ -32,7 +32,7 @@ def main():
     args = utils.parse_arguments()
     buffer = TextBuffer()
 
-    print('PyLine 0.6 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
+    print('PyLine 0.7 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
     print('This program comes with ABSOLUTELY NO WARRANTY; for details type \'i\'.\n')
         
     try:
