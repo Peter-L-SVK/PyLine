@@ -88,7 +88,7 @@ The editor will:
    - Enter edit mode immediately
 2. For new files:
    - Create new buffer with specified filename
-   - Create new directory in file path if doesn't exist allredy
+   - Create new directory in file path if doesn't exist already
    - Enter edit mode
 3. With no arguments:
    - Show the original interactive menu
