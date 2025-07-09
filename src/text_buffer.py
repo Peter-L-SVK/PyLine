@@ -362,15 +362,9 @@ C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
                 else:
                     self.copy_line()
             elif cmd == 'v':  # Paste
-                if self.selection_start is not None and self.selection_end is not None:
-                    self.paste_from_clipboard(mode='insert')
-                else:
-                    self.paste_line(mode='insert')
+                self.paste_from_clipboard(mode='insert')
             elif cmd == 'o':  # Overwrite paste
-                if self.selection_start is not None and self.selection_end is not None:
-                    self.paste_from_clipboard(mode='overwrite')
-                else:
-                    self.paste_line(mode='overwrite')
+                self.paste_from_clipboard(mode='overwrite')
             elif cmd == 'undo':
                 self.undo()
             elif cmd == 'redo':
