@@ -20,7 +20,7 @@ class TestUndoRedo(unittest.TestCase):
     def test_undo_redo_sequence(self):
         self.tb.insert_line()  # Insert blank line
         self.tb.lines[2] = "Delta"  # Edit line
-        self.tb.delete_line()  # Delete the new line
+        self.tb.delete_current_line  # Delete the new line
         self.tb.undo()  # Should restore "Delta"
         self.tb.redo()  # Should delete again
 
@@ -42,7 +42,7 @@ class TestUndoRedo(unittest.TestCase):
     
     def test_undo_redo_delete_line(self):
         self.tb.current_line = 1
-        self.tb.delete_line()
+        self.tb.delete_current_line()
         self.assertEqual(self.tb.lines, ["Alpha", "Charlie"])
 
         # Undo the deletion

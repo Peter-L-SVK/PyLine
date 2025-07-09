@@ -163,20 +163,58 @@ class TextBuffer:
         self.current_line += 1
         self.dirty = True
 
-    def delete_line(self) -> None:
-        """Delete current line."""
-        if len(self.lines) <= 1:  # Don't delete last line
-            self.lines[0] = ""  # Just clear it
-            self.dirty = True
-            return
-            
+    def copy_line(self) -> bool:
+        """Copy current single line to clipboard."""
+        if not self.lines:
+            TextLib.show_status_message("Buffer is empty")
+            return False
+        
+        line_text = self.lines[self.current_line]
+        if self.paste_buffer.copy_to_clipboard(line_text):
+            TextLib.show_status_message("Copied line to clipboard")
+            return True
+        return False
+    
+    def paste_line(self, mode: str = 'insert') -> bool:
+        """Paste current clipboard content as single line."""
+        if not self.paste_buffer.load_from_clipboard():
+            TextLib.show_status_message("Clipboard empty or inaccessible")
+            return False
+        
+        # Get first line of clipboard content
+        paste_text = self.paste_buffer.buffer[0] if self.paste_buffer.buffer else ""
+        
+        if mode == 'insert':
+            cmd = InsertLineCommand(self.current_line + 1, paste_text)
+            self.push_undo_command(cmd)
+            cmd.execute(self)
+            self.current_line += 1
+        else:  # overwrite
+            if self.current_line >= len(self.lines):
+                self.lines.append(paste_text)
+            else:
+                old_text = self.lines[self.current_line]
+                cmd = LineEditCommand(self.current_line, old_text, paste_text)
+                self.push_undo_command(cmd)
+                cmd.execute(self)
+                
+        self.dirty = True
+        return True
+        
+    def delete_current_line(self) -> bool:
+        """Delete current single line."""
+        if not self.lines or self.current_line >= len(self.lines):
+            return False
+        
         cmd = DeleteLineCommand(self.current_line, self.lines[self.current_line])
         self.push_undo_command(cmd)
         cmd.execute(self)
         
         if self.current_line >= len(self.lines) and self.current_line > 0:
             self.current_line -= 1
+            
         self.dirty = True
+        return True
 
     # Selection operations -----------------------------------------------------
     def start_selection(self) -> None:
@@ -311,16 +349,28 @@ C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
                 self.edit_current_line()
             elif cmd == 'i':
                 self.insert_line()
-            elif cmd == 'd':
-                self.delete_line()
+            elif cmd == 'd':  # Delete
+                if self.selection_start is not None and self.selection_end is not None:
+                    self.delete_selected_lines()
+                else:
+                    self.delete_current_line()
             elif cmd == 's':
                 self.start_selection() if not self.in_selection_mode else self.end_selection()
-            elif cmd == 'c':
-                self.copy_selection()
-            elif cmd == 'v':
-                self.paste_from_clipboard(mode='insert')
-            elif cmd == 'o':
-                self.paste_from_clipboard(mode='overwrite')
+            elif cmd == 'c':  # Copy
+                if self.selection_start is not None and self.selection_end is not None:
+                    self.copy_selection()
+                else:
+                    self.copy_line()
+            elif cmd == 'v':  # Paste
+                if self.selection_start is not None and self.selection_end is not None:
+                    self.paste_from_clipboard(mode='insert')
+                else:
+                    self.paste_line(mode='insert')
+            elif cmd == 'o':  # Overwrite paste
+                if self.selection_start is not None and self.selection_end is not None:
+                    self.paste_from_clipboard(mode='overwrite')
+                else:
+                    self.paste_line(mode='overwrite')
             elif cmd == 'undo':
                 self.undo()
             elif cmd == 'redo':
