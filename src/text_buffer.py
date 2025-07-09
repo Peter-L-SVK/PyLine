@@ -55,12 +55,12 @@ class TextBuffer:
         """Load file contents into buffer."""
         try:
             with open(filename, 'r') as f:
-                self.lines = [line.rstrip('\n') for line in f.readlines()] or [""]
+                self.lines = [line.rstrip('\n') for line in f]
             self.filename = filename
             self.dirty = False
             self.current_line = 0
             return True
-            
+        
         except IOError:
             print(f"\nError: Could not load {filename}\n")
             return False
@@ -73,11 +73,11 @@ class TextBuffer:
 
         try:
             with open(self.filename, 'w') as f:
-                f.writelines(self.lines)
+                f.write('\n'.join(self.lines))  # Add trailing newline
             self.dirty = False
             print(f"\nFile saved successfully: {self.filename}\n")
             return True
-
+        
         except IOError:
             print(f"\nError: Could not save {self.filename}\n")
             return False
@@ -234,6 +234,34 @@ class TextBuffer:
             return True
         return False
 
+    def delete_selected_lines(self) -> bool:
+        """Delete all lines in the current selection range."""
+        if self.selection_start is None or self.selection_end is None:
+            TextLib.show_status_message("No selection to delete")
+            return False
+
+        start = min(self.selection_start, self.selection_end)
+        end = max(self.selection_start, self.selection_end)
+
+        # Store deleted lines for undo (in reverse order)
+        deleted_lines = [
+            (line_num, self.lines[line_num])
+            for line_num in range(end, start - 1, -1)
+            if line_num < len(self.lines)
+        ]
+
+        if deleted_lines:
+            cmd = MultiDeleteCommand(deleted_lines)
+            self.push_undo_command(cmd)
+            cmd.execute(self)
+            
+            self.dirty = True
+            self.clear_selection()
+            TextLib.show_status_message(f"Deleted {end - start + 1} lines")
+            return True
+    
+        return False
+    
     # Display ------------------------------------------------------------------
     def display(self) -> None:
         """Render current buffer state using TextLib."""
