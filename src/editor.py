@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #----------------------------------------------------------------
-# PyLine 0.6 - Line editor (GPLv3)
+# PyLine 0.7 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
