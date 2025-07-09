@@ -107,6 +107,7 @@ class TextLib:
         """Edit a single line with readline support."""
         readline.set_startup_hook(lambda: readline.insert_text(old_text))
         try:
+            print()
             prompt = f"{line_num:4d} [edit]: "
             # Get input and preserve trailing newline if original had one
             new_text = input(prompt)

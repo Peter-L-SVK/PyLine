@@ -27,7 +27,7 @@ class TextBuffer:
     
     def __init__(self):
         # Core buffer state
-        self.lines: List[str] = []
+        self.lines: List[str] = [""]
         self.filename: Optional[str] = None
         self.dirty: bool = False
         
@@ -55,7 +55,7 @@ class TextBuffer:
         """Load file contents into buffer."""
         try:
             with open(filename, 'r') as f:
-                self.lines = [line.rstrip('\n') for line in f.readlines()]
+                self.lines = [line.rstrip('\n') for line in f.readlines()] or [""]
             self.filename = filename
             self.dirty = False
             self.current_line = 0
@@ -64,7 +64,7 @@ class TextBuffer:
         except IOError:
             print(f"\nError: Could not load {filename}\n")
             return False
-
+        
     def save(self) -> bool:
         """Save buffer contents to file."""
         if not self.filename:
@@ -135,8 +135,9 @@ class TextBuffer:
     def edit_current_line(self) -> None:
         """Edit the current line with readline support."""
         if not self.lines:
-            self.lines.append("")
+            self.lines = [""]
             self.current_line = 0
+            self.dirty = True
 
         old_text = self.lines[self.current_line]
         new_text = TextLib.edit_line(self.current_line + 1, old_text)
@@ -149,6 +150,13 @@ class TextBuffer:
 
     def insert_line(self) -> None:
         """Insert a new line after current position."""
+        # Ensure buffer isn't empty
+        if not self.lines:
+            self.lines = [""]
+            self.current_line = 0
+            self.dirty = True
+            return
+        
         cmd = InsertLineCommand(self.current_line + 1, "")
         self.push_undo_command(cmd)
         cmd.execute(self)
@@ -157,7 +165,9 @@ class TextBuffer:
 
     def delete_line(self) -> None:
         """Delete current line."""
-        if not self.lines:
+        if len(self.lines) <= 1:  # Don't delete last line
+            self.lines[0] = ""  # Just clear it
+            self.dirty = True
             return
             
         cmd = DeleteLineCommand(self.current_line, self.lines[self.current_line])
@@ -303,7 +313,7 @@ C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
             return None
 
         while True:
-            save = input("Save changes? (y/n): ").lower()
+            save = input("\nSave changes? (y/n): ").lower()
             if save == 'y':
                 if self.save():
                     return True
