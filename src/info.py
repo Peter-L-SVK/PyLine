@@ -25,7 +25,9 @@ def print_license_parts(original_destination):
     if os.path.exists(license_path):
         print(f"        {license_path}")
     else:
-        print(f"        {os.path.join(original_destination, 'LICENSE')}")
+        os.chdir(original_destination + '/..')
+        new_path = os.getcwd()
+        print(f"        {os.path.join(new_path, 'LICENSE')}")
     
     print("\n        Brief excerpt:")
     # Check license-parts.txt in install_path first
@@ -38,7 +40,7 @@ def print_license_parts(original_destination):
             print("License excerpt not found in installation directory.\n")
     else:
         # Fallback to original_destination/src/license-parts.txt
-        fallback_path = os.path.join(original_destination, "src", "license-parts.txt")
+        fallback_path = os.path.join(original_destination, "license-parts.txt")
         try:
             with open(fallback_path, 'r') as f:
                 print(f.read())
