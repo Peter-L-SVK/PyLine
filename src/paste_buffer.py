@@ -96,21 +96,9 @@ class PasteBuffer:
                         return result.stdout
                 except (subprocess.SubprocessError, FileNotFoundError):
                     pass
-                
-            # 2. First try MATE's native clipboard (GTK)
-            try:
-                import gi
-                gi.require_version('Gtk', '3.0')
-                from gi.repository import Gtk, Gdk
-                clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-                text = clipboard.wait_for_text()
-                if text:
-                    return text
-            except (ImportError, AttributeError) as e:
-                pass  # Fall through to other methods
 
             
-            # 3. Try X11 (traditional Linux/BSD)
+            # 2. Try X11 (traditional Linux/BSD)
             if 'DISPLAY' in os.environ:  # X11 session exists
                 try:
                     result = subprocess.run(
@@ -124,6 +112,18 @@ class PasteBuffer:
                 except (subprocess.SubprocessError, FileNotFoundError):
                     pass
 
+            # 3. Try MATE's native clipboard (GTK)
+            try:
+                import gi
+                gi.require_version('Gtk', '3.0')
+                from gi.repository import Gtk, Gdk
+                clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+                text = clipboard.wait_for_text()
+                if text:
+                    return text
+            except (ImportError, AttributeError) as e:
+                pass  # Fall through to other methods
+                
             # 4. Try macOS (pbpaste)
             if sys.platform == 'darwin':
                 try:
@@ -274,19 +274,6 @@ class PasteBuffer:
                 
                 except (subprocess.SubprocessError, FileNotFoundError):
                     pass  # Fall through to other methods
-
-            #Try MATE's native clipboard
-            try:
-                import gi
-                gi.require_version('Gtk', '3.0')
-                from gi.repository import Gtk, Gdk
-                clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-                clipboard.set_text(text, -1)
-                clipboard.store()
-                return True
-            except (ImportError, AttributeError):
-                pass  # Fall back to other methods
-
                 
             # Try X11 (Linux/BSD)
             if sys.platform.startswith(('linux', 'freebsd', 'openbsd')):
@@ -311,6 +298,18 @@ class PasteBuffer:
                 except (subprocess.SubprocessError, FileNotFoundError):
                     pass
 
+             #Try MATE's native clipboard
+            try:
+                import gi
+                gi.require_version('Gtk', '3.0')
+                from gi.repository import Gtk, Gdk
+                clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+                clipboard.set_text(text, -1)
+                clipboard.store()
+                return True
+            except (ImportError, AttributeError):
+                pass  # Fall back to other methods
+                
             # Try Windows (native or WSL with win32yank)
             if sys.platform == 'win32':
                 try:

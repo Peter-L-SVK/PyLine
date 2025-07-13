@@ -42,7 +42,9 @@ class TextLib:
                 finally:
                     fcntl.fcntl(fd, fcntl.F_SETFL, fl)
                 return ch
+            
             return ch.lower() if ch else ''
+
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
@@ -53,7 +55,7 @@ class TextLib:
         time.sleep(0.455)
         sys.stdout.flush()
         sys.stdout.write("\033[F\033[K")  # Move up and clear line
-
+            
     @staticmethod
     def init_color_support() -> bool:
         """Initialize terminal color support"""
@@ -118,3 +120,15 @@ class TextLib:
         
         finally:
             readline.set_startup_hook(None)
+
+    @staticmethod
+    def clear_line():
+        """Clear the current terminal line"""
+        sys.stdout.write("\033[K")
+        sys.stdout.flush()
+        
+    @staticmethod 
+    def move_up(lines=1):
+        """Move cursor up specified number of lines"""
+        sys.stdout.write(f"\033[{lines}F")
+        sys.stdout.flush()

@@ -7,6 +7,7 @@
 
 import os
 import sys
+import time
 
 from typing import List, Optional, Tuple
 from edit_commands import (
@@ -256,6 +257,7 @@ class TextBuffer:
             TextLib.show_status_message(f"Copied {end-start+1} lines to clipboard")
             self.clear_selection()
             return True
+
         return False
 
     def paste_from_clipboard(self, mode: str = 'insert') -> bool:
@@ -373,6 +375,7 @@ C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
                 return self.save()
             elif cmd == 'q':
                 return self._handle_quit()
+
             else:
                 # Handle invalid key press
                 print("\nInvalid key. Please use: ↑, ↓, PgUp, PgDn, End, E, Enter, I, C, D, E, O, Q, S, W")
@@ -383,14 +386,18 @@ C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
         if not self.dirty:
             print() 
             return None
-
+        
         while True:
             save = input("\nSave changes? (y/n): ").lower()
+            
             if save == 'y':
                 if self.save():
                     return True
                 print("Error saving file!")
+                break
             elif save == 'n':
                 return False
             else:
-                print("Only Y/N!")
+                TextLib.move_up()
+                TextLib.show_status_message("Only Y/N!")
+                TextLib.move_up()
