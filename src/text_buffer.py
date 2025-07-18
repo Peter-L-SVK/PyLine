@@ -76,7 +76,7 @@ class TextBuffer:
             with open(self.filename, 'w') as f:
                 f.write('\n'.join(self.lines))  # Add trailing newline
             self.dirty = False
-            print(f"\nFile saved successfully: {self.filename}\n")
+            TextLib.show_status_message(f"File saved successfully: {self.filename}\n")
             return True
         
         except IOError:
@@ -372,7 +372,8 @@ C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: ")
             elif cmd == 'redo':
                 self.redo()
             elif cmd == 'w':
-                return self.save()
+                self.save()
+                continue 
             elif cmd == 'q':
                 return self._handle_quit()
 
