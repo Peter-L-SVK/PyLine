@@ -76,6 +76,7 @@ class PasteBuffer:
                         new_prefix += self.common_prefix[i]
                     else:
                         break
+                    
                 self.common_prefix = new_prefix
                 if not self.common_prefix:
                     break
@@ -94,6 +95,7 @@ class PasteBuffer:
                     )
                     if result.returncode == 0:
                         return result.stdout
+                    
                 except (subprocess.SubprocessError, FileNotFoundError):
                     pass
 
@@ -109,6 +111,7 @@ class PasteBuffer:
                     )
                     if result.returncode == 0:
                         return result.stdout
+                    
                 except (subprocess.SubprocessError, FileNotFoundError):
                     pass
 
@@ -121,6 +124,7 @@ class PasteBuffer:
                 text = clipboard.wait_for_text()
                 if text:
                     return text
+                
             except (ImportError, AttributeError) as e:
                 pass  # Fall through to other methods
                 
@@ -143,6 +147,7 @@ class PasteBuffer:
                     data = win32clipboard.GetClipboardData()
                     win32clipboard.CloseClipboard()
                     return data
+                
                 except (ImportError, RuntimeError):
                     # Fallback to win32yank in WSL
                     try:
@@ -164,6 +169,7 @@ class PasteBuffer:
         if clipboard_text:
             self.set_text(clipboard_text)
             return True
+        
         return False
 
     def paste_into(self, text_buffer, at_line=None, adjust_indent=True):
@@ -307,6 +313,7 @@ class PasteBuffer:
                 clipboard.set_text(text, -1)
                 clipboard.store()
                 return True
+            
             except (ImportError, AttributeError):
                 pass  # Fall back to other methods
                 

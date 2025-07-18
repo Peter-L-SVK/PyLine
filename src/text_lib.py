@@ -61,8 +61,10 @@ class TextLib:
         """Initialize terminal color support"""
         if not (hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()):
             return False
+
         if os.environ.get('TERM', '') == 'dumb':
             return False
+
         return True
 
     @staticmethod
