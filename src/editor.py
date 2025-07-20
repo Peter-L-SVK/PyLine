@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #----------------------------------------------------------------
-# PyLine 0.7 - Line editor (GPLv3)
+# PyLine 0.8 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -30,9 +30,10 @@ def main():
     current_dir = dirops.currentdir()
 
     args = utils.parse_arguments()
-    buffer = TextBuffer()
+    if args:
+        buffer = TextBuffer()
 
-    print('PyLine 0.7 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
+    print('PyLine 0.8 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
     print('This program comes with ABSOLUTELY NO WARRANTY; for details type \'i\'.\n')
         
     try:
@@ -63,8 +64,7 @@ def main():
         while choice != 'q':
             buffer = TextBuffer()
             print(f'Current working directory: {current_dir}\n')
-            print('Menu: 1 - Existing file, 2 - New file, 3 - Truncate or new file,\n '
-                  '     CLS - Clear screen, CW - Count words, X - Exec mode, I - Info, Q - Quit\n')
+            utils.editor_menu()
             
             try:
                 choice = input('Your choice: ').lower()

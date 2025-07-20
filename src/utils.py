@@ -15,13 +15,34 @@ import time
 # Local application imports
 import info
 
+def editor_menu():
+    print('PyLine Editor Commands:\n')
+    print('  Basic:')
+    print('    1 - Edit existing file   2 - Create new file   3 - Truncate/new file')
+    print('    cls - Clear screen      cw - Count words      i - Program info')
+    print('    q - Quit\n')
+    print('  Advanced:')
+    print('    x - Exec mode (file operations)\n')
+    
+def exec_menu():
+     print('Executable Mode - File Operations:\n')
+     print('  Navigation:')
+     print('    af - List all files        cwd - Change working directory')
+     print('    cdp - Change default path\n')
+     print('  File Operations:')
+     print('    mkdir - Create directory  rmfile - Delete file')
+     print('    rmdir - Remove directory  rename - Rename file/dir\n')
+     print('  Utilities:')
+     print('    cls - Clear screen        q - Exit exec mode\n')
+     
 def parse_arguments():
     """Handle command-line arguments"""    
     parser = argparse.ArgumentParser(description='PyLine Text Editor')
-    parser.add_argument('filename', nargs='?', help='File to edit')
-    parser.add_argument('-i', '--info', action='store_true', 
-                       help='Show program information and exit')
-    return parser.parse_args()
+    if parser:
+        parser.add_argument('filename', nargs='?', help='File to edit')
+        parser.add_argument('-i', '--info', action='store_true', 
+                            help='Show program information and exit')
+        return parser.parse_args()
 
 def show_info(original_destination):
     os.system('clear')
