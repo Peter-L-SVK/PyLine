@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.7 - Line editor (GPLv3)
+# PyLine 0.8 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -10,18 +10,15 @@ import os
 
 # Local application imports
 import dirops
-from utils import prompt_continue
+from utils import prompt_continue, exec_menu
 
 def execmode(original_destination):
     os.system('clear')
     choice_exec = None
     while choice_exec != 'q':
         current_dir = dirops.currentdir()
-        print('Executable mode\n')
         print(f'Current working directory: {current_dir}\n')
-        print(""" Menu:  AF - All files, CWD - Change working directory, CDP - Change default path,
-        MKDIR - Make a directory, RMDIR - Remove a directory, RMFILE - Remove a file,
-        RENAME - rename a file/directory, CLS - Clear screen, Q - Exit from exec mode\n""")
+        exec_menu()
         try:
             choice_exec = input('Your choice: ').lower()
             if choice_exec == 'af':
