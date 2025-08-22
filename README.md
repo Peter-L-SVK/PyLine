@@ -31,6 +31,11 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
   - Make new directories
   - Remove files and directories
   - Rename files and directories
+- **Hookups manager with support for custom hookups**:
+  - Supports custom hookup scripts in python or perl
+  - Priority Sorting: Sort hooks by priority (90 → 10)
+  - Execution: Try each hook until one returns non-None
+  - Comes with smart-tab indender within box
 - **Cross-Platform**: Works on Linux and BSD systems
 
 ## Example screens
@@ -100,6 +105,32 @@ The editor will:
 To unninstall the program:
 ```bash
 ./install.sh -u
+```
+## Core Hook System Structure with all possible features and hooks in mind
+
+Example of how hooks can be placed:
+```
+~/.pyline/
+├── hooks/                          # Root hooks directory
+│   ├── input_handlers/             # Category: Input handling hooks
+│   │   └── edit_line/              # Type: Line editing handlers
+│   │       └── smart_tab__90.py     # High priority (90)
+│   ├── event_handlers/             # Category: Event-based hooks
+│   │   ├── on_save/                # Type: Save event handlers
+│   │   │   ├── auto_formatter.py
+│   │   │   ├── backup_creator.py
+│   │   │   └── perl-linter.pl
+│   │   ├── on_open/                # Type: Open event handlers  
+│   │   │   └── file_validator.py
+│   │   └── on_close/               # Type: Close event handlers
+│   │       └── cleanup_hook.py
+│   └── syntax_handlers/            # Category: Syntax processing hooks
+│       └── highlight/              # Type: Syntax highlighting
+│           ├── python_highlighter.py
+│           └── javascript_highlighter.py
+├── themes/                         # Themes directory (not implemented yet)
+│   └── solarized.json
+└── config.ini                    # Main configuration file(not implemented yet)
 ```
 
 ### Editor Menu

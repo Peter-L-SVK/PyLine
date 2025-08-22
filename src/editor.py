@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #----------------------------------------------------------------
-# PyLine 0.8 - Line editor (GPLv3)
+# PyLine 0.9 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -31,19 +31,14 @@ def main():
 
     args = utils.parse_arguments()
     if args:
-        buffer = TextBuffer()
-
-    print('PyLine 0.8 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
-    print('This program comes with ABSOLUTELY NO WARRANTY; for details type \'i\'.\n')
-        
+        buffer = TextBuffer()    
     try:
         if args.info:
             utils.show_info(original_destination)
             return
-            
+        
         if args.filename:  # File specified via command line
-            filepath = os.path.abspath(args.filename)
-            
+            filepath = os.path.abspath(args.filename)    
             if os.path.exists(filepath):
                 if buffer.load_file(filepath):
                     buffer.edit_interactive()
@@ -58,7 +53,9 @@ def main():
                 else:
                     print("Failed to create directory structure")
             utils.clean_exit()
-            
+                    
+        print('PyLine 0.9 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
+        print('This program comes with ABSOLUTELY NO WARRANTY; for details type \'i\'.\n')
         
         choice = None
         while choice != 'q':
@@ -93,7 +90,7 @@ def main():
                 os.system('clear')
                 print('\nTo quit, enter Q !\n')
                 continue
-                
+            
     except KeyboardInterrupt:
         pass # Passing the interupt signal
         
