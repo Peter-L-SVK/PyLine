@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.8 - Line editor (GPLv3)
+# PyLine 0.9 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -8,6 +8,7 @@
 import os
 import sys
 import time
+import readline
 
 from typing import List, Optional, Tuple
 from edit_commands import (
@@ -19,7 +20,8 @@ from edit_commands import (
     MultiPasteInsertCommand,
     MultiPasteOverwriteCommand
 )
-from paste_buffer import PasteBuffer
+from hook_manager import HookManager
+from paste_buffer import PasteBuffer 
 from syntax_highlighter import SyntaxHighlighter
 from text_lib import TextLib
 
@@ -35,7 +37,7 @@ class TextBuffer:
         # Navigation state
         self.current_line: int = 0
         self.display_start: int = 0
-        self.display_lines: int = 40
+        self.display_lines: int = 52
         
         # Undo/redo system
         self.undo_stack: List[EditCommand] = []
@@ -47,6 +49,7 @@ class TextBuffer:
         self.in_selection_mode: bool = False
         
         # Dependencies
+        self.hook_manager = HookManager()
         self.paste_buffer = PasteBuffer()
         self.syntax_highlighter = SyntaxHighlighter()
         self.syntax_highlighting = TextLib.init_color_support()
@@ -134,15 +137,43 @@ class TextBuffer:
 
     # Editing operations -------------------------------------------------------
     def edit_current_line(self) -> None:
-        """Edit the current line with readline support."""
+        """Edit the current line using hook-based input system"""
         if not self.lines:
             self.lines = [""]
             self.current_line = 0
             self.dirty = True
-
+            
         old_text = self.lines[self.current_line]
-        new_text = TextLib.edit_line(self.current_line + 1, old_text)
+    
+        # Prepare context for input handlers
+        context = {
+            'line_number': self.current_line + 1,
+            'current_text': old_text,
+            'previous_text': self.lines[self.current_line - 1] if self.current_line > 0 else "",
+            'filename': self.filename,
+            'buffer_lines': self.lines,
+            'current_line_index': self.current_line
+        }
+    
+        # Try to use hook-based input handler (completely generic)
+        new_text = self.hook_manager.execute_hooks('input_handlers', 'edit_line', context)
         
+        # Fallback to standard readline if no handler available
+        if new_text is None:
+            readline.set_startup_hook(lambda: readline.insert_text(old_text))
+            try:
+                print()
+                prompt = f"{self.current_line + 1:4d} [edit]: "
+                new_text = input(prompt)
+            finally:
+                readline.set_startup_hook(None)
+    
+        # Process the result
+        if old_text.endswith('\n'):
+            new_text = new_text + '\n'
+        else:
+            new_text = new_text.rstrip('\n')
+    
         if new_text != old_text:
             cmd = LineEditCommand(self.current_line, old_text, new_text)
             self.push_undo_command(cmd)
@@ -318,6 +349,26 @@ class TextBuffer:
             is_python=bool(self.filename and self.filename.endswith('.py'))
         )
 
+    # Smart indentation init ---------------------------------------------------- 
+    def get_suggested_indentation(self) -> str:
+        """
+        Get suggested indentation for the current line
+        
+        Returns:
+            String of spaces for indentation
+        """
+        current_line_text = self.lines[self.current_line] if self.current_line < len(self.lines) else ""
+        previous_line_text = ""
+        
+        if self.current_line > 0:
+            previous_line_text = self.lines[self.current_line - 1]
+        
+        return self.smart_indent.get_suggested_indent(
+            self.filename,
+            current_line_text,
+            previous_line_text
+        )
+    
     # Interactive editing ------------------------------------------------------
     def edit_interactive(self) -> Optional[bool]:
         """Main editing interface."""
