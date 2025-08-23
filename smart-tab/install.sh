@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # install-smart-tab.sh
 
 echo "Installing Smart Tab Handler for PyLine..."

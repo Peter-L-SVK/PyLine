@@ -152,7 +152,7 @@ Example of how hooks can be placed:
 |Command|Action|
 |---|---|
 |`↑`/`↓`|Navigate between lines / Scroll by lines|
-| `PgUp` / `PgDn` | Scroll by 40 lines buffer|
+| `PgUp` / `PgDn` | Scroll by 52 lines buffer|
 |`Ctrl+B` / `F` | Undo/Redo 
 |`Enter`/`e`|Edit current line|
 |`i`|Insert new line|
