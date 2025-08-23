@@ -1,6 +1,6 @@
 #----------------------------------------------------------------
 # Simple Tab-to-Spaces Handler for PyLine
-# Copyright (C) 2018-2025 Peter Leukanič
+# Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
 # No external dependencies - uses built-in readline
@@ -28,16 +28,18 @@ def handle_input(context):
     
     prompt_text = f"{line_number:4d} [edit]: "
     
+    # Calculate suggested indentation
+    suggested = get_suggested_indent(filename, current_text, previous_text)
+    
     # Monkey-patch readline to convert tabs to spaces
     original_insert_text = readline.insert_text
     original_sigint_handler = signal.getsignal(signal.SIGINT)
     
     def tab_aware_insert_text(text):
-        """Convert tabs to spaces before inserting"""
+        """Convert tabs to spaces using SMART indentation"""
         if '\t' in text:
-            # Convert tabs to appropriate number of spaces
-            indent_size = get_indentation_size(filename)
-            text = text.replace('\t', ' ' * indent_size)
+            # Use the pre-calculated suggested indentation instead of basic tab conversion
+            text = text.replace('\t', suggested)
         original_insert_text(text)
     
     def handle_sigint(signum, frame):
@@ -69,8 +71,8 @@ def handle_input(context):
         
         # Convert any remaining tabs (safety net)
         if '\t' in result:
-            indent_size = get_indentation_size(filename)
-            result = result.replace('\t', ' ' * indent_size)
+            # Use the suggested indentation for any remaining tabs
+            result = result.replace('\t', suggested)
         
         return result
     
@@ -97,41 +99,139 @@ def get_indentation_size(filename):
     file_extension = filename.lower().split('.')[-1] if '.' in filename else ''
     
     indent_rules = {
-        'py': 4, 'python': 4, 'c': 2, 'h': 2, 'cpp': 2, 'java': 4,
-        'js': 2, 'ts': 2, 'html': 2, 'css': 2, 'json': 2,
-        'yml': 2, 'yaml': 2, 'xml': 2, 'rb': 2, 'php': 4,
-        'go': 4, 'rs': 4, 'sh': 4, 'bash': 4
+        # Python
+        'py': 4, 'python': 4, 
+        # C/C++/Rust
+        'c': 2, 'h': 2, 'cpp': 2, 'cc': 2, 'cxx': 2, 'hpp': 2, 'hh': 2,
+        'rs': 4,
+        # Java/C#
+        'java': 4, 'cs': 4,
+        # Web
+        'js': 2, 'ts': 2, 'jsx': 2, 'tsx': 2, 'html': 2, 'htm': 2, 'css': 2, 
+        'scss': 2, 'sass': 2, 'less': 2,
+        # Data/Config
+        'json': 2, 'yml': 2, 'yaml': 2, 'xml': 2, 'toml': 4,
+        # Scripting
+        'rb': 2, 'php': 4, 'pl': 4, 'pm': 4, 't': 4,
+        # Shell
+        'sh': 4, 'bash': 4, 'zsh': 4, 'fish': 4, 'ksh': 4,
+        # Go
+        'go': 4,
+        # Other
+        'sql': 4, 'lua': 4, 'swift': 4, 'kt': 4, 'scala': 4
     }
     
     return indent_rules.get(file_extension, 4)
 
 def get_suggested_indent(filename, current_line, previous_line=""):
-    """Get suggested indentation for the current line"""
+    """Smart indentation for all supported languages with nested context"""
     indent_size = get_indentation_size(filename)
     current_indent_match = re.match(r'^(\s*)', current_line)
     current_indent = current_indent_match.group(1) if current_indent_match else ""
+    current_indent_len = len(current_indent)
     
-    # Increase indentation patterns
-    increase_patterns = [
-        r':\s*$', r'\{\s*$', r'\(\s*$', r'\[\s*$', r'\\\s*$'
-    ]
+    # Get file extension for language-specific rules
+    file_extension = filename.lower().split('.')[-1] if filename else ''
     
-    # Decrease indentation patterns  
-    decrease_patterns = [
-        r'^\s*\}', r'^\s*\)', r'^\s*\]', r'^\s*else\b', r'^\s*elif\b',
-        r'^\s*except\b', r'^\s*finally\b'
-    ]
+    # If no previous line, maintain current indentation
+    if not previous_line or not previous_line.strip():
+        return current_indent
     
-    # Check for increase
-    if previous_line and previous_line.strip():
-        for pattern in increase_patterns:
-            if re.search(pattern, previous_line.strip()):
-                return ' ' * (len(current_indent) + indent_size)
+    # Get previous line's indentation and content
+    prev_indent_match = re.match(r'^(\s*)', previous_line)
+    prev_indent = prev_indent_match.group(1) if prev_indent_match else ""
+    prev_indent_len = len(prev_indent)
+    prev_stripped = previous_line.strip()
     
-    # Check for decrease
-    if current_line.strip():
-        for pattern in decrease_patterns:
-            if re.search(pattern, current_line.strip()):
-                return ' ' * max(0, len(current_indent) - indent_size)
+    # ===== LANGUAGE-SPECIFIC INDENTATION RULES =====
     
-    return current_indent
+    # PYTHON -----------------------------------------------------------------
+    if file_extension in ['py', 'python']:
+        # Increase after these patterns (previous line ends with):
+        if (re.search(r':\s*$', prev_stripped) or      # Colon (if, for, while, def, class)
+            re.search(r'\\\s*$', prev_stripped) or     # Line continuation
+            re.search(r'\(\s*$', prev_stripped) or     # Opening parenthesis
+            re.search(r'\[\s*$', prev_stripped) or     # Opening bracket
+            re.search(r'\{\s*$', prev_stripped)):      # Opening brace (rare)
+            return ' ' * (prev_indent_len + indent_size)
+        
+        # Decrease for these patterns (previous line starts with):
+        elif (re.search(r'^\s*else\b', prev_stripped) or   # else
+              re.search(r'^\s*elif\b', prev_stripped) or   # elif
+              re.search(r'^\s*except\b', prev_stripped) or # except
+              re.search(r'^\s*finally\b', prev_stripped)): # finally
+            return ' ' * max(0, prev_indent_len - indent_size)
+    
+    # C/C++/RUST/JAVA/C# ----------------------------------------------------
+    elif file_extension in ['c', 'h', 'cpp', 'cc', 'cxx', 'hpp', 'hh', 'rs', 'java', 'cs']:
+        # Increase after opening braces/brackets/parentheses
+        if (re.search(r'\{\s*$', prev_stripped) or     # Opening brace {
+            re.search(r'\(\s*$', prev_stripped) or     # Opening parenthesis (
+            re.search(r'\[\s*$', prev_stripped)):      # Opening bracket [
+            return ' ' * (prev_indent_len + indent_size)
+        
+        # Decrease for closing braces/brackets/parentheses
+        elif (re.search(r'^\s*\}\s*$', prev_stripped) or  # Closing brace }
+              re.search(r'^\s*\)\s*$', prev_stripped) or  # Closing parenthesis )
+              re.search(r'^\s*\]\s*$', prev_stripped)):   # Closing bracket ]
+            return ' ' * max(0, prev_indent_len - indent_size)
+    
+    # JAVASCRIPT/TYPESCRIPT -------------------------------------------------
+    elif file_extension in ['js', 'ts', 'jsx', 'tsx']:
+        # Increase after opening braces/brackets/parentheses or arrow functions
+        if (re.search(r'\{\s*$', prev_stripped) or     # Opening brace {
+            re.search(r'\(\s*$', prev_stripped) or     # Opening parenthesis (
+            re.search(r'\[\s*$', prev_stripped) or     # Opening bracket [
+            re.search(r'=>\s*$', prev_stripped)):      # Arrow function
+            return ' ' * (prev_indent_len + indent_size)
+        
+        # Decrease for closing braces/brackets/parentheses
+        elif (re.search(r'^\s*\}\s*$', prev_stripped) or  # Closing brace }
+              re.search(r'^\s*\)\s*$', prev_stripped) or  # Closing parenthesis )
+              re.search(r'^\s*\]\s*$', prev_stripped)):   # Closing bracket ]
+            return ' ' * max(0, prev_indent_len - indent_size)
+    
+    # SHELL/BASH/ZSH --------------------------------------------------------
+    elif file_extension in ['sh', 'bash', 'zsh', 'fish', 'ksh']:
+        # Increase after control structures
+        if (re.search(r'do\s*$', prev_stripped) or     # do keyword
+            re.search(r'then\s*$', prev_stripped) or   # then keyword
+            re.search(r'\{\s*$', prev_stripped) or     # Opening brace {
+            re.search(r'\(\s*$', prev_stripped)):      # Subshell opening
+            return ' ' * (prev_indent_len + indent_size)
+        
+        # Decrease for control structure endings
+        elif (re.search(r'^\s*fi\s*$', prev_stripped) or    # fi
+              re.search(r'^\s*done\s*$', prev_stripped) or  # done
+              re.search(r'^\s*esac\s*$', prev_stripped)):   # esac
+            return ' ' * max(0, prev_indent_len - indent_size)
+    
+    # PERL ------------------------------------------------------------------
+    elif file_extension in ['pl', 'pm', 't']:
+        # Increase after opening braces/brackets/parentheses or keywords
+        if (re.search(r'\{\s*$', prev_stripped) or     # Opening brace {
+            re.search(r'\(\s*$', prev_stripped) or     # Opening parenthesis (
+            re.search(r'\[\s*$', prev_stripped) or     # Opening bracket [
+            re.search(r'sub\s*$', prev_stripped) or    # sub definition
+            re.search(r'do\s*$', prev_stripped)):      # do block
+            return ' ' * (prev_indent_len + indent_size)
+        
+        # Decrease for closing braces/brackets/parentheses
+        elif (re.search(r'^\s*\}\s*$', prev_stripped) or  # Closing brace }
+              re.search(r'^\s*\)\s*$', prev_stripped) or  # Closing parenthesis )
+              re.search(r'^\s*\]\s*$', prev_stripped)):   # Closing bracket ]
+            return ' ' * max(0, prev_indent_len - indent_size)
+    
+    # HTML/XML --------------------------------------------------------------
+    elif file_extension in ['html', 'htm', 'xml']:
+        # Increase after opening tags
+        if re.search(r'<\w[^>]*>\s*$', prev_stripped):  # Opening tag
+            return ' ' * (prev_indent_len + indent_size)
+        
+        # Decrease for closing tags
+        elif re.search(r'^\s*</\w', prev_stripped):     # Closing tag
+            return ' ' * max(0, prev_indent_len - indent_size)
+    
+    # ===== DEFAULT: MAINTAIN PREVIOUS INDENTATION =====
+    # For all other cases, maintain the same indentation as previous line
+    return prev_indent

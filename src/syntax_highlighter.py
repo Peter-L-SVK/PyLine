@@ -83,7 +83,7 @@ class SyntaxHighlighter:
             {
                 'pattern': r'(?<!\w)('
                            r'False|None|True|and|as|assert|async|await|break|case|class|continue|def|del|'
-                           r'elif|else|except|finally|for|from|global|if|import|in|is|lambda|match|'
+                           r'elif|else|except|exit|finally|for|from|global|if|import|in|is|lambda|match|'
                            r'nonlocal|not|or|pass|raise|return|self|try|while|with|yield'
                            r')(?!\w)',
                 'color': Colors.KEYWORD
