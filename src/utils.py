@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.9 - Line editor (GPLv3)
+# PyLine 0.9 - Utils (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -7,9 +7,12 @@
 
 # Standard library imports
 import argparse
+import json
 import os
+from pathlib import Path
 import sys
 import signal
+import subprocess
 import time
 
 # Local application imports
@@ -18,23 +21,31 @@ import info
 def editor_menu():
     print('PyLine Editor Commands:\n')
     print('  Basic:')
-    print('    1 - Edit existing file   2 - Create new file   3 - Truncate/new file')
-    print('    cls - Clear screen      cw - Count words      i - Program info')
-    print('    q - Quit\n')
+    print('       1 - Edit existing file  2 - Create new file   3 - Truncate/new file')
+    print('     cls - Clear screen       cw - Count words       i - Program info')
+    print('      hs - Hook status         q - Quit\n')
     print('  Advanced:')
-    print('    x - Exec mode (file operations)\n')
+    print('      hm - Hook manager    x - Exec mode (file operations)\n')
     
 def exec_menu():
      print('Executable Mode - File Operations:\n')
      print('  Navigation:')
-     print('    af - List all files        cwd - Change working directory')
+     print('     af - List all files         cwd - Change working directory')
      print('    cdp - Change default path\n')
      print('  File Operations:')
-     print('    mkdir - Create directory  rmfile - Delete file')
-     print('    rmdir - Remove directory  rename - Rename file/dir\n')
+     print('    mkdir - Create directory     rmfile - Delete file')
+     print('    rmdir - Remove directory     rename - Rename file/dir\n')
      print('  Utilities:')
-     print('    cls - Clear screen        q - Exit exec mode\n')
-     
+     print('     cls - Clear screen          q - Exit exec mode\n')
+
+def hook_manager_menu():
+    print('Hook Manager - Manage PyLine Extensions:\n')
+    print('  Navigation:')
+    print('    ls - List all hooks          info - Show hook info')
+    print('    enable - Enable hook         disable - Disable hook')
+    print('    reload - Reload all hooks    cls - Clear screen')
+    print('    q - Exit hook manager\n')
+    
 def parse_arguments():
     """Handle command-line arguments"""    
     parser = argparse.ArgumentParser(description='PyLine Text Editor')
@@ -64,3 +75,50 @@ def clean_exit():
     print('\nProgram closed.\n')
     prompt_continue()
     sys.exit(0)
+
+class LanguageHookExecutor:
+    """Generic executor for any language hook"""
+    
+    # Map file extensions to their interpreters
+    LANGUAGE_MAP = {
+        'pl': ['perl'],
+        'js': ['node'],
+        'lua': ['lua'],
+        'rb': ['ruby'],
+        'py': [sys.executable],  # Use current Python
+        'sh': ['bash'],
+        'php': ['php'],
+        # Add more as needed
+    }
+    
+    @classmethod
+    def execute_script(cls, script_path, context, timeout=30):
+        """Execute any script based on its file extension"""
+        script_path = Path(script_path)
+        ext = script_path.suffix.lower()[1:]  # Remove dot
+        
+        if ext not in cls.LANGUAGE_MAP:
+            raise ValueError(f"Unsupported script language: {ext}")
+        
+        try:
+            cmd = cls.LANGUAGE_MAP[ext] + [str(script_path)]
+            result = subprocess.run(
+                cmd,
+                input=json.dumps(context),
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
+            
+            return {
+                'success': result.returncode == 0,
+                'output': result.stdout,
+                'error': result.stderr,
+                'returncode': result.returncode
+            }
+            
+        except subprocess.TimeoutExpired:
+            return {'success': False, 'error': 'Timeout exceeded'}
+        
+        except FileNotFoundError:
+            return {'success': False, 'error': f"Interpreter not found: {cls.LANGUAGE_MAP[ext][0]}"}

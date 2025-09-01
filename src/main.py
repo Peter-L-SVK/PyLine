@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #----------------------------------------------------------------
-# PyLine 0.9 - Line editor (GPLv3)
+# PyLine 0.9.7 - Line Editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -15,20 +15,28 @@ import sys
 # Local application imports
 import dirops
 import execmode
-import utils
+from hook_manager import HookManager
+import hook_manager_mode
+from hook_ui import hook_ui
+from hook_utils import HookUtils, get_hook_utils
 from text_buffer import TextBuffer
+import utils
 
 def main():
+    """Main function and initial core screen"""
+    
     # Register signal handler (for OS-level interrupts)
     signal.signal(signal.SIGINT, utils.handle_sigint)
 
     os.system('clear')
+    # Initialisation of settings
     original_dir = dirops.currentdir()
     dirops.original_path(original_dir)
     original_destination = dirops.original_destination()
     dirops.default_path(original_destination)
     current_dir = dirops.currentdir()
 
+    # Arguments init check
     args = utils.parse_arguments()
     if args:
         buffer = TextBuffer()    
@@ -54,7 +62,7 @@ def main():
                     print("Failed to create directory structure")
             utils.clean_exit()
                     
-        print('PyLine 0.9 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
+        print('PyLine 0.9.7 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič')
         print('This program comes with ABSOLUTELY NO WARRANTY; for details type \'i\'.\n')
         
         choice = None
@@ -74,6 +82,10 @@ def main():
                     handle_truncate_file(buffer)
                 elif choice == 'cw':
                     count_words()
+                elif choice == 'hm':
+                    hook_manager_mode.handle_hook_manager()
+                elif choice == 'hs':
+                    handle_hook_status()
                 elif choice == 'x':
                     current_dir = execmode.execmode(original_destination)
                 elif choice == 'cls':
@@ -97,7 +109,13 @@ def main():
     utils.clean_exit()
 
 def count_words():
+    """Count words using hook system - universal approach"""
     os.system('clear')
+    
+    # Initialize hook utilities
+    hook_manager = HookManager()
+    hook_utils = get_hook_utils(hook_manager)
+    
     answer = None
     while answer != 'y':
         answer = input('Would you like to count words in the file? [Y/N]: ').lower()
@@ -110,19 +128,38 @@ def count_words():
                     print('Error, file must have a name!\n')
                     continue
 
-                num_of_words, num_of_lines, num_of_chars = dirops.count_words_in_file(name_of_file)
-                if not num_of_words == 'error':                    
-                    print('************************************************************')
-                    print(f"{name_of_file} contains:")
-                    print(f"- {num_of_words} words")
-                    print(f"- {num_of_lines} lines") 
-                    print(f"- {num_of_chars} characters")
-                    print('************************************************************\n')
+                # Try to read the file
+                try:
+                    with open(name_of_file, 'r') as f:
+                        file_content = f.read()
+                except IOError:
+                    print(f"Error: Could not read file {name_of_file}")
                     break
+
+                # Prepare context for word count hooks
+                context = {
+                    'action': 'count_words',
+                    'filename': name_of_file,
+                    'file_content': file_content,
+                    'command': 'count'
+                }
+
+                # Use universal approach - hooks handle output directly
+                os.system('clear')
+                hook_handled = hook_utils.execute_and_display('event_handlers', 'word_count', context)
                 
-                else:
-                    print('\n')
-                    break
+                # If no hooks handled it, fall back to built-in
+                if not hook_handled:
+                    num_of_words, num_of_lines, num_of_chars = dirops.count_words_in_file(name_of_file)
+                    if num_of_words != 'error':
+                        print('************************************************************')
+                        print(f"{name_of_file} contains (built-in):")
+                        print(f"- {num_of_words} words")
+                        print(f"- {num_of_lines} lines") 
+                        print(f"- {num_of_chars} characters")
+                        print('************************************************************\n')
+                
+                break
                 
         elif answer == 'n':
             print('Ok, won\'t count anything.\n')
@@ -178,7 +215,7 @@ def handle_new_file(buffer):
                     print('Error, file must have a name!\n')
                     continue
                 
-                buffer.filename = name_of_file
+                buffer.buffer_manager.filename = name_of_file
                  # Get save status from editor
                 save_status = buffer.edit_interactive()
                 
@@ -216,7 +253,7 @@ def handle_truncate_file(buffer):
                     print('Error, file must have a name!\n')
                     continue
                 
-                buffer.filename = name_of_file
+                buffer.buffer_manager.filename = name_of_file
                 buffer.lines = []  # Truncate by clearing buffer
                 buffer.dirty = True  # Mark as dirty immediately after truncation
                 
@@ -243,5 +280,27 @@ def handle_truncate_file(buffer):
         else:
             print('Only Y/N!\n')
 
+def handle_hook_status():
+    os.system('clear')
+    print("Current Hook Status:")
+    print("=" * 50)
+    
+    hooks = hook_ui.hook_mgr.list_all_hooks()
+    if not hooks:
+        print("No hooks installed.")
+    else:
+        enabled_count = sum(1 for hook in hooks if hook['enabled'])
+        print(f"Total Hooks: {len(hooks)} | Active: {enabled_count} | Disabled: {len(hooks) - enabled_count}")
+        print("-" * 50)
+        
+        for hook in hooks:
+            status = "ENABLED" if hook['enabled'] else "DISABLED"
+            print(f"{hook['name']}: {status}")
+    print("")  # Insert empty line  
+    utils.prompt_continue()
+
+#----------------------------------------------
+#             main() execution 
+#----------------------------------------------
 if __name__ == "__main__":
     main()

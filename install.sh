@@ -84,7 +84,7 @@ pyinstaller --onefile \
     --add-data "execmode.py:." \
     --add-data "utils.py:." \
     --add-data "text_buffer.py:." \
-    editor.py -n pyline
+    main.py -n pyline
 
 # Verify build succeeded
 if [ ! -f "./dist/pyline" ]; then

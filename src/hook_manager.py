@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.9 - Line editor (GPLv3)
+# PyLine 0.9.7 - Hook Manager Core (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -9,21 +9,129 @@ import os
 import importlib.util
 import sys
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
+from utils import LanguageHookExecutor
 
 class HookManager:
     def __init__(self):
         self.hooks_dir = Path.home() / ".pyline" / "hooks"
         self.hooks_dir.mkdir(parents=True, exist_ok=True)
+        self.disabled_hooks = set()  # Track disabled hooks at runtime
+        self._load_disabled_hooks()
     
-    def has_hooks(self, hook_category: str, hook_type: str = None) -> bool:
-        """Check if any hooks exist for a category/type"""
-        if hook_type:
-            hook_dir = self.hooks_dir / hook_category / hook_type
-        else:
-            hook_dir = self.hooks_dir / hook_category
+    def _load_disabled_hooks(self):
+        """Load disabled hooks from files starting with underscore"""
+        self.disabled_hooks.clear()  # Clear existing first
+        for hook_file in self.hooks_dir.rglob('*'):
+            if not hook_file.is_file():
+                continue
+            if hook_file.suffix not in ['.py', '.js', '.pl', '.rb', '.sh', '.lua', '.php']:
+                continue
+            
+            # If file starts with underscore, add to disabled set
+            if hook_file.name.startswith('_'):
+                rel_path = hook_file.relative_to(self.hooks_dir)
+                hook_id = str(rel_path).replace('.py', '').lstrip('_')
+                self.disabled_hooks.add(hook_id)
+    
+    def is_hook_enabled(self, hook_id):
+        """Check if a hook is enabled using its full path ID"""
+        return hook_id not in self.disabled_hooks
+
+    def find_hook_file_by_id(self, hook_id):
+        """Find the actual file for a hook ID"""
+        for hook_file in self.hooks_dir.rglob('*'):
+            if not hook_file.is_file():
+                continue
+            if hook_file.suffix not in ['.py', '.js', '.pl', '.rb', '.sh', '.lua', '.php']:
+                continue
+            if self.get_hook_id(hook_file) == hook_id:
+                return hook_file
+            return None
+
+    
+    def enable_hook(self, hook_id):
+        """Enable a hook at runtime using its full path ID"""
+        if hook_id in self.disabled_hooks:
+            self.disabled_hooks.remove(hook_id)
+    
+    def disable_hook(self, hook_id):
+        """Disable a hook at runtime using its full path ID"""
+        self.disabled_hooks.add(hook_id)
+    
+    def get_hook_id(self, hook_file):
+        """Generate a unique ID for a hook file based on its relative path"""
+        rel_path = hook_file.relative_to(self.hooks_dir)
+        return str(rel_path).replace('.py', '').lstrip('_')
+    
+    def _get_hook_priority(self, hook_file):
+        """
+        Extract priority from filename (e.g., handler__90.py -> priority 90)
         
-        return hook_dir.exists() and any(hook_dir.iterdir())
+        Args:
+        hook_file: Path object pointing to the hook file
+        
+        Returns:
+        int: Priority value (default 50 if not specified)
+        """
+        name = hook_file.stem.lstrip('_')  # Remove leading underscore for disabled hooks
+        if '__' in name:
+            try:
+                # Extract the part after the last __
+                priority_str = name.split('__')[-1]
+                return int(priority_str)
+            except ValueError:
+                # If the part after __ isn't a number, use default
+                pass
+        return 50  # Default priority
+    
+    def _get_sorted_hooks(self, hook_dir: Path) -> List[Tuple[str, Path]]:
+        """Get hooks sorted by priority, excluding disabled hooks - returns (hook_id, path)"""
+        hooks = []
+        for hook_file in hook_dir.iterdir():
+            # ONLY include supported file types
+            if hook_file.suffix not in ['.py', '.js', '.pl', '.rb', '.sh', '.lua', '.php']:
+                continue  # Skip unsupported files
+                
+            # Skip disabled hooks (those starting with underscore)
+            if hook_file.name.startswith('_'):
+                continue
+                
+            # Check if hook is disabled at runtime
+            hook_id = self.get_hook_id(hook_file)
+            if not self.is_hook_enabled(hook_id):
+                continue
+                
+            priority = self._get_hook_priority(hook_file)
+            hooks.append((priority, hook_id, hook_file))
+        
+        # Sort by priority (higher first), then by filename
+        hooks.sort(key=lambda x: (-x[0], x[2].name))
+        return [(hook_id, hook_file) for priority, hook_id, hook_file in hooks]
+    
+    def _execute_hook(self, hook_file, context):
+        """Execute a single hook file (NEW METHOD)"""
+        if hook_file.suffix == '.py':
+            # Python hook execution
+            try:
+                # Load the Python module
+                spec = importlib.util.spec_from_file_location(hook_file.stem, hook_file)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                
+                # Call the main function if it exists
+                if hasattr(module, 'main'):
+                    return module.main(context)
+                else:
+                    print(f"Warning: Hook {hook_file.name} has no main() function")
+                    return None
+                    
+            except Exception as e:
+                print(f"Error executing Python hook {hook_file.name}: {e}")
+                return None
+        else:
+            # Non-Python hook execution
+            return LanguageHookExecutor.execute_script(hook_file, context)
     
     def execute_hooks(self, hook_category: str, hook_type: str, context: Dict[str, Any]) -> Optional[Any]:
         """
@@ -33,13 +141,13 @@ class HookManager:
         if not hook_dir.exists():
             return None
             
-        for hook_file in self._get_sorted_hooks(hook_dir):
+        for hook_id, hook_file in self._get_sorted_hooks(hook_dir):
             try:
                 result = self._execute_hook(hook_file, context)
                 if result is not None:
                     return result
             except Exception as e:
-                print(f"Hook {hook_file.name} failed: {e}")
+                print(f"Hook {hook_id} failed: {e}")
         
         return None
     
@@ -52,64 +160,50 @@ class HookManager:
             return []
             
         results = []
-        for hook_file in self._get_sorted_hooks(hook_dir):
+        for hook_id, hook_file in self._get_sorted_hooks(hook_dir):
             try:
                 result = self._execute_hook(hook_file, context)
                 if result is not None:
                     results.append(result)
             except Exception as e:
-                print(f"Hook {hook_file.name} failed: {e}")
+                print(f"Hook {hook_id} failed: {e}")
         
         return results
     
-    def _get_sorted_hooks(self, hook_dir: Path) -> List[Path]:
-        """Get hooks sorted by priority (filename__priority.py) or alphabetically"""
-        hooks = []
-        for hook_file in hook_dir.iterdir():
-            if hook_file.is_file() and hook_file.suffix == '.py':
-                priority = self._get_hook_priority(hook_file)
-                hooks.append((priority, hook_file))
+    def list_all_hooks(self):
+        """Get all hooks with their status"""
+        all_hooks = []
         
-        # Sort by priority (higher first), then by filename
-        hooks.sort(key=lambda x: (-x[0], x[1].name))
-        return [hook_file for priority, hook_file in hooks]
-    
-    def _get_hook_priority(self, hook_file: Path) -> int:
-        """Extract priority from filename (e.g., handler__99.py -> priority 99)"""
-        name = hook_file.stem
-        if '__' in name:
-            try:
-                return int(name.split('__')[-1])
-            except ValueError:
-                pass
-        return 50  # Default priority
-    
-    def _execute_hook(self, hook_file: Path, context: Dict[str, Any]) -> Optional[Any]:
-        """Execute a single hook file"""
-        spec = importlib.util.spec_from_file_location(hook_file.stem, hook_file)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[hook_file.stem] = module
-        spec.loader.exec_module(module)
-        
-        # Look for standard hook function
-        if hasattr(module, 'handle_input'):
-            return module.handle_input(context)
-        
-        # Alternative function names
-        if hasattr(module, 'main'):
-            return module.main(context)
-        
-        if hasattr(module, 'execute'):
-            return module.execute(context)
-        
-        return None
-    
-    def list_hooks(self, hook_category: str = None, hook_type: str = None) -> List[Path]:
-        """List available hooks"""
-        if hook_category and hook_type:
-            hook_dir = self.hooks_dir / hook_category / hook_type
-            return list(hook_dir.iterdir()) if hook_dir.exists() else []
-        elif hook_category:
-            hook_dir = self.hooks_dir / hook_category
-            return list(hook_dir.iterdir()) if hook_dir.exists() else []
-        return list(self.hooks_dir.iterdir())
+        # Use rglob to search recursively through all subdirectories
+        for hook_file in self.hooks_dir.rglob('*'):
+            if not hook_file.is_file():
+                continue
+            
+            # ONLY include supported file types
+            if hook_file.suffix not in ['.py', '.js', '.pl', '.rb', '.sh', '.lua', '.php']:
+                continue
+            
+            hook_id = self.get_hook_id(hook_file)
+            enabled = self.is_hook_enabled(hook_id)  # Only check runtime state
+            
+            # Determine category and type based on directory structure
+            rel_path = hook_file.relative_to(self.hooks_dir)
+            parts = rel_path.parts
+            
+            if len(parts) > 1:
+                category = parts[0]
+                hook_type = parts[1] if len(parts) > 1 else 'root'
+            else:
+                category = 'root'
+                hook_type = 'root'
+                
+            all_hooks.append({
+                'id': hook_id,
+                'path': str(hook_file),
+                'enabled': enabled,
+                'name': hook_file.stem.lstrip('_'),
+                'category': category,
+                'type': hook_type
+            })
+            
+        return all_hooks
