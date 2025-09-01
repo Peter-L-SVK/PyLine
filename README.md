@@ -55,6 +55,12 @@ Example of line selection:
 After pasting the selection from clipboard:
 ![PyLine v-Paste Selected](scrshots/paste-lines.png)
 
+Execmode(Filemanager):
+![PyLine Execmode](scrshots/exec.png)
+Hook manager:
+![PyLine Hm](scrshots/hook-mgr.png)
+  
+![PyLine Hm-ls](scrshots/hook-mgr-ls.png)
 ## Installation
 
 1st method: Manual run
