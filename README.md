@@ -8,35 +8,38 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
 ## Features
 
 - **Lightweight & Fast**: Runs entirely in terminal with minimal dependencies
+- **Advanced Hook System**: Extensible plugin architecture with support for multiple languages (Python, JavaScript, Perl, Ruby, Lua, PHP, Shell)
 - **File Operations**:
-  - Edit existing files
-  - Create new files
+  - Edit existing files with full hook integration
+  - Create new files with directory structure creation
   - Truncate existing files
-  - Count words, lines and characters
+  - Count words, lines and characters with hookable word counting
 - **Navigation**:
   - Move between lines and scroll file with arrow keys
   - Scroll file by keys PageUp and PageDown
   - Jump to end of file (Ctrl+D for EOF)
+  - Smart viewport management
 - **Editing**:
-  - Line-by-line editing with syntax
+  - Line-by-line editing with hook-integrated input handling
   - Preserves existing text when modifying lines
-  - Insert/delete line operations
-  - Undo/Redo changes (history limit set to 120)
-  - Multi line text selection
-  - Copy and Paste text
-  - Syntax highlighting for Python
+  - Insert/delete line operations with pre/post hooks
+  - Comprehensive Undo/Redo system (history limit set to 120)
+  - Multi-line text selection with visual indicators
+  - Cross-platform clipboard support (X11, Wayland, macOS, Windows)
+  - Smart indentation preservation during paste operations
+  - Syntax highlighting for Python with advanced token recognition
 - **File Browser**:
-  - List directory contents
-  - Change working directories
+  - Colorized directory listings
+  - Change working directories with path persistence
   - Make new directories
   - Remove files and directories
   - Rename files and directories
-- **Hookups manager with support for custom hookups**:
-  - Supports custom hookup scripts in python or perl
-  - Priority Sorting: Sort hooks by priority (90 → 10)
-  - Execution: Try each hook until one returns non-None
-  - Comes with smart-tab indender within box
-- **Cross-Platform**: Works on Linux and BSD systems
+- **Hook Management**:
+  - Visual hook manager interface (`hm` command)
+  - Priority-based hook execution (90 → 10)
+  - Runtime enable/disable without restart
+  - Support for multiple scripting languages
+  - Hook categories: input handlers, event handlers, syntax handlers, editing operations, clipboard operations, session handlers
 
 ## Example screens
 
@@ -58,7 +61,7 @@ After pasting the selection from clipboard:
 ```bash
 git clone https://github.com/Peter-L-SVK/PyLine.git
 cd PyLine/src/
-chmod +x editor.py
+chmod +x main.py
 ```
 2nd method (script will run sudo command):
 ```bash
@@ -71,7 +74,7 @@ cd PyLine/
 
 In case of manual run:
 ```bash
-./editor.py
+./main.py
 ```
 
 If you used install script:
@@ -81,10 +84,10 @@ pyline  #works from anywhere
 Editor accpets input arguments:
 ```bash
 # Edit existing file
-./editor.py existing_file.txt # pyline existing_file.txt
+./main.py existing_file.txt # pyline existing_file.txt
 
 # Create new file
-./editor.py new_file.txt  # pyline new_file.txt
+./main.py new_file.txt  # pyline new_file.txt
 ```
 
 The editor will:
@@ -133,6 +136,40 @@ Example of how hooks can be placed:
 └── config.ini                    # Main configuration file(not implemented yet)
 ```
 
+**Advanced Hook System**
+
+PyLine features a comprehensive hook system that allows extending functionality through plugins. The hook system supports multiple programming languages and follows a structured directory hierarchy:
+
+```
+~/.pyline/hooks/
+├── input_handlers/           # Input processing hooks
+│   └── edit_line/           # Line editing handlers
+│       ├── smart_tab__90.py  # Priority 90 (high)
+│       └── auto_complete.py
+├── event_handlers/           # Event-based hooks  
+│   ├── pre_save/            # Before saving
+│   ├── post_save/           # After saving
+│   ├── pre_load/            # Before loading
+│   ├── post_load/           # After loading
+│   └── on_error/            # Error handling
+├── syntax_handlers/         # Syntax processing
+│   ├── highlight/           # Syntax highlighting
+│   └── lint/               # Code linting
+├── editing_ops/            # Editing operations
+│   ├── pre_insert/         # Before line insertion
+│   ├── post_insert/        # After line insertion  
+│   ├── pre_delete/         # Before line deletion
+│   └── post_delete/        # After line deletion
+├── clipboard_ops/          # Clipboard operations
+│   ├── pre_copy/           # Before copying
+│   ├── post_copy/          # After copying
+│   ├── pre_paste/          # Before pasting
+│   └── post_paste/         # After pasting
+└── session_handlers/       # Session management
+    ├── pre_edit/          # Before editing session
+    └── post_edit/         # After editing session
+```
+
 ### Editor Menu
 
 |Command|Action|
@@ -142,11 +179,21 @@ Example of how hooks can be placed:
 |`3`|Truncate existing or create new file|
 |`cls`|Clear screen|
 |`cw`|Count words in the file|
+|`hm`|Hook manager|
+|`hs`|Hook status|
 |`x`|Enter file management mode (exec mode)|
 |`i`|Info|
 |`q`|Exit program|
 |`Ctrl+D`|Escape from function|
 |`Ctrl+C`|Interupt the program|
+
+**Hook Management Commands:**
+- `hm` - Enter hook manager interface
+- `ls` - List all available hooks
+- `info` - Show detailed hook information
+- `enable` - Enable a specific hook
+- `disable` - Disable a specific hook
+- `reload` - Reload hook system from filesystem
 
 ### Editor Controls
 |Command|Action|
@@ -161,7 +208,7 @@ Example of how hooks can be placed:
 |`v`|Paste from clipboard|
 |`o`|Overwrite lines|
 |`s`|Start / End of selection|
-|`q`|Quit editor|
+|`q` /`esc`|Quit editor|
 |`w`|Write changes|
 |`Ctrl+D` / `End`|Jump to end of file|
 
@@ -182,6 +229,14 @@ Example of how hooks can be placed:
 
 ## Requirements
 
+- **Hook Language Support**:
+  - Python: Built-in
+  - JavaScript: `node` runtime
+  - Perl: `perl` interpreter
+  - Ruby: `ruby` interpreter
+  - Lua: `lua` interpreter
+  - PHP: `php` interpreter
+  - Shell: `bash` or `zsh` interpreter
 - Python 3.6+   
 - Linux(or WSL)/FreeBSD/MacOS system (tested on Fedora 27 MATE, 40/42 Cinnmanon)
 - Bash or Zsh shell

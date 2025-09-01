@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.9 - Line editor (GPLv3)
+# PyLine 0.9.7 - Copy Paste Buffer (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -18,6 +18,7 @@ from edit_commands import (
     MultiPasteInsertCommand,
     MultiPasteOverwriteCommand
 )
+from text_lib import TextLib
 
 class PasteBuffer:
     def __init__(self):
@@ -184,19 +185,26 @@ class PasteBuffer:
             Number of lines pasted
         """
         if not self.buffer and not self.load_from_clipboard():
+            TextLib.show_status_message("Clipboard empty or inaccessible")
             return 0
-
-        at_line = at_line or text_buffer.current_line
+        
+        at_line = at_line or text_buffer.navigation_manager.get_current_line()
+        
+        # Ensure at_line is within bounds
+        at_line = max(0, min(at_line, len(text_buffer.buffer_manager.lines)))
+        
         adjusted_lines = [
-            self._adjust_line_indent(line, self._get_context_indent(text_buffer, at_line))
+            self._adjust_line_indent(line, self._get_context_indent(text_buffer.buffer_manager, at_line))
             for line in self.buffer
         ] if adjust_indent else self.buffer.copy()
         
         cmd = MultiPasteInsertCommand(at_line, adjusted_lines)
         text_buffer.push_undo_command(cmd)
-        cmd.execute(text_buffer)
+        cmd.execute(text_buffer.buffer_manager)
         
-        text_buffer.dirty = True
+        text_buffer.buffer_manager.dirty = True
+        
+        # Return the number of lines actually pasted
         return len(adjusted_lines)
 
     def paste_over(self, text_buffer, at_line=None):
@@ -210,44 +218,54 @@ class PasteBuffer:
             Number of lines affected
         """
         if not self.buffer and not self.load_from_clipboard():
+            TextLib.show_status_message("Clipboard empty or inaccessible")
             return 0
         
-        at_line = at_line or text_buffer.current_line
+        at_line = at_line or text_buffer.navigation_manager.get_current_line()
+        
+        # Ensure at_line is within bounds
+        at_line = max(0, min(at_line, len(text_buffer.buffer_manager.lines)))
+        
         changes = []
         
         for i, line in enumerate(self.buffer):
             target_line = at_line + i
-            if target_line >= len(text_buffer.lines):
+            if target_line >= len(text_buffer.buffer_manager.lines):
                 break
+        
+            # Preserve original indentation of target line
+            indent_match = re.match(r'^\s*', text_buffer.buffer_manager.lines[target_line])
+            indent = indent_match.group() if indent_match else ""
             
-            # Preserve original indentation
-            indent = re.match(r'^\s*', text_buffer.lines[target_line]).group()
-            old_text = text_buffer.lines[target_line]
+            old_text = text_buffer.buffer_manager.lines[target_line]
             new_text = indent + line.lstrip()
             changes.append((target_line, old_text, new_text))
             
         if changes:
             cmd = MultiPasteOverwriteCommand(changes)
             text_buffer.push_undo_command(cmd)
-            cmd.execute(text_buffer)
-            text_buffer.dirty = True
+            cmd.execute(text_buffer.buffer_manager)
+            text_buffer.buffer_manager.dirty = True
             
-        return len(changes)
+            # Return the number of lines actually overwritten
+            return len(changes)
+        
+        return 0
 
-    def _get_context_indent(self, text_buffer, at_line):
+    def _get_context_indent(self, buffer_manager, at_line):
         """Determine appropriate indentation for paste location"""
         # Check current line's indentation
-        if at_line < len(text_buffer.lines):
-            indent_match = re.match(r'^(\s*)', text_buffer.lines[at_line])
+        if at_line < len(buffer_manager.lines):
+            indent_match = re.match(r'^(\s*)', buffer_manager.lines[at_line])
             if indent_match:
                 return indent_match.group(1)
-        
+    
         # Check previous line's indentation if current line doesn't exist
-        if at_line > 0 and at_line - 1 < len(text_buffer.lines):
-            indent_match = re.match(r'^(\s*)', text_buffer.lines[at_line - 1])
+        if at_line > 0 and at_line - 1 < len(buffer_manager.lines):
+            indent_match = re.match(r'^(\s*)', buffer_manager.lines[at_line - 1])
             if indent_match:
                 return indent_match.group(1)
-                
+            
         return ""
 
     def _adjust_line_indent(self, line, target_indent):
@@ -345,4 +363,5 @@ class PasteBuffer:
         
     def copy_to_clipboard(self, text):
         """Copy text to system clipboard"""
-        return self.set_system_clipboard(text)
+        result = self.set_system_clipboard(text)
+        return result

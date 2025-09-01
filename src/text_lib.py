@@ -1,5 +1,5 @@
 #----------------------------------------------------------------
-# PyLine 0.9 - Line editor (GPLv3)
+# PyLine 0.9.7 - TextBuffer Library (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -69,42 +69,78 @@ class TextLib:
 
     @staticmethod
     def display_buffer(
-        lines: List[str],
-        filename: Optional[str],
-        current_line: int,
-        display_start: int,
-        display_lines: int,
-        selection_start: Optional[int],
-        selection_end: Optional[int],
-        syntax_highlighter,
-        is_python: bool
+            lines: List[str],
+            filename: Optional[str],
+            current_line: int,
+            display_start: int,
+            display_lines: int,
+            selection_start: Optional[int],
+            selection_end: Optional[int],
+            syntax_highlighter,
+            is_python: bool
     ) -> None:
-        """Display the buffer contents with formatting"""
+        """Display the buffer contents with UTF-8 support"""
         os.system('clear')
         sys.stdout.write("\033[?25h\033[0m")  # Ensure cursor visible and reset
         
-        print(f"\033[0mEditing: {filename or 'New file'}")
-        print("""\033[0mCommands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
-        C - Copy, V - Paste, O - Overwrite lines, W - Write changes, S - Select,  Q - Quit""")
-        print("\033[0m" + "-" * 92)
-
-        for idx in range(display_start, min(display_start + display_lines, len(lines))):
-            line_num = idx + 1
-            if (selection_start is not None and selection_end is not None and 
-                idx >= min(selection_start, selection_end) and 
-                idx <= max(selection_start, selection_end)):
-                prefix = "\033[1;31m=\033[0m"  # Selected
-            elif idx == current_line:
-                prefix = ">"  # Current line
-            else:
-                prefix = " "
+        # Handle empty buffer - ensure we always have at least one line
+        if not lines:
+            lines = [""]
+            
+        # Safe UTF-8 output without breaking stdout
+        try:
+            # Header lines
+            header = f"\033[0mEditing: {filename or 'New file'}\n"
+            header += """\033[0mCommands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
+            C - Copy, V - Paste, O - Overwrite lines, W - Write changes, S - Select,  Q - Quit\n"""
+            header += "\033[0m" + "-" * 92 + "\n"
+            
+            sys.stdout.buffer.write(header.encode('utf-8', errors='replace'))
+            
+            # Ensure display_start is within bounds
+            display_start = max(0, min(display_start, len(lines) - 1))
+            end_index = min(display_start + display_lines, len(lines))
+            
+            for idx in range(display_start, end_index):
+                line_num = idx + 1
+                if (selection_start is not None and selection_end is not None and 
+                    idx >= min(selection_start, selection_end) and 
+                    idx <= max(selection_start, selection_end)):
+                    prefix = "\033[1;31m=\033[0m"  # Selected
+                elif idx == current_line:
+                    prefix = ">"  # Current line
+                else:
+                    prefix = " "
+            
+                line_text = lines[idx]
+                if is_python and filename and filename.endswith('.py'):
+                    line_text = syntax_highlighter._highlight_python(line_text)
                 
-            line_text = lines[idx]
-            if is_python and filename and filename.endswith('.py'):
-                line_text = syntax_highlighter._highlight_python(line_text)
-                    
-            print(f"\033[0m{prefix}{line_num:4d}: {line_text}\033[0m")
-        sys.stdout.flush()
+                # Safe UTF-8 output
+                line_display = f"\033[0m{prefix}{line_num:4d}: {line_text}\033[0m\n"
+                sys.stdout.buffer.write(line_display.encode('utf-8', errors='replace'))
+    
+            sys.stdout.flush()
+    
+        except (OSError, UnicodeEncodeError) as e:
+            # Fallback to basic output
+            sys.stdout = sys.__stdout__
+            print(f"Editing: {filename or 'New file'}")
+            print("Commands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,")
+            print("C - Copy, V - Paste, O - Overwrite lines, W - Write changes, S - Select, Q - Quit")
+            print("-" * 92)
+            
+            # Handle empty buffer in fallback
+            if not lines:
+                print(">   1: ")
+            else:
+                for idx in range(display_start, min(display_start + display_lines, len(lines))):
+                    line_num = idx + 1
+                    if idx == current_line:
+                        prefix = ">"
+                    else:
+                        prefix = " "
+                    print(f"{prefix}{line_num:4d}: {lines[idx]}")
 
     @staticmethod
     def edit_line(line_num: int, old_text: str) -> str:
@@ -122,6 +158,8 @@ class TextLib:
         
         finally:
             readline.set_startup_hook(None)
+            TextLib.clear_line()
+            TextLib.move_up(1)
 
     @staticmethod
     def clear_line():

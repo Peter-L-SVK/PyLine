@@ -1,5 +1,7 @@
 #----------------------------------------------------------------
-# Simple Tab-to-Spaces Handler for PyLine
+# Simple Tab-to-Spaces Handler for PyLine in Python3
+# Description: Converts tab characters to appropriate spaces based on file type, with intelligent indentation and Ctrl-C handling.
+# Priority: 90
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -235,3 +237,9 @@ def get_suggested_indent(filename, current_line, previous_line=""):
     # ===== DEFAULT: MAINTAIN PREVIOUS INDENTATION =====
     # For all other cases, maintain the same indentation as previous line
     return prev_indent
+
+def main(context):
+    """
+    Main function that will be called by the hook system
+    """
+    return handle_input(context)
