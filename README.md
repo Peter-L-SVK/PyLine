@@ -43,24 +43,26 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
 
 ## Example screens
 
-PyLine after the initialization:
+PyLine after the initialization:  
 ![PyLine Init](scrshots/init-scr.png) 
 
-Open file option screen:
+Open file option screen:  
 ![PyLine Open File](scrshots/edit-file.png)
 
-Example of line selection:
+Example of line selection:  
 ![PyLine Copy Selected](scrshots/copy-selected.png)
 
 After pasting the selection from clipboard:
 ![PyLine v-Paste Selected](scrshots/paste-lines.png)
-
-Execmode(Filemanager):
+  
+Execmode(Filemanager):  
 ![PyLine Execmode](scrshots/exec.png)
-Hook manager:
+  
+Hook manager:  
 ![PyLine Hm](scrshots/hook-mgr.png)
   
 ![PyLine Hm-ls](scrshots/hook-mgr-ls.png)
+
 ## Installation
 
 1st method: Manual run
