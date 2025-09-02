@@ -1,13 +1,13 @@
 #!/usr/bin/env perl
 
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 # Perl Lower-case to Upper-case Hook
 # Description: Converts all lower-case letters to upper-case in opened files
 # Priority: 80
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 
 use strict;
 use warnings;

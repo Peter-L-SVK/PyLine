@@ -19,3 +19,4 @@ echo "Lowercase to uppercase handler installed successfully!"
 echo "Location: $HOOK_DIR/$HOOK_FILE"
 echo ""
 echo "PyLine will now convert all lower-case letters to upper-case in opened files"
+exit 0

@@ -5,8 +5,9 @@ import tempfile
 from pathlib import Path
 
 # Add src to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 import dirops
+
 
 class TestDirOpsScenario(unittest.TestCase):
     def setUp(self):
@@ -39,6 +40,7 @@ class TestDirOpsScenario(unittest.TestCase):
         result = dirops.rmdir(dirname)
         self.assertIsNone(result, "rmdir should succeed if directory existed")
         self.assertFalse(os.path.exists(dirname))
+
 
 if __name__ == "__main__":
     unittest.main()

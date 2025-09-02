@@ -5,13 +5,13 @@
 ### File Headers
 All Python files must include this header format:
 ```python
-#----------------------------------------------------------------
+# ----------------------------------------------------------------
 # PyLine [version] - Line editor (GPLv3)
 # Copyright (C) [year] [original author]
 # Contributors: [name1], [name2], [name3]
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
-#----------------------------------------------------------------
+# ----------------------------------------------------------------
 ```
 
 **Rules:**
@@ -22,13 +22,13 @@ All Python files must include this header format:
 
 ### Example with Multiple Contributors:
 ```python
-#----------------------------------------------------------------
+# ----------------------------------------------------------------
 # PyLine 0.7 - Line editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # Contributors: Jane Smith, John Doe, Alex Chen
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
-#----------------------------------------------------------------
+# ----------------------------------------------------------------
 ```
 
 ## Import Style Guide
@@ -171,9 +171,11 @@ Please keep your changes focused and well-documented. If you have questions abou
    - Google-style docstrings
 
 2. **Tools:**
+   Preconfigured in repo.
+   
    ```bash
    # Required pre-commit hooks
-   flake8 --max-line-length=120 --ignore=E203,W503
+   flake8 --max-line-length=120 --ignore=E203,W503,E501
    black --check --diff .
    mypy --strict .
    ```

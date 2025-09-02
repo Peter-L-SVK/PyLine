@@ -7,6 +7,8 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
 
 ## Features
 
+For now, editor use color scheme of your terminal and only coloring happens in python syntax.
+
 - **Lightweight & Fast**: Runs entirely in terminal with minimal dependencies
 - **Advanced Hook System**: Extensible plugin architecture with support for multiple languages (Python, JavaScript, Perl, Ruby, Lua, PHP, Shell)
 - **File Operations**:
