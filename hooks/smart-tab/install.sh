@@ -20,3 +20,4 @@ echo "Smart tab handler installed successfully!"
 echo "Location: $HOOK_DIR/$HOOK_FILE"
 echo ""
 echo "PyLine will now use auto indentation based on suffix of file."
+exit 0

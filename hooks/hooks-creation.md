@@ -152,6 +152,7 @@ function main(context) {
 - **10-29**: Experimental/optional features
 
 ## License Best Practices
+- When usig third party libs, check license and use same one, if not possible to use different.
 - In case of different than GPL v3+ license hook need to be placed in different repo
 - These separate repos should be public and will be linked in docs
 
@@ -268,7 +269,7 @@ Copy to `~/.pyline/hooks/[category]/[type]/`
 ```python
 #!/usr/bin/env python3
 
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 # Python Auto-Indent Hook
 # Description: Provides smart indentation based on previous line context
 # Priority: 85
@@ -277,7 +278,7 @@ Copy to `~/.pyline/hooks/[category]/[type]/`
 # Copyright (C) 2025 Your Name
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 
 def main(context):
     try:
@@ -295,7 +296,7 @@ def calculate_indent(previous_line):
     # Your indentation logic here
     return '    '  # 4 spaces
 ```
-
+Run tools Flake8, MyPy and Black (alredy preconfigured in repo).
 By following these guidelines, your hooks will be:
 - ✅ Compatible with PyLine's hook system
 - ✅ Legally compliant and properly licensed
@@ -344,4 +345,5 @@ echo "Lowercase to uppercase handler installed successfully!"
 echo "Location: $HOOK_DIR/$HOOK_FILE"
 echo ""
 echo "PyLine will now convert all lower-case letters to upper-case in opened files"
+exit 0
 ```

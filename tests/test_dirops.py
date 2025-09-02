@@ -3,7 +3,7 @@ import sys
 import os
 
 # Add the src directory to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 import dirops
 
@@ -28,9 +28,10 @@ class TestDirops(unittest.TestCase):
 
     def test_file_not_found(self):
         words, lines, chars = dirops.count_words_in_file("nonexistent.txt")
-        self.assertEqual(words, 'error')
+        self.assertEqual(words, "error")
         self.assertEqual(lines, 0)
         self.assertEqual(chars, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

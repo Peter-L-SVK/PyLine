@@ -20,3 +20,4 @@ echo "Word counter handler installed successfully!"
 echo "Location: $HOOK_DIR/$HOOK_FILE"
 echo ""
 echo "PyLine will now use word count hook instead of built-in one."
+exit 0
