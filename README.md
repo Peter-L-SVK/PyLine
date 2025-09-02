@@ -64,6 +64,8 @@ Hook manager:
 ![PyLine Hm](scrshots/hook-mgr.png)
   
 ![PyLine Hm-ls](scrshots/hook-mgr-ls.png)
+  
+![PyLine Hm-ls-list](scrshots/hook-mgr-ls2.png)
 
 ## Installation
 
