@@ -76,7 +76,7 @@ def handle_sigint(signum: int, frame: Any) -> NoReturn:
 
 
 def clean_exit_wop() -> NoReturn:
-    exit(0)
+     sys.exit(0)
 
 
 def clean_exit() -> NoReturn:
