@@ -90,7 +90,7 @@ Complete structure:
 3. **Add code**:
 ```python
 #!/usr/bin/env python3
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 # Python Example Hook
 # Description: Converts text to uppercase
 # Priority: 50
@@ -99,7 +99,7 @@ Complete structure:
 # Copyright (C) 2025 Your Name
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 
 def main(context):
     return context.get('current_text', '').upper()
@@ -121,7 +121,7 @@ def main(context):
 | `content` | string/list | File content | Event handlers |
 | `lines` | list | All buffer lines | Many hooks |
 
-## ❓ Frequently Asked Questions
+## Frequently Asked Questions
 
 ### Q: Why isn't my hook loading?
 **A**: Check:
