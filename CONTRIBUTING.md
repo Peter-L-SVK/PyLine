@@ -171,7 +171,11 @@ Please keep your changes focused and well-documented. If you have questions abou
    - Google-style docstrings
 
 2. **Tools:**
-   Preconfigured in repo.
+   Preconfigured in repo. For flake8 toml config: 
+   
+   ```sh 
+   pip install flake8-pyproject 
+   ```
    
    ```bash
    # Required pre-commit hooks
