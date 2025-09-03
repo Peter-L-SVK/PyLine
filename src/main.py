@@ -45,7 +45,6 @@ def main() -> NoReturn:
         if args.info:
             utils.show_info(original_destination)
             utils.clean_exit_wop()
-
         if args.filename:  # File specified via command line
             filepath = os.path.abspath(args.filename)
             if os.path.exists(filepath):

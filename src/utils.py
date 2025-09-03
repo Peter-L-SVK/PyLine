@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------
 # PyLine 0.9 - Utils (GPLv3)
-# Copyright (C) 2018-2025 Peter Leukanič
+# Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
 # ----------------------------------------------------------------
@@ -76,8 +76,7 @@ def handle_sigint(signum: int, frame: Any) -> NoReturn:
 
 
 def clean_exit_wop() -> NoReturn:
-    os.system("clear")
-    sys.exit(0)
+    exit(0)
 
 
 def clean_exit() -> NoReturn:

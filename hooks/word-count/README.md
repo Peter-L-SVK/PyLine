@@ -82,7 +82,7 @@ PyLine will automatically fall back to the built-in word counter after removal.
 3. This hook (priority 80) processes the request and outputs results
 4. If hook returns success, built-in counter (lower priority) is skipped
 
-## 🧪 Testing
+## Testing
 
 Test the hook directly:
 ```bash
