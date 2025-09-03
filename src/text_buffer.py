@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------
 # PyLine 0.9.7 - Text Buffer (GPLv3)
-# Copyright (C) 2018-2025 Peter Leukanič
+# Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
 # ----------------------------------------------------------------
@@ -263,7 +263,7 @@ class TextBuffer:
             return False
 
         current_line = self.navigation_manager.get_current_line()
-         # Null check for lines
+        # Null check for lines
         if not self.buffer_manager.lines or current_line >= len(self.buffer_manager.lines):
             TextLib.show_status_message("Invalid line")
             return False
@@ -301,7 +301,7 @@ class TextBuffer:
         if not self.buffer_manager.lines:
             TextLib.show_status_message("Buffer is empty")
             return False
-        
+
         # Get selected text through selection manager (with hooks)
         filename_str = self.buffer_manager.filename or ""
         selected_text = self.selection_manager.get_selected_text(self.buffer_manager.lines, filename_str)

@@ -6,7 +6,7 @@
 ```perl/php/python/javascript/etc
 #!/usr/bin/env [interpreter]
 
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 # [Language] [Hook Name] Hook
 # Description: [Brief description of hook functionality]
 # Priority: [10-90]
@@ -15,7 +15,7 @@
 # Copyright (C) [Year] [Your Name]
 # License: [License Name] <[License URL]>
 # This is free software with NO WARRANTY.
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 ```
 
 ### Why This Format Matters:
@@ -152,7 +152,7 @@ function main(context) {
 - **10-29**: Experimental/optional features
 
 ## License Best Practices
-- When usig third party libs, check license and use same one, if not possible to use different.
+- When using third party libs, check license and use same one, if not possible to use different.
 - In case of different than GPL v3+ license hook need to be placed in different repo
 - These separate repos should be public and will be linked in docs
 
@@ -172,7 +172,35 @@ function main(context) {
 3. **BSD-3-Clause** (Permissive):
    ```text
    License: BSD 3-Clause <https://opensource.org/licenses/BSD-3-Clause>
+
    ```
+4. **Apache 2.0** (Permissive):
+   ```text
+   License: Apache 2.0 <https://www.apache.org/licenses/LICENSE-2.0.txt>
+   ```
+
+## License Options for Hooks
+
+Of course. Here is the updated table including the Apache 2.0 license.
+
+| License   | When to Use                                           | How to Share                |
+| :-------- | :---------------------------------------------------- | :-------------------------- |
+| **GPLv3+**  | PyLine integration (recommended), Copyleft projects   | Directly in `~/.pyline/hooks` |
+| **Apache 2.0** | Permissive, patent protection, enterprise/clustering  | Separate repo, link in docs   |
+| **MIT**     | Simple permissive, 3rd-party code, maximum adoption   | Separate repo, link in docs   |
+| **BSD-3**   | Permissive, enterprise/fork, avoid patent implications| Separate repo, link in docs   |
+
+### Key Differentiator for Apache 2.0:
+The Apache 2.0 license is similar to MIT/BSD in being permissive but includes an explicit grant of patent rights from contributors and a clause to prevent patent litigation, making it a strong choice for projects where patent concerns are important (common in larger corporations or foundational technologies).
+
+**Note:** If you submit an Apache 2.0 hook, keep the license header and NOTICE file if present. When distributed with PyLine, the overall work is covered by GPLv3+, but your hook retains its Apache 2.0 terms.
+**Note:** Non-GPL hooks should be placed in a separate public repo and linked in documentation for compliance.
+
+| License         | Compatible with PyLine GPLv3+? | How to Contribute/Use           |
+|-----------------|--------------------------------|---------------------------------|
+| GPLv3+          | Yes                            | Directly in ~/.pyline/hooks     |
+| Apache 2.0      | Yes                            | Include full Apache header/text |
+| MIT/BSD-3-Clause| Yes                            | Include permissive license text |
 
 ## Error Handling Best Practices
 

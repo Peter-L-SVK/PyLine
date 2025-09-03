@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-# install-smart-tab.sh
 
 echo "Installing word counter for PyLine..."
 echo "This provides multi-language smart indentation with input"

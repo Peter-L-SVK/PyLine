@@ -38,14 +38,14 @@ def handle_input(context: Dict[str, Any]) -> str:
     original_insert_text = readline.insert_text
     original_sigint_handler = signal.getsignal(signal.SIGINT)
 
-    def tab_aware_insert_text(text: str) ->  None:
+    def tab_aware_insert_text(text: str) -> None:
         """Convert tabs to spaces using SMART indentation"""
         if "\t" in text:
             # Use the pre-calculated suggested indentation instead of basic tab conversion
             text = text.replace("\t", suggested)
         original_insert_text(text)
         return None
-    
+
     def handle_sigint(signum: int, frame: Any) -> NoReturn:
         """Handle Ctrl-C gracefully during input"""
         # Restore original handlers first
@@ -58,7 +58,7 @@ def handle_input(context: Dict[str, Any]) -> str:
         print("^C")  # Show Ctrl-C was pressed
         time.sleep(0.3)  # Brief pause to see the ^C
         sys.stdout.write("\033[F\033[K")  # Move up and clear the ^C line
-        
+
         # Raise KeyboardInterrupt to be caught by our except block
         raise KeyboardInterrupt()
 
