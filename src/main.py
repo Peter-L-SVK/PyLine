@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # ----------------------------------------------------------------
-# PyLine 0.9.7 - Line Editor (GPLv3)
+# PyLine 0.9.8 - Line Editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -13,6 +13,7 @@ import signal
 from typing import Any, NoReturn
 
 # Local application imports
+from config import ConfigManager
 import dirops
 import execmode
 from hook_manager import HookManager
@@ -20,24 +21,23 @@ import hook_manager_mode
 from hook_ui import hook_ui
 from hook_utils import get_hook_utils
 from text_buffer import TextBuffer
+import theme_manager_mode
 import utils
 
 
 def main() -> NoReturn:
-    """Main function and initial core screen"""
-
     # Register signal handler (for OS-level interrupts)
     signal.signal(signal.SIGINT, utils.handle_sigint)
-
+    config_manager = ConfigManager()
+    config_manager.validate_themes()
     os.system("clear")
-    # Initialisation of settings
+
     original_dir = dirops.currentdir()
     dirops.original_path(original_dir)
     original_destination = dirops.original_destination()
     dirops.default_path(original_destination)
     current_dir = dirops.currentdir()
 
-    # Arguments init check
     args = utils.parse_arguments()
     if args:
         buffer = TextBuffer()
@@ -45,6 +45,7 @@ def main() -> NoReturn:
         if args.info:
             utils.show_info(original_destination)
             utils.clean_exit_wop()
+
         if args.filename:  # File specified via command line
             filepath = os.path.abspath(args.filename)
             if os.path.exists(filepath):
@@ -62,7 +63,7 @@ def main() -> NoReturn:
                     print("Failed to create directory structure")
             utils.clean_exit()
 
-        print("PyLine 0.9.7 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič")
+        print("PyLine 0.9.8 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič")
         print("This program comes with ABSOLUTELY NO WARRANTY; for details type 'i'.\n")
 
         choice = None
@@ -86,6 +87,8 @@ def main() -> NoReturn:
                     hook_manager_mode.handle_hook_manager()
                 elif choice == "hs":
                     handle_hook_status()
+                elif choice == "tm":
+                    theme_manager_mode.handle_theme_manager()
                 elif choice == "x":
                     current_dir = execmode.execmode(original_destination)
                 elif choice == "cls":

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.7 - Hook Manager Core (GPLv3)
+# PyLine 0.9.8 - Hook Manager Core (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -13,15 +13,18 @@ from utils import LanguageHookExecutor
 
 
 class HookManager:
-    def __init__(self) -> None:
+    def __init__(self, config_manager: Optional[Any] = None) -> None:
         self.hooks_dir = Path.home() / ".pyline" / "hooks"
         self.hooks_dir.mkdir(parents=True, exist_ok=True)
-        self.disabled_hooks: Set[str] = set()  # Track disabled hooks at runtime
+        self.disabled_hooks: Set[str] = set()
+        self.config_manager = config_manager
         self._load_disabled_hooks()
 
     def _load_disabled_hooks(self) -> None:
-        """Load disabled hooks from files starting with underscore"""
-        self.disabled_hooks.clear()  # Clear existing first
+        """Load disabled hooks from config and filesystem"""
+        self.disabled_hooks.clear()
+
+        # Load from filesystem (files starting with underscore)
         for hook_file in self.hooks_dir.rglob("*"):
             if not hook_file.is_file():
                 continue
@@ -34,9 +37,28 @@ class HookManager:
                 hook_id = str(rel_path).replace(".py", "").lstrip("_")
                 self.disabled_hooks.add(hook_id)
 
-    def is_hook_enabled(self, hook_id: str) -> bool:
-        """Check if a hook is enabled using its full path ID"""
-        return hook_id not in self.disabled_hooks
+        # Load from config (if config manager is available)
+        if self.config_manager:
+            try:
+                hook_configs = self.config_manager.get_all_hook_configs()
+                for hook_id, config in hook_configs.items():
+                    if hook_id != "enabled" and hook_id != "auto_reload":  # Skip global settings
+                        if not config.get("enabled", True):
+                            self.disabled_hooks.add(hook_id)
+            except Exception as e:
+                print(f"Error loading hook configs: {e}")
+
+    def is_hook_enabled(self, hook_id: str) -> Any:
+        """Check if a hook is enabled using config and runtime state"""
+        # First check runtime disabled state
+        if hook_id in self.disabled_hooks:
+            return False
+
+        # Then check config if available
+        if self.config_manager:
+            return self.config_manager.get_hook_enabled(hook_id)
+
+        return True  # Default to enabled if no config manager
 
     def find_hook_file_by_id(self, hook_id: str) -> Optional[Path]:
         """Find the actual file for a hook ID"""
@@ -50,13 +72,19 @@ class HookManager:
         return None
 
     def enable_hook(self, hook_id: str) -> None:
-        """Enable a hook at runtime using its full path ID"""
+        """Enable a hook in both runtime state and config"""
         if hook_id in self.disabled_hooks:
             self.disabled_hooks.remove(hook_id)
 
+        if self.config_manager:
+            self.config_manager.set_hook_enabled(hook_id, True)
+
     def disable_hook(self, hook_id: str) -> None:
-        """Disable a hook at runtime using its full path ID"""
+        """Disable a hook in both runtime state and config"""
         self.disabled_hooks.add(hook_id)
+
+        if self.config_manager:
+            self.config_manager.set_hook_enabled(hook_id, False)
 
     def get_hook_id(self, hook_file: Path) -> str:
         """Generate a unique ID for a hook file based on its relative path"""

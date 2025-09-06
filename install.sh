@@ -73,6 +73,14 @@ if ! command_exists pyinstaller; then
     }
 fi
 
+# Create config directory
+mkdir -p "$CONFIG_DIR" || {
+    echo "Error: Failed to create config directory $CONFIG_DIR" >&2
+    exit 1
+}
+# Install themes directory
+cp -r ./themes "$CONFIG_DIR/themes"
+
 # Build the binary
 cd ./src/ || {
     echo "Error: src/ directory not found" >&2
@@ -91,12 +99,6 @@ if [ ! -f "./dist/pyline" ]; then
     echo "Error: PyLine binary not found in ./dist/" >&2
     exit 1
 fi
-
-# Create config directory
-mkdir -p "$CONFIG_DIR" || {
-    echo "Error: Failed to create config directory $CONFIG_DIR" >&2
-    exit 1
-}
 
 # Install files
 if [ -w "$BIN_DIR" ]; then

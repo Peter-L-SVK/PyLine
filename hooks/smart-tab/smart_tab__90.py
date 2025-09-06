@@ -16,7 +16,7 @@ import time
 from typing import Any, Dict, NoReturn
 
 
-def handle_input(context: Dict[str, Any]) -> str:
+def handle_input(context: Dict[str, Any]) -> Any:
     """
     Simple and reliable tab-to-spaces conversion using readline
     """
@@ -294,7 +294,7 @@ def get_suggested_indent(filename: str, current_line: str, previous_line: str = 
     return prev_indent
 
 
-def main(context: Dict[str, Any]) -> str:
+def main(context: Dict[str, Any]) -> Any:
     """
     Main function that will be called by the hook system
     """

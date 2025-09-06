@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.7 - TextBuffer Library (GPLv3)
+# PyLine 0.9.8 - TextBuffer Library (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -15,6 +15,7 @@ import tty
 import readline
 
 from typing import Any, List, Optional
+from theme_manager import theme_manager
 
 
 class TextLib:
@@ -88,7 +89,14 @@ class TextLib:
     ) -> None:
         """Display the buffer contents with UTF-8 support"""
         os.system("clear")
-        sys.stdout.write("\033[?25h\033[0m")  # Ensure cursor visible and reset
+
+        # Get colors from theme manager
+        RESET = theme_manager.get_color("reset")
+        SELECTION_COLOR = theme_manager.get_color("selection")
+        HEADER_COLOR = theme_manager.get_color("menu_title")
+        BORDER_COLOR = theme_manager.get_color("line_numbers")
+
+        sys.stdout.write(f"\033[?25h{RESET}")  # Ensure cursor visible and reset
 
         # Handle empty buffer - ensure we always have at least one line
         if not lines:
@@ -97,10 +105,10 @@ class TextLib:
         # Safe UTF-8 output without breaking stdout
         try:
             # Header lines
-            header = f"\033[0mEditing: {filename or 'New file'}\n"
-            header += """\033[0mCommands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
-            C - Copy, V - Paste, O - Overwrite lines, W - Write changes, S - Select,  Q - Quit\n"""
-            header += "\033[0m" + "-" * 92 + "\n"
+            header = f"{HEADER_COLOR}Editing: {filename or 'New file'}{RESET}\n"
+            header += f"""{HEADER_COLOR}Commands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
+            C - Copy, V - Paste, O - Overwrite lines, W - Write changes, S - Select,  Q - Quit{RESET}\n"""
+            header += f"{BORDER_COLOR}" + "-" * 92 + f"{RESET}\n"
 
             sys.stdout.buffer.write(header.encode("utf-8", errors="replace"))
 
@@ -116,9 +124,9 @@ class TextLib:
                     and idx >= min(selection_start, selection_end)
                     and idx <= max(selection_start, selection_end)
                 ):
-                    prefix = "\033[1;31m=\033[0m"  # Selected
+                    prefix = f"{SELECTION_COLOR}={RESET}"  # Selected
                 elif idx == current_line:
-                    prefix = ">"  # Current line
+                    prefix = ">"  # Current line (no special color)
                 else:
                     prefix = " "
 
@@ -127,7 +135,7 @@ class TextLib:
                     line_text = syntax_highlighter._highlight_python(line_text)
 
                 # Safe UTF-8 output
-                line_display = f"\033[0m{prefix}{line_num:4d}: {line_text}\033[0m\n"
+                line_display = f"{RESET}{prefix}{line_num:4d}: {line_text}{RESET}\n"
                 sys.stdout.buffer.write(line_display.encode("utf-8", errors="replace"))
 
             sys.stdout.flush()

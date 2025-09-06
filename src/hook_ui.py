@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.7 - Hook Manager UI (GPLv3)
+# PyLine 0.9.8 - Hook Manager UI (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from hook_manager import HookManager
+from theme_manager import theme_manager
 
 
 class HookManagerUI:
@@ -22,6 +23,13 @@ class HookManagerUI:
         print("PyLine Hook Manager - All Hooks")
         print("=" * 80)
         self.refresh_hook_list()
+
+        CATEGORY_COLOR = theme_manager.get_color("hook_category")
+        TYPE_COLOR = theme_manager.get_color("hook_type")
+        ENABLED_COLOR = theme_manager.get_color("hook_enabled")
+        DISABLED_COLOR = theme_manager.get_color("hook_disabled")
+        NAME_COLOR = theme_manager.get_color("menu_item")
+        RESET_COLOR = theme_manager.get_color("reset")
 
         if not self.hooks_dir.exists():
             print("No hooks directory found. Creating basic structure...")
@@ -51,7 +59,7 @@ class HookManagerUI:
 
         # Display hooks by category
         for category, category_hooks in hooks_by_category.items():
-            print(f"\n\033[1;36m{category.upper()}:\033[0m")
+            print(f"\n{CATEGORY_COLOR}{category.upper()}:{RESET_COLOR}")
 
             # Group by type within category
             hooks_by_type: Dict[str, List[Dict[str, Any]]] = {}
@@ -63,13 +71,17 @@ class HookManagerUI:
 
             for hook_type, type_hooks in hooks_by_type.items():
                 if hook_type != "root":  # Don't show 'root' type if it's the same as category
-                    print(f"  \033[1;33m{hook_type}:\033[0m")
+                    print(f"  {TYPE_COLOR}{hook_type}:{RESET_COLOR}")
 
                 for hook in sorted(type_hooks, key=lambda x: x["name"]):
-                    status = "\033[1;32mENABLED\033[0m" if hook["enabled"] else "\033[1;31mDISABLED\033[0m"
+                    status = (
+                        f"{ENABLED_COLOR}ENABLED{RESET_COLOR}"
+                        if hook["enabled"]
+                        else f"{DISABLED_COLOR}DISABLED{RESET_COLOR}"
+                    )
                     priority = self.hook_mgr._get_hook_priority(Path(hook["path"]))
 
-                    print(f"    \033[1;37m{hook['name']}\033[0m (Priority: {priority})")
+                    print(f"    {NAME_COLOR}{hook['name']}{RESET_COLOR} (Priority: {priority})")
                     print(f"      Status: {status} | ID: {hook['id']}")
 
                     if detailed:
@@ -87,6 +99,7 @@ class HookManagerUI:
         for potential_file in self.hooks_dir.rglob("*"):
             if not potential_file.is_file():
                 continue
+
             # Only check supported file types (match what HookManager supports)
             if potential_file.suffix not in [".py", ".js", ".pl", ".rb", ".sh", ".lua", ".php"]:
                 continue
@@ -116,6 +129,7 @@ class HookManagerUI:
                     new_path = hook_file.parent / new_name
                     hook_file.rename(new_path)
                     hook_file = new_path  # Update reference to new path
+
         except Exception as e:
             print(f"Error toggling hook file: {e}")
             return False
@@ -187,6 +201,7 @@ class HookManagerUI:
         for hook in self.hook_mgr.list_all_hooks():
             if hook["id"] == hook_id:
                 return hook["name"]
+
         return hook_id  # Fallback to ID if not found
 
     def get_hook_status(self, hook_id: str) -> bool:
