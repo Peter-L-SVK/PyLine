@@ -88,8 +88,8 @@ PyLine stores configuration in `~/.pyline/config.json` with the following struct
 ```json
 {
     "paths": {
-        "default_path": "/home/xgf",
-        "original_path": "/home/xgf/Desktop/Zdrojaky/Python3/PyLine/src"
+        "default_path": "/home/<username>",
+        "original_path": "/home/<path-to-pyline>/PyLine/src"
     },
     "editor": {
         "theme": "black-on-white"
