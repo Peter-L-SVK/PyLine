@@ -6,9 +6,8 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
 (*Note: This is a hobby project, not a professional application.*)
 
 ## Features
-
-For now, editor use color scheme of your terminal and only coloring happens in python syntax, listing files/dirs and ls hooks.
-
+- **Theme System**: Customizable color schemes with for now only for coloring syntax and listing, adjustable for dark and light themes, basic text and bacground still from terminal theme
+- **Configuration Management**: Persistent settings with JSON-based configuration
 - **Lightweight & Fast**: Runs entirely in terminal with minimal dependencies
 - **Advanced Hook System**: Extensible plugin architecture with support for multiple languages (Python, JavaScript, Perl, Ruby, Lua, PHP, Shell)
 - **File Operations**:
@@ -80,6 +79,43 @@ chmod +x main.py
 git clone https://github.com/Peter-L-SVK/PyLine.git
 cd PyLine/
 ./install.sh
+```
+
+## Configuration
+
+PyLine stores configuration in `~/.pyline/config.json` with the following structure:
+
+```json
+{
+    "paths": {
+        "default_path": "/home/xgf",
+        "original_path": "/home/xgf/Desktop/Zdrojaky/Python3/PyLine/src"
+    },
+    "editor": {
+        "theme": "black-on-white"
+    },
+    "hooks": {
+        "enabled": true,
+        "auto_reload": false
+    },
+    "theme": {
+        "current": "black-on-white",
+        "available_themes": [
+            "black-on-white",
+            "white-on-black"
+        ]
+    }
+}
+```
+
+## Detailed Structure
+
+### 1. Root Directory (`~/.pyline/`)
+```
+~/.pyline/
+├── config.json          # Main JSON configuration
+├── themes/              # Color theme definitions
+└── hooks/               # Extension hook system
 ```
 
 ## Usage
@@ -156,6 +192,59 @@ PyLine features a comprehensive hook system that allows extending functionality 
     ├── pre_edit/          # Before editing session
     └── post_edit/         # After editing session
 ```
+## Theme System
+
+### Built-in Themes
+
+- **black-on-white**: Classic black text on white background
+- **white-on-black**: White text on black background (dark mode)
+
+### Custom Themes
+
+Create custom themes in `~/.pyline/themes/`:
+
+```bash
+# Create a new theme based on existing one
+pyline
+# Then type 'tm' for theme manager
+# Then 'create my-theme' to create a new theme
+```
+
+Theme file structure (`~/.pyline/themes/my-theme.theme`):
+```json
+{
+  "name": "My Custom Theme",
+  "description": "A custom color scheme",
+  "background": "\\033[48;5;COLORm",
+  "setterm_background": "color-name",
+  "setterm_foreground": "color-name",
+  "colors": {
+    "reset": "\\033[0m",
+    "menu_title": "\\033[1;30m",
+    "menu_item": "\\033[34m",
+    "line_numbers": "\\033[90m",
+    "selection": "\\033[47m\\033[30m",
+    "keyword": "\\033[34m",
+    "string": "\\033[31m",
+    "comment": "\\033[32m",
+    "variable": "\\033[33m",
+    "number": "\\033[35m",
+    "function": "\\033[36m",
+    "class": "\\033[1;35m",
+    "error": "\\033[1;31m",
+    "module": "\\033[1;34m",
+    "decorator": "\\033[1;36m",
+    "annotation": "\\033[1;33m",
+    "directory": "\\033[1;34m",
+    "executable": "\\033[1;32m",
+    "symlink": "\\033[1;36m",
+    "hook_category": "\\033[1;35m",
+    "hook_type": "\\033[1;36m",
+    "hook_enabled": "\\033[1;32m",
+    "hook_disabled": "\\033[1;31m"
+  }
+}
+```
 
 ### Editor Menu
 
@@ -168,6 +257,7 @@ PyLine features a comprehensive hook system that allows extending functionality 
 |`cw`|Count words in the file|
 |`hm`|Hook manager|
 |`hs`|Hook status|
+|`tm`|Theme manager|
 |`x`|Enter file management mode (exec mode)|
 |`i`|Info|
 |`q`|Exit program|
@@ -214,6 +304,19 @@ PyLine features a comprehensive hook system that allows extending functionality 
 |`q`|Exit file management|
 |`Ctrl+D`|Escape from function|
 
+### Theme Manager Commands
+
+| Command | Action |
+|---------|--------|
+| `tm` | Enter theme manager |
+| `ls` | List all available themes |
+| `use <theme>` | Switch to specified theme |
+| `info <theme>` | Show theme details |
+| `create <name>` | Create new theme based on current |
+| `delete <name>` | Delete a theme (cannot delete built-in) |
+| `edit <name>` | Show theme file location for editing |
+
+
 ## Requirements
 
 - **Hook Language Support**:
@@ -228,6 +331,12 @@ PyLine features a comprehensive hook system that allows extending functionality 
 - Linux(or WSL)/FreeBSD/MacOS system (tested on Fedora 27 MATE, 40/42 Cinnmanon)
 - Bash or Zsh shell
 - Clipboard: xclip (X11) or wl-clipboard (Wayland) for copy/paste (Comes with GUI/DE)
+
+## Known Limitations
+
+- **Forground Colors**: Only partialy applied for now, when editor colors the syntax of when listing.
+- **Background Colors**: For now not implemeted but counted for in themes and code.
+
 ## License
 
 GNU GPL v3 - See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html) file for details.

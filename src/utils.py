@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9 - Utils (GPLv3)
+# PyLine 0.9.8 - Utils (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -25,7 +25,8 @@ def editor_menu() -> None:
     print("     cls - Clear screen       cw - Count words       i - Program info")
     print("      hs - Hook status         q - Quit\n")
     print("  Advanced:")
-    print("      hm - Hook manager    x - Exec mode (file operations)\n")
+    print("      hm - Hook manager    x - Exec mode (file operations)")
+    print("      tm - Theme manager\n")
 
 
 def exec_menu() -> None:
@@ -71,18 +72,23 @@ def prompt_continue() -> None:
 
 def handle_sigint(signum: int, frame: Any) -> NoReturn:
     sys.stdout.write("\nProgram interrupted. Exiting gracefully...\n")
+    print("\033[0m", end="")
     sys.stdout.flush()
     sys.exit(128 + signum)  # In case of Ctrl+C, 128+2 as defined by POSIX
 
 
 def clean_exit_wop() -> NoReturn:
-     sys.exit(0)
+    print("\033[0m", end="")
+    sys.stdout.flush()
+    sys.exit(0)
 
 
 def clean_exit() -> NoReturn:
     os.system("clear")
     print("\nProgram closed.\n")
     prompt_continue()
+    print("\033[0m", end="")
+    sys.stdout.flush()
     sys.exit(0)
 
 
