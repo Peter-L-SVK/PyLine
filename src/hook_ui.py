@@ -204,7 +204,7 @@ class HookManagerUI:
 
         return hook_id  # Fallback to ID if not found
 
-    def get_hook_status(self, hook_id: str) -> bool:
+    def get_hook_status(self, hook_id: str) -> Any:
         """Get current status of a hook by ID"""
         return self.hook_mgr.is_hook_enabled(hook_id)
 
