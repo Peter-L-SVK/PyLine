@@ -96,6 +96,42 @@ class NavigationManager(BaseManager):
 
         return True
 
+    def jump_to_beginning(self, line_count: int, filename: Optional[str] = None) -> bool:
+        """Jump to beginning of buffer with hook integration."""
+        # Handle empty buffer
+        if line_count == 0:
+            return False
+
+        # Pre-jump hooks
+        pre_jump_context = {
+            "current_line": self.current_line,
+            "target_line": 0,
+            "filename": filename,
+            "action": "pre_navigation",
+            "operation": "jump_beginning",
+        }
+        pre_jump_result = self.hook_utils.execute_session_handlers("pre_navigation", pre_jump_context)
+
+        if pre_jump_result and "cancel" in pre_jump_result:
+            return False  # Jump cancelled
+
+        # Perform jump
+        old_line = self.current_line
+        self.current_line = 0
+        self.display_start = 0
+
+        # Post-jump hooks
+        post_jump_context = {
+            "old_line": old_line,
+            "new_line": self.current_line,
+            "filename": filename,
+            "action": "post_navigation",
+            "operation": "jump_beginning",
+        }
+        self.hook_utils.execute_session_handlers("post_navigation", post_jump_context)
+
+        return True
+
     def jump_to_end(self, line_count: int, filename: Optional[str] = None) -> bool:
         """Jump to end of buffer with hook integration."""
         # Handle empty buffer
