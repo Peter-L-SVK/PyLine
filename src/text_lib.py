@@ -45,6 +45,8 @@ class TextLib:
                             return "\x1b[5~"  # PgUp
                         if ch2[1] == "6" and sys.stdin.read(1) == "~":
                             return "\x1b[6~"  # PgDn
+                        if ch2[1] == "H":
+                            return "\x1b[H"  # Home
                         if ch2[1] == "F":
                             return "\x1b[F"  # End
                 finally:

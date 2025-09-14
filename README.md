@@ -287,7 +287,8 @@ Theme file structure (`~/.pyline/themes/my-theme.theme`):
 |`s`|Start / End of selection|
 |`q` /`esc`|Quit editor|
 |`w`|Write changes|
-|`Ctrl+D` / `End`|Jump to end of file|
+|`Home`|Jump to beginning of the file|
+|`Ctrl+D` / `End`|Jump to end of the file|
 
 ### File Management Mode
 

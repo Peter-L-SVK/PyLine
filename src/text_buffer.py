@@ -80,6 +80,11 @@ class TextBuffer:
         filename_str = self.buffer_manager.filename or ""
         self.navigation_manager.navigate(direction, self.buffer_manager.get_line_count(), filename_str)
 
+    def jump_to_beginning(self) -> None:
+        """Jump to beginning of buffer"""
+        filename_str = self.buffer_manager.filename or ""
+        self.navigation_manager.jump_to_beginning(self.buffer_manager.get_line_count(), filename_str)
+
     def jump_to_end(self) -> None:
         """Jump to end of buffer."""
         filename_str = self.buffer_manager.filename or ""
@@ -513,6 +518,8 @@ class TextBuffer:
                     self.page_up()
                 elif cmd == "\x1b[6~":  # Page Down
                     self.page_down()
+                elif cmd == "\x1b[H":  # Home
+                    self.jump_to_beginning()
                 elif cmd in ("\x04", "\x1b[F"):  # Ctrl+D or End
                     self.jump_to_end()
 
