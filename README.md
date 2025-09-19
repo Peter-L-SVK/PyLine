@@ -203,6 +203,8 @@ PyLine features a comprehensive hook system that allows extending functionality 
 
 Create custom themes in `~/.pyline/themes/`:
 
+More about themes in: [themes-reference](https://github.com/Peter-L-SVK/PyLine/blob/main/themes/ColorReference.md)
+
 ```bash
 # Create a new theme based on existing one
 pyline
