@@ -304,7 +304,7 @@ Theme file structure (`~/.pyline/themes/my-theme.json`):
 |`c`|Copy current line or multiple selected|
 |`d`|Delete current line or multiple selected|
 |`Enter`/`e`|Edit current line|
-|`H`|Help screen|
+|`h`|Help screen|
 |`Home`|Jump to beginning of the file|
 |`i`|Insert new line|
 |`j`|Jump to user specified line|
