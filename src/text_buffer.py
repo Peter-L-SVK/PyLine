@@ -1,15 +1,18 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Text Buffer (GPLv3)
+# PyLine 1.0 - Text Buffer (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
 # ----------------------------------------------------------------
 
+import json
 import os
 import sys
 import readline
 
 from typing import Any, List, Optional, Union
+
+from config import config_manager
 from buffer_manager import BufferManager
 from undo_manager import UndoManager
 from selection_manager import SelectionManager
@@ -19,15 +22,21 @@ from hook_utils import HookUtils
 from paste_buffer import PasteBuffer
 from syntax_highlighter import SyntaxHighlighter
 from text_lib import TextLib
-from edit_commands import DeleteLineCommand, InsertLineCommand, LineEditCommand, MultiDeleteCommand
+from edit_commands import (
+    DeleteLineCommand,
+    InsertLineCommand,
+    LineEditCommand,
+    MultiLineEditCommand,
+)
+import utils
 
 
 class TextBuffer:
     """Coordinator class with comprehensive hook integration."""
 
     def __init__(self) -> None:
-        # Initialize hook system first
-        self.hook_manager = HookManager()
+        # Initialize hook system with config integration
+        self.hook_manager = HookManager(config_manager=config_manager)
         self.hook_utils = HookUtils(self.hook_manager)
 
         # Initialize managers with hook integration
@@ -35,6 +44,10 @@ class TextBuffer:
         self.undo_manager = UndoManager()
         self.selection_manager = SelectionManager(self.hook_utils)
         self.navigation_manager = NavigationManager(self.hook_utils)
+
+        # Search state
+        self.current_search = ""
+        self.search_results: List[Any] = []
 
         # Other dependencies
         self.paste_buffer = PasteBuffer()
@@ -79,6 +92,56 @@ class TextBuffer:
         """Move cursor up/down with viewport adjustment."""
         filename_str = self.buffer_manager.filename or ""
         self.navigation_manager.navigate(direction, self.buffer_manager.get_line_count(), filename_str)
+
+    def jump_to_line(self) -> bool:
+        """Jump to a specific line number with readline support."""
+        if self.buffer_manager.get_line_count() == 0:
+            TextLib.show_status_message("Buffer is empty")
+            return False
+
+        current_line = self.navigation_manager.get_current_line()
+        total_lines = self.buffer_manager.get_line_count()
+
+        # Use readline for better input experience
+        readline.set_startup_hook(lambda: readline.insert_text(str(current_line + 1)))
+        try:
+            print()
+            line_input = input(f"Jump to line (1-{total_lines}): ")
+
+            if not line_input:
+                TextLib.show_status_message("Jump cancelled")
+                TextLib.clear_line()
+                TextLib.move_up(1)
+                return False
+
+            target_line = int(line_input) - 1
+
+            if target_line < 0 or target_line >= total_lines:
+                TextLib.show_status_message(f"Invalid line number. Must be between 1 and {total_lines}")
+                TextLib.clear_line()
+                TextLib.move_up(1)
+                return False
+
+            filename_str = self.buffer_manager.filename or ""
+            success = self.navigation_manager.jump_to_line(target_line, total_lines, filename_str)
+
+            if success:
+                TextLib.show_status_message(f"Jumped to line {target_line + 1}")
+            else:
+                TextLib.show_status_message("Jump cancelled by hooks")
+
+            TextLib.clear_line()
+            TextLib.move_up(1)
+            return success
+
+        except ValueError:
+            TextLib.show_status_message("Invalid input - please enter a number")
+            TextLib.clear_line()
+            TextLib.move_up(1)
+            return False
+
+        finally:
+            readline.set_startup_hook(None)
 
     def jump_to_beginning(self) -> None:
         """Jump to beginning of buffer"""
@@ -206,8 +269,9 @@ class TextBuffer:
     def delete_current_line(self) -> bool:
         """Delete current single line."""
         current_line = self.navigation_manager.get_current_line()
+        line_count_before = self.buffer_manager.get_line_count()
 
-        if self.buffer_manager.get_line_count() == 0 or current_line >= self.buffer_manager.get_line_count():
+        if line_count_before == 0 or current_line >= line_count_before:
             return False
 
         # Use buffer manager's hook-integrated delete
@@ -217,8 +281,29 @@ class TextBuffer:
             cmd = DeleteLineCommand(current_line, deleted_text)
             self.push_undo_command(cmd)
 
-            if current_line >= self.buffer_manager.get_line_count() and current_line > 0:
-                self.navigation_manager.set_current_line(current_line - 1, self.buffer_manager.get_line_count())
+            # Adjust navigation after deletion
+            line_count_after = self.buffer_manager.get_line_count()
+
+            # If we deleted the last line of the buffer
+            if current_line == line_count_before - 1:
+                if line_count_after > 0:
+                    # Move to the new last line
+                    new_position = line_count_after - 1
+                    self.navigation_manager.set_current_line(new_position, line_count_after)
+                    # Force the viewport to show the last line
+                    self.navigation_manager.display_start = max(
+                        0, line_count_after - self.navigation_manager.display_lines
+                    )
+                else:
+                    # Buffer is now empty
+                    self.navigation_manager.set_current_line(0, 0)
+                    self.navigation_manager.display_start = 0
+            else:
+                # We deleted a line in the middle, stay at the same index
+                self.navigation_manager.set_current_line(current_line, line_count_after)
+
+            # Force immediate display refresh
+            self.display()
 
             return True
         return False
@@ -433,6 +518,9 @@ class TextBuffer:
             TextLib.show_status_message("Buffer is empty")
             return False
 
+        # Store line count before deletion for navigation
+        current_line_before = self.navigation_manager.get_current_line()
+
         # Store deleted lines for undo (in reverse order)
         deleted_lines = []
         for line_num in range(end, start - 1, -1):
@@ -441,30 +529,204 @@ class TextBuffer:
                 deleted_lines.append((line_num, line_text))
 
         if deleted_lines:
-            # Use buffer manager's hook-integrated delete for each line
-            for line_num, line_text in deleted_lines:
-                deleted = self.buffer_manager.delete_line(line_num)
-                if not deleted:  # Cancelled by hooks
-                    TextLib.show_status_message(f"Deletion cancelled at line {line_num + 1}")
-                    return False
+            # Clear selection FIRST before any deletion
+            self.selection_manager.clear_selection()
 
-            cmd = MultiDeleteCommand(deleted_lines)
+            # Use a single atomic operation to delete all lines
+            old_lines = self.buffer_manager.lines.copy()
+            new_lines = []
+
+            for i, line in enumerate(old_lines):
+                if i not in range(start, end + 1):
+                    new_lines.append(line)
+
+            # Replace the entire buffer
+            self.buffer_manager.lines = new_lines
+            self.buffer_manager.dirty = True
+
+            # Create undo command
+            cmd = MultiLineEditCommand(old_lines, new_lines)
             self.push_undo_command(cmd)
 
-            self.clear_selection()
-            TextLib.show_status_message(f"Deleted {end - start + 1} lines")
-            return True
+            # Adjust current line position after deletion
+            line_count_after = self.buffer_manager.get_line_count()
 
+            # If we deleted lines that included the current position
+            if start <= current_line_before <= end:
+                # Cursor was within the selection - move to the line above the selection
+                if start > 0:
+                    new_position = start - 1
+                    self.navigation_manager.set_current_line(new_position, line_count_after)
+                    # Ensure the new position is visible
+                    self.navigation_manager.display_start = max(
+                        0, new_position - self.navigation_manager.display_lines + 1
+                    )
+                else:
+                    # Selection started at line 0, move to new first line
+                    self.navigation_manager.set_current_line(0, line_count_after)
+                    self.navigation_manager.display_start = 0
+            elif current_line_before > end:
+                # Cursor was below the selection - adjust position by number of lines deleted
+                lines_deleted = end - start + 1
+                new_position = current_line_before - lines_deleted
+                self.navigation_manager.set_current_line(new_position, line_count_after)
+                # Ensure the new position is visible
+                self.navigation_manager.ensure_line_visible(new_position, line_count_after)
+            else:
+                # Cursor was above the selection - no position change needed
+                self.navigation_manager.set_current_line(current_line_before, line_count_after)
+                self.navigation_manager.ensure_line_visible(current_line_before, line_count_after)
+
+            TextLib.show_status_message(f"Deleted {end - start + 1} lines")
+
+            # Force display refresh
+            self.display()
+
+            return True
         return False
+
+    def start_incremental_search(self) -> None:
+        """Start incremental search mode"""
+        # Get current search pattern (if any)
+        search = self.current_search
+
+        # Prompt user for search pattern
+        TextLib.show_status_message(f"Search: {search}")
+        TextLib.clear_line()
+
+        # Use readline for input with current search as default
+        readline.set_startup_hook(lambda: readline.insert_text(search))
+        try:
+            print()
+            search_input = input("Search for: ")
+        finally:
+            readline.set_startup_hook(None)
+
+        if search_input is not None:
+            self.current_search = search_input
+            self.execute_search_hook(self.current_search, None)
+
+    # Search and replace ------------------------------------------------------------------
+    def start_replace_mode(self) -> None:
+        """Start search and replace mode"""
+
+        search = self.current_search
+
+        # First prompt for search pattern if not set
+        if not search:
+            TextLib.show_status_message("Search for: ")
+            TextLib.clear_line()
+            readline.set_startup_hook(lambda: readline.insert_text(""))
+            try:
+                print()
+                search_input = input("Search for: ")
+            finally:
+                readline.set_startup_hook(None)
+
+            if not search_input:
+                return
+            search = search_input
+            self.current_search = search_input
+
+        # Then prompt for replacement
+        TextLib.show_status_message(f"Replace '{search}' with: ")
+        TextLib.clear_line()
+        readline.set_startup_hook(lambda: readline.insert_text(""))
+        try:
+            print()
+            replace_input = input(f"Replace '{search}' with: ")
+        finally:
+            readline.set_startup_hook(None)
+
+        if replace_input is not None:
+            self.execute_search_hook(search, replace_input)
+
+    def execute_search_hook(self, search: str, replace: Optional[str] = None) -> None:
+        """Execute the search/replace hook and wait for key press"""
+        # Prepare context for the hook
+        context = {
+            "search": search,
+            "replace": replace,
+            "lines": self.buffer_manager.lines,
+            "filename": self.buffer_manager.filename,
+            "action": "search_replace",
+            "operation": "editing",
+        }
+
+        # For search mode, we need to handle direct output from hooks
+        if replace is None:
+            # Clear screen and show search header
+            os.system("clear")
+
+            # Use a new variable for the boolean-like result
+            display_handled = self.hook_utils.execute_and_display("event_handlers", "search_replace", context)
+
+            if display_handled:
+                # Hook handled display directly - wait for key press
+                utils.prompt_continue_woc()
+            else:
+                # Fallback: if no hook handled it
+                TextLib.show_status_message(f"No matches found for: {search}")
+                utils.prompt_continue_woc()
+
+        else:
+            # Replace mode - process JSON result
+            # Use a separate variable for the dictionary-like result
+            hook_response = self.hook_manager.execute_hooks("event_handlers", "search_replace", context)
+
+            if hook_response is not None and isinstance(hook_response, dict) and hook_response.get("success"):
+                # LanguageHookExecutor returns a wrapper - extract the actual JSON from output
+                try:
+                    hook_result = json.loads(hook_response["output"])
+
+                    if isinstance(hook_result, dict) and hook_result.get("handled_output") == 1:
+                        # Replace mode: update buffer permanently
+                        if "content" in hook_result:
+                            old_lines = self.buffer_manager.lines.copy()
+                            self.buffer_manager.lines = hook_result["content"]
+                            self.buffer_manager.dirty = True
+
+                            # Undo support
+                            try:
+                                cmd = MultiLineEditCommand(old_lines, hook_result["content"])
+                                self.push_undo_command(cmd)
+                            except ImportError:
+                                pass
+
+                        # Show message
+                        if "message" in hook_result:
+                            TextLib.show_status_message(hook_result["message"])
+                        self.display()
+                        utils.prompt_continue_woc()
+                        return
+
+                except (json.JSONDecodeError, KeyError) as e:
+                    print(f"DEBUG: Error parsing hook result: {e}")
+
+            # Fallback for replace mode
+            TextLib.show_status_message(f"Replace operation completed for: {search}")
+            self.display()
+            utils.prompt_continue_woc()
+            self.display()
 
     # Display ------------------------------------------------------------------
     def display(self) -> None:
         """Render current buffer state using TextLib."""
+        # Ensure we have valid navigation state
+        line_count = self.buffer_manager.get_line_count()
+        current_line = self.navigation_manager.get_current_line()
+
+        # Fix navigation if it's out of bounds
+        if line_count == 0:
+            self.navigation_manager.set_current_line(0, 0)
+            self.navigation_manager.display_start = 0
+        elif current_line >= line_count:
+            self.navigation_manager.set_current_line(line_count - 1, line_count)
 
         # Pre-display hooks
         display_context = {
             "filename": self.buffer_manager.filename,
-            "line_count": self.buffer_manager.get_line_count(),
+            "line_count": line_count,
             "current_line": self.navigation_manager.get_current_line(),
             "action": "pre_display",
             "operation": "rendering",
@@ -486,7 +748,7 @@ class TextBuffer:
         # Post-display hooks
         post_display_context = {
             "filename": self.buffer_manager.filename,
-            "line_count": self.buffer_manager.get_line_count(),
+            "line_count": line_count,
             "current_line": self.navigation_manager.get_current_line(),
             "action": "post_display",
             "operation": "rendering",
@@ -526,8 +788,12 @@ class TextBuffer:
                 # Handle editing commands
                 elif cmd in ("", "e", "\r", "\n"):
                     self.edit_current_line()
+                elif cmd == "h":  # Help
+                    utils.show_help()
                 elif cmd == "i":
                     self.insert_line()
+                elif cmd == "j":  # Jump to line
+                    self.jump_to_line()
                 elif cmd == "d":  # Delete
                     if self.selection_manager.has_selection():
                         self.delete_selected_lines()
@@ -551,6 +817,10 @@ class TextBuffer:
                     self.undo()
                 elif cmd == "redo":
                     self.redo()
+                elif cmd == "\x1b\x06":  # Ctrl+Alt+F
+                    self.start_incremental_search()
+                elif cmd == "\x1b\x12":  # Ctrl+Alt+R
+                    self.start_replace_mode()
                 elif cmd == "w":
                     if self.save():
                         continue
@@ -561,12 +831,11 @@ class TextBuffer:
                 else:
                     # Handle invalid key press
                     print("\nInvalid key. Please use: ↑, ↓, PgUp, PgDn, End, E, Enter,Esc, I, C, D, E, O, Q, S, W")
-                    os.system('read -p "Press enter to continue..."')
+                    utils.prompt_continue_woc()
 
         finally:
             # Ensure session end hooks are called
             self._execute_session_hooks("session_end")
-        return None  # Add explicit return for the missing return statement
 
     def _handle_quit(self) -> Optional[bool]:
         """Handle quit command with save prompt."""
@@ -575,15 +844,18 @@ class TextBuffer:
             return None
 
         while True:
-            save = input("\nSave changes? (y/n): ").lower()
-            if save == "y":
+            choice = input("\nSave changes? (y/n): ").lower()
+            if choice == "y":
                 TextLib.move_up()
                 if self.save():
                     return True
+
                 print("Error saving file!")
                 break
-            elif save == "n":
+
+            elif choice == "n":
                 return False
+
             else:
                 TextLib.move_up()
                 TextLib.show_status_message("Only Y/N!")

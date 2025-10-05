@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Buffer Manager (GPLv3)
+# PyLine 1.0 - Buffer Manager (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -207,6 +207,10 @@ class BufferManager(BaseManager):
         # Actual deletion
         deleted = self.lines.pop(index)
         self.dirty = True
+
+        # CRITICAL: Ensure buffer never becomes completely empty
+        if len(self.lines) == 0:
+            self.lines = [""]  # Always keep at least one empty line
 
         # Post-delete hooks
         post_delete_context = {

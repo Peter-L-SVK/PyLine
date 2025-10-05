@@ -16,7 +16,7 @@ import time
 from typing import Any, Dict, NoReturn
 
 
-def handle_input(context: Dict[str, Any]) -> Any:
+def handle_input(context: Dict[str, Any]) -> str:
     """
     Simple and reliable tab-to-spaces conversion using readline
     """
@@ -108,13 +108,13 @@ def get_indentation_size(filename: str) -> int:
         "py": 4,
         "python": 4,
         # C/C++/Rust
-        "c": 2,
-        "h": 2,
-        "cpp": 2,
-        "cc": 2,
-        "cxx": 2,
-        "hpp": 2,
-        "hh": 2,
+        "c": 4,
+        "h": 4,
+        "cpp": 4,
+        "cc": 4,
+        "cxx": 4,
+        "hpp": 4,
+        "hh": 4,
         "rs": 4,
         # Java/C#
         "java": 4,
@@ -142,7 +142,7 @@ def get_indentation_size(filename: str) -> int:
         "pl": 4,
         "pm": 4,
         "t": 4,
-        # Shell
+        # Shell - STANDARD 4 spaces
         "sh": 4,
         "bash": 4,
         "zsh": 4,
@@ -182,16 +182,64 @@ def get_suggested_indent(filename: str, current_line: str, previous_line: str = 
 
     # ===== LANGUAGE-SPECIFIC INDENTATION RULES =====
 
+    # C/C++/RUST/JAVA/C# ---------------------------------------------------------------------
+    if file_extension in ["c", "h", "cpp", "cc", "cxx", "hpp", "hh", "rs", "java", "cs"]:
+        # INCREASE INDENT after:
+        if (
+            re.search(r"{\s*$", prev_stripped)  # Opening brace {
+            or re.search(r"\(\s*$", prev_stripped)  # Opening parenthesis (
+            or re.search(r"\[\s*$", prev_stripped)  # Opening bracket [
+            or re.search(r"^\s*(if|for|while|switch)\s*\([^)]*$", prev_stripped)  # Control structures without closing )
+            or re.search(r"else\s*$", prev_stripped)  # else statement
+            or re.search(r"try\s*$", prev_stripped)  # try block
+            or re.search(r"catch\s*\([^)]*$", prev_stripped)  # catch without closing )
+            or re.search(r"finally\s*$", prev_stripped)  # finally block
+        ):
+            return " " * (prev_indent_len + indent_size)
+
+        # DECREASE INDENT for:
+        elif (
+            re.search(r"^\s*}\s*$", prev_stripped)  # Closing brace }
+            or re.search(r"^\s*\);?\s*$", prev_stripped)  # Closing parenthesis with optional semicolon
+            or re.search(r"^\s*\];?\s*$", prev_stripped)  # Closing bracket with optional semicolon
+            or re.search(r"^\s*\)\s*{", prev_stripped)  # Closing ) followed by {
+        ):
+            return " " * max(0, prev_indent_len - indent_size)
+
+    # SHELL/BASH/ZSH -------------------------------------------------------------------------
+    elif file_extension in ["sh", "bash", "zsh", "fish", "ksh"]:
+        # INCREASE INDENT after:
+        if (
+            re.search(r"\b(do|then)\s*$", prev_stripped)  # do/then keywords
+            or re.search(r"{\s*$", prev_stripped)  # Opening brace {
+            or re.search(r"\(\s*$", prev_stripped)  # Subshell opening
+            or re.search(r"\b(if|for|while|until|case)\b.*\s*$", prev_stripped)  # Control structures
+            or re.search(r"else\s*$", prev_stripped)  # else clause
+            or re.search(r"elif.*\s*$", prev_stripped)  # elif clause
+        ):
+            return " " * (prev_indent_len + indent_size)
+
+        # DECREASE INDENT for:
+        elif (
+            re.search(r"^\s*\b(fi|done|esac)\b\s*$", prev_stripped)  # fi, done, esac
+            or re.search(r"^\s*}\s*$", prev_stripped)  # Closing brace }
+            or re.search(r"^\s*\)\s*$", prev_stripped)  # Closing subshell
+            or re.search(r"^\s*;;\s*$", prev_stripped)  # Case statement terminator
+            or re.search(r"^\s*else\b", prev_stripped)  # else at beginning
+            or re.search(r"^\s*elif\b", prev_stripped)  # elif at beginning
+        ):
+            return " " * max(0, prev_indent_len - indent_size)
+
     # PYTHON -----------------------------------------------------------------
-    if file_extension in ["py", "python"]:
+    elif file_extension in ["py", "python"]:
         # Increase after these patterns (previous line ends with):
         if (
             re.search(r":\s*$", prev_stripped)  # Colon (if, for, while, def, class)
             or re.search(r"\\\s*$", prev_stripped)  # Line continuation
             or re.search(r"\(\s*$", prev_stripped)  # Opening parenthesis
             or re.search(r"\[\s*$", prev_stripped)  # Opening bracket
-            or re.search(r"\{\s*$", prev_stripped)
-        ):  # Opening brace (rare)
+            or re.search(r"\{\s*$", prev_stripped)  # Opening brace (rare)
+        ):
             return " " * (prev_indent_len + indent_size)
 
         # Decrease for these patterns (previous line starts with):
@@ -199,26 +247,8 @@ def get_suggested_indent(filename: str, current_line: str, previous_line: str = 
             re.search(r"^\s*else\b", prev_stripped)  # else
             or re.search(r"^\s*elif\b", prev_stripped)  # elif
             or re.search(r"^\s*except\b", prev_stripped)  # except
-            or re.search(r"^\s*finally\b", prev_stripped)
-        ):  # finally
-            return " " * max(0, prev_indent_len - indent_size)
-
-    # C/C++/RUST/JAVA/C# ----------------------------------------------------
-    elif file_extension in ["c", "h", "cpp", "cc", "cxx", "hpp", "hh", "rs", "java", "cs"]:
-        # Increase after opening braces/brackets/parentheses
-        if (
-            re.search(r"\{\s*$", prev_stripped)  # Opening brace {
-            or re.search(r"\(\s*$", prev_stripped)  # Opening parenthesis (
-            or re.search(r"\[\s*$", prev_stripped)
-        ):  # Opening bracket [
-            return " " * (prev_indent_len + indent_size)
-
-        # Decrease for closing braces/brackets/parentheses
-        elif (
-            re.search(r"^\s*\}\s*$", prev_stripped)  # Closing brace }
-            or re.search(r"^\s*\)\s*$", prev_stripped)  # Closing parenthesis )
-            or re.search(r"^\s*\]\s*$", prev_stripped)
-        ):  # Closing bracket ]
+            or re.search(r"^\s*finally\b", prev_stripped)  # finally
+        ):
             return " " * max(0, prev_indent_len - indent_size)
 
     # JAVASCRIPT/TYPESCRIPT -------------------------------------------------
@@ -228,35 +258,16 @@ def get_suggested_indent(filename: str, current_line: str, previous_line: str = 
             re.search(r"\{\s*$", prev_stripped)  # Opening brace {
             or re.search(r"\(\s*$", prev_stripped)  # Opening parenthesis (
             or re.search(r"\[\s*$", prev_stripped)  # Opening bracket [
-            or re.search(r"=>\s*$", prev_stripped)
-        ):  # Arrow function
+            or re.search(r"=>\s*$", prev_stripped)  # Arrow function
+        ):
             return " " * (prev_indent_len + indent_size)
 
         # Decrease for closing braces/brackets/parentheses
         elif (
             re.search(r"^\s*\}\s*$", prev_stripped)  # Closing brace }
-            or re.search(r"^\s*)\s*$", prev_stripped)  # Closing parenthesis )
-            or re.search(r"^\s*\]\s*$", prev_stripped)
-        ):  # Closing bracket ]
-            return " " * max(0, prev_indent_len - indent_size)
-
-    # SHELL/BASH/ZSH --------------------------------------------------------
-    elif file_extension in ["sh", "bash", "zsh", "fish", "ksh"]:
-        # Increase after control structures
-        if (
-            re.search(r"do\s*$", prev_stripped)  # do keyword
-            or re.search(r"then\s*$", prev_stripped)  # then keyword
-            or re.search(r"\{\s*$", prev_stripped)  # Opening brace {
-            or re.search(r"\(\s*$", prev_stripped)
-        ):  # Subshell opening
-            return " " * (prev_indent_len + indent_size)
-
-        # Decrease for control structure endings
-        elif (
-            re.search(r"^\s*fi\s*$", prev_stripped)  # fi
-            or re.search(r"^\s*done\s*$", prev_stripped)  # done
-            or re.search(r"^\s*esac\s*$", prev_stripped)
-        ):  # esac
+            or re.search(r"^\s*\)\s*$", prev_stripped)  # Closing parenthesis )
+            or re.search(r"^\s*\]\s*$", prev_stripped)  # Closing bracket ]
+        ):
             return " " * max(0, prev_indent_len - indent_size)
 
     # PERL ------------------------------------------------------------------
@@ -267,16 +278,16 @@ def get_suggested_indent(filename: str, current_line: str, previous_line: str = 
             or re.search(r"\(\s*$", prev_stripped)  # Opening parenthesis (
             or re.search(r"\[\s*$", prev_stripped)  # Opening bracket [
             or re.search(r"sub\s*$", prev_stripped)  # sub definition
-            or re.search(r"do\s*$", prev_stripped)
-        ):  # do block
+            or re.search(r"do\s*$", prev_stripped)  # do block
+        ):
             return " " * (prev_indent_len + indent_size)
 
         # Decrease for closing braces/brackets/parentheses
         elif (
             re.search(r"^\s*\}\s*$", prev_stripped)  # Closing brace }
             or re.search(r"^\s*\)\s*$", prev_stripped)  # Closing parenthesis )
-            or re.search(r"^\s*\]\s*$", prev_stripped)
-        ):  # Closing bracket ]
+            or re.search(r"^\s*\]\s*$", prev_stripped)  # Closing bracket ]
+        ):
             return " " * max(0, prev_indent_len - indent_size)
 
     # HTML/XML --------------------------------------------------------------
@@ -294,7 +305,7 @@ def get_suggested_indent(filename: str, current_line: str, previous_line: str = 
     return prev_indent
 
 
-def main(context: Dict[str, Any]) -> Any:
+def main(context: Dict[str, Any]) -> str:
     """
     Main function that will be called by the hook system
     """

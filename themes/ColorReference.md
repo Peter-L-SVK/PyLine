@@ -158,7 +158,7 @@ print(f"{color}This is keyword colored text{theme_manager.get_color('reset')}")
 To create a custom theme:
 1. Copy an existing theme file from `~/.pyline/themes/`
 2. Modify the color values
-3. Save with a new name (e.g., `my-theme.theme`)
+3. Save with a new name (e.g., `my-theme.json`)
 4. Use the theme manager to switch themes
 
 ## Notes

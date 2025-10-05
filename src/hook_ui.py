@@ -1,20 +1,23 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Hook Manager UI (GPLv3)
+# PyLine 1.0 - Hook Manager UI (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
 # ----------------------------------------------------------------
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
+from config import config_manager
 from hook_manager import HookManager
 from theme_manager import theme_manager
 
 
 class HookManagerUI:
-    def __init__(self) -> None:
-        self.hook_mgr = HookManager()
+    def __init__(self, config_manager: Optional[Any] = None) -> None:
+        # Use provided config_manager or fall back to singleton
+        self.config_manager = config_manager or config_manager
+        self.hook_mgr = HookManager(config_manager=self.config_manager)  # Pass config_manager instance
         self.hooks_dir = Path.home() / ".pyline" / "hooks"
 
     def list_all_hooks(self, detailed: bool = False) -> None:
@@ -37,6 +40,7 @@ class HookManagerUI:
             print("Created hooks directory:", self.hooks_dir)
             return
 
+        # FIXED: Remove the undefined hook_id parameter
         hooks = self.hook_mgr.list_all_hooks()
 
         if not hooks:
@@ -225,5 +229,5 @@ class HookManagerUI:
             delattr(self, "_cached_hooks")
 
 
-# Singleton instance
-hook_ui = HookManagerUI()
+# Singleton instance - FIXED: pass the config_manager instance, not the class
+hook_ui = HookManagerUI(config_manager=config_manager)

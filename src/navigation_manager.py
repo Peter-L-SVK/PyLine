@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Navigation Manager (GPLv3)
+# PyLine 1.0 - Navigation Manager (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -252,10 +252,24 @@ class NavigationManager(BaseManager):
             self.current_line = 0
             return
 
+        # Ensure current line is within bounds
+        self.current_line = max(0, min(self.current_line, line_count - 1))
+
+        # If current line is above viewport, scroll up
         if self.current_line < self.display_start:
             self.display_start = self.current_line
+
+        # If current line is below viewport, scroll down
         elif self.current_line >= self.display_start + self.display_lines:
             self.display_start = self.current_line - self.display_lines + 1
+
+        # Ensure we don't scroll past the end of the buffer
+        max_display_start = max(0, line_count - self.display_lines)
+        if self.display_start > max_display_start:
+            self.display_start = max_display_start
+
+        # Ensure we don't have negative display start
+        self.display_start = max(0, self.display_start)
 
     def get_viewport_range(self, line_count: int) -> Tuple[int, int]:
         """Get visible lines range."""

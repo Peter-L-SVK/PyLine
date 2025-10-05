@@ -1,12 +1,11 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Theme Manager Mode (GPLv3)
+# PyLine 1.0 - Theme Manager Mode (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
 # ----------------------------------------------------------------
 
 import os
-from pathlib import Path
 
 from config import ConfigManager
 from theme_manager import ThemeManager
@@ -21,15 +20,7 @@ def handle_theme_manager() -> None:
     config_manager.refresh_available_themes()
     choice = None
     while choice != "q":
-        print("Theme Manager - Manage PyLine Themes:\n")
-        print("  ls - List all themes")
-        print("  use <theme> - Switch to theme")
-        print("  info <theme> - Show theme details")
-        print("  create <name> - Create new theme based on current")
-        print("  delete <name> - Delete a theme (cannot delete built-in)")
-        print("  edit <name> - Show theme file location for editing")
-        print("  cls - Clear screen")
-        print("  q - Exit theme manager\n")
+        utils.theme_manager_menu()
 
         try:
             choice = input("Theme Manager Command: ").lower().strip()
@@ -63,12 +54,32 @@ def handle_theme_manager() -> None:
                 if theme_data:
                     print(f"\nTheme: {theme_data.get('name', theme_name)}")
                     print(f"Description: {theme_data.get('description', 'No description')}")
-                    print("\nAvailable colors:")
+
+                    # Test with hardcoded colors first
+                    print("\nTest with hardcoded colors:")
+                    test_colors = [("Red", "\033[91m"), ("Green", "\033[92m"), ("Blue", "\033[94m")]
+                    for name, code in test_colors:
+                        print(f"  {code}{name}\033[0m")
+
+                    print("\nNow with theme colors:")
                     colors = theme_data.get("colors", {})
                     for color_name, color_code in colors.items():
+                        color_code = theme_manager.get_color(color_name, theme_name)
                         # Display the color with its actual color
-                        color_demo = f"{color_code}■■■■{theme_manager.get_color('reset')}"
-                        print(f"  {color_name:20} {color_demo} {color_code}")
+                        encoded_color = color_code.encode("utf-8").decode("unicode_escape")
+                        if color_code.startswith("\033[4") or "48" in color_code:
+                            # It's a background color - use theme's foreground color
+                            foreground = theme_manager.get_color("foreground")
+                            print(
+                                f"  {color_name:20}   {encoded_color}{foreground}■■■■{theme_manager.get_color('reset')} ",
+                                {color_code},
+                            )
+                        else:
+                            # It's a foreground color - use default background
+                            print(
+                                f"  {color_name:20} {encoded_color}■■■■{theme_manager.get_color('reset')}", {color_code}
+                            )
+                    print(f"\nTotal: {len(colors)} colors defined")
                 else:
                     print(f"Theme not found: {theme_name}")
                 utils.prompt_continue()
@@ -88,17 +99,8 @@ def handle_theme_manager() -> None:
 
             elif choice.startswith("edit "):
                 theme_name = choice[5:].strip()
-                if theme_manager.edit_theme(theme_name):
-                    # Offer to open the file if possible
-                    open_file = input("Open file in default editor? (y/n): ").lower()
-                    if open_file == "y":
-                        theme_file = Path.home() / ".pyline" / "themes" / f"{theme_name}.theme"
-                        try:
-                            import subprocess
-
-                            subprocess.run([os.environ.get("EDITOR", "nano"), str(theme_file)])
-                        except Exception as e:
-                            print(f"Could not open editor: {e}")
+                if theme_manager.edit_theme_in_editor(theme_name):
+                    print(f"Theme '{theme_name}' updated successfully")
                 utils.prompt_continue()
 
             elif choice == "cls":

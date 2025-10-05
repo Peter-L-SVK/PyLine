@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Theme Manager (GPLv3)
+# PyLine 1.0 - Theme Manager (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -24,16 +24,20 @@ class ThemeManager:
         if not color_str:
             return ""
 
-        # Replace \033 with actual escape character
+        # Replace escaped backslashes with actual escape characters
         color_str = color_str.replace("\\033", "\033")
-        # Replace other common escape sequences
         color_str = color_str.replace("\\x1b", "\x1b")
-        color_str = color_str.replace("\\e", r"\e")
+        color_str = color_str.replace("\\e", "\033")
+
+        # Also handle the case where backslashes are already single but literal
+        color_str = color_str.replace("\033", "\033")  # This ensures proper interpretation
+        color_str = color_str.replace("\x1b", "\x1b")
+
         return color_str
 
     def _save_theme(self, theme_name: str, theme_data: Dict[str, Any]) -> None:
-        """Save theme to .theme file"""
-        theme_file = self.themes_dir / f"{theme_name}.theme"
+        """Save theme to .json file"""
+        theme_file = self.themes_dir / f"{theme_name}.json"
         try:
             with open(theme_file, "w") as f:
                 json.dump(theme_data, f, indent=4)
@@ -45,8 +49,8 @@ class ThemeManager:
             print(f"Error saving theme {theme_name}: {e}")
 
     def _load_theme(self, theme_name: str) -> Optional[Dict[str, Any]]:
-        """Load theme from .theme file"""
-        theme_file = self.themes_dir / f"{theme_name}.theme"
+        """Load theme from .json file"""
+        theme_file = self.themes_dir / f"{theme_name}.json"
         try:
             with open(theme_file, "r") as f:
                 loaded_data = json.load(f)
@@ -79,6 +83,16 @@ class ThemeManager:
         bg_color = theme.get("background", "")
         return self._parse_color_code(bg_color)
 
+    def get_foreground_color(self, theme_name: Optional[str] = None) -> str:
+        """Get the foreground color from the theme"""
+        theme = self.get_theme(theme_name)
+        fg_color = theme.get("foreground", "")
+        return self._parse_color_code(fg_color)
+
+    def get_global_colors(self, theme_name: Optional[str] = None) -> tuple[str, str]:
+        """Get both background and foreground colors"""
+        return self.get_background_color(theme_name), self.get_foreground_color(theme_name)
+
     def get_color(self, color_name: str, theme_name: Optional[str] = None) -> str:
         """Get a specific color from the theme"""
         theme = self.get_theme(theme_name)
@@ -103,9 +117,9 @@ class ThemeManager:
             return False
 
     def list_themes(self) -> List[Dict[str, Any]]:
-        """List all available .theme files"""
+        """List all available .json files"""
         themes = []
-        for theme_file in self.themes_dir.glob("*.theme"):
+        for theme_file in self.themes_dir.glob("*.json"):
             theme_name = theme_file.stem
             theme_data = self._load_theme(theme_name)
             if theme_data:
@@ -148,7 +162,7 @@ class ThemeManager:
             print("Cannot delete built-in themes")
             return False
 
-        theme_file = self.themes_dir / f"{theme_name}.theme"
+        theme_file = self.themes_dir / f"{theme_name}.json"
         if theme_file.exists():
             try:
                 theme_file.unlink()
@@ -164,15 +178,87 @@ class ThemeManager:
             print(f"Theme '{theme_name}' not found")
             return False
 
+    def edit_theme_in_editor(self, theme_name: str) -> bool:
+        """Edit theme using PyLine's built-in editor"""
+        import time
+
+        theme_file = self.themes_dir / f"{theme_name}.json"
+
+        if not theme_file.exists():
+            print(f"Theme '{theme_name}' not found")
+            time.sleep(1.5)
+            return False
+
+        print(f"Opening theme editor for: {theme_name}")
+        print("Theme files use JSON format with ANSI color escape sequences")
+        print('Example: "keyword": "\\033[1;34m" for bold blue')
+        print("=" * 50)
+        cow = r""" \   ^__^
+  \  (oo)\_______
+     (__)\       )\/\\
+         ||----w |
+         ||     ||
+"""
+        print(cow)
+        time.sleep(2.5)
+
+        # Load current theme content
+        try:
+            with open(theme_file, "r") as f:
+                original_content = f.read()
+                original_lines = original_content.split("\n")
+        except IOError as e:
+            print(f"Error reading theme: {e}")
+            time.sleep(1.5)
+            return False
+
+        # Use PyLine's text buffer to edit the theme
+        from text_buffer import TextBuffer
+
+        editor = TextBuffer()
+
+        # Set up the buffer with theme content
+        editor.buffer_manager.lines = original_lines.copy()
+        editor.buffer_manager.filename = str(theme_file)
+        editor.buffer_manager.dirty = False
+        editor.edit_interactive()
+        # Get the final content after editing
+        final_lines = editor.buffer_manager.lines
+        final_content = "\n".join(final_lines)
+
+        # Check if content actually changed (more reliable than dirty flag)
+        content_changed = final_content != original_content
+
+        if content_changed:
+            # Save changes back to theme file
+            try:
+                with open(theme_file, "w") as f:
+                    f.write(final_content)
+
+                print(f"Theme '{theme_name}' saved successfully!")
+                print("Changes will take effect immediately for new editor sessions")
+                time.sleep(2.0)
+                return True
+
+            except IOError as e:
+                print(f"Error saving theme: {e}")
+                time.sleep(1.5)
+                return False
+
+        else:
+            print("No changes made to theme")
+            time.sleep(1.5)
+            return True  # Still return True since operation completed successfully
+
     def edit_theme(self, theme_name: str) -> bool:
-        """Open theme file for editing"""
-        theme_file = self.themes_dir / f"{theme_name}.theme"
+        """Show theme file location (for backward compatibility)"""
+        theme_file = self.themes_dir / f"{theme_name}.json"
         if not theme_file.exists():
             print(f"Theme '{theme_name}' not found")
             return False
 
         print(f"Theme file: {theme_file}")
-        print("You can edit this file with any text editor to modify the theme.")
+        print("Use 'edit {theme_name}' in theme manager to edit with PyLine's built-in editor")
         return True
 
 

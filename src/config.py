@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Configuration Manager (GPLv3)
+# PyLine 1.0 - Configuration Manager (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -213,7 +213,7 @@ class ConfigManager:
                 if hook_id not in ["enabled", "auto_reload"]:
                     hook_configs[hook_id] = hook_config
 
-        return hook_config
+        return hook_configs
 
     def _ensure_hooks_structure(self) -> None:
         """Ensure the hooks section has the proper structure"""

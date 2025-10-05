@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Edit Commands Library (GPLv3)
+# PyLine 1.0 - Edit Commands Library (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -63,6 +63,20 @@ class DeleteLineCommand(EditCommand):
 
     def undo(self, buffer_manager: Any) -> None:
         buffer_manager.lines.insert(self.line_num, self.text)
+
+
+class MultiLineEditCommand(EditCommand):
+    """Atomic operation for replacing the entire buffer with new content."""
+
+    def __init__(self, old_lines: List[str], new_lines: List[str]) -> None:
+        self.old_lines = old_lines
+        self.new_lines = new_lines
+
+    def execute(self, buffer_manager: Any) -> None:
+        buffer_manager.lines = self.new_lines.copy()
+
+    def undo(self, buffer_manager: Any) -> None:
+        buffer_manager.lines = self.old_lines.copy()
 
 
 class MultiPasteInsertCommand(EditCommand):

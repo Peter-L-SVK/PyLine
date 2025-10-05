@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - TextBuffer Library (GPLv3)
+# PyLine 1.0 - TextBuffer Library (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -49,6 +49,10 @@ class TextLib:
                             return "\x1b[H"  # Home
                         if ch2[1] == "F":
                             return "\x1b[F"  # End
+                    elif ch2 == "\x06":  # Ctrl+Alt+F
+                        return "\x1b\x06"
+                    elif ch2 == "\x12":  # Ctrl+Alt+R
+                        return "\x1b\x12"
                 finally:
                     fcntl.fcntl(fd, fcntl.F_SETFL, fl)
                 return ch
@@ -132,18 +136,50 @@ class TextLib:
                 else:
                     prefix = " "
 
-                line_text = lines[idx]
-                if is_python and filename and filename.endswith(".py"):
-                    line_text = syntax_highlighter._highlight_python(line_text)
+                original_line_text = lines[idx]  # Keep original for display
+                display_line_text = original_line_text  # Start with original
 
-                # Safe UTF-8 output
-                line_display = f"{RESET}{prefix}{line_num:4d}: {line_text}{RESET}\n"
+                # Use hook-based syntax highlighting for DISPLAY only (not storage)
+                try:
+                    from hook_utils import get_hook_utils
+
+                    hook_utils = get_hook_utils()
+
+                    highlight_context = {
+                        "line": original_line_text,  # Pass original line without colors
+                        "line_number": idx + 1,
+                        "filename": filename,
+                        "total_lines": len(lines),
+                        "action": "highlight",
+                        "operation": "syntax_highlighting",
+                    }
+
+                    # Execute syntax highlighting hooks for DISPLAY purposes only
+                    highlighted_result = hook_utils.execute_highlight(highlight_context)
+
+                    if highlighted_result and isinstance(highlighted_result, str):
+                        # Use the highlighted version for display only
+                        display_line_text = highlighted_result
+                    elif highlighted_result and isinstance(highlighted_result, dict) and "output" in highlighted_result:
+                        display_line_text = highlighted_result["output"]
+                    else:
+                        # Fallback to Python highlighter for .py files only
+                        if is_python and filename and filename.endswith(".py"):
+                            display_line_text = syntax_highlighter._highlight_python(original_line_text)
+
+                except ImportError:
+                    # Fallback if hook system not available
+                    if is_python and filename and filename.endswith(".py"):
+                        display_line_text = syntax_highlighter._highlight_python(original_line_text)
+
+                # Safe UTF-8 output - use display_line_text (with colors) for output only
+                line_display = f"{RESET}{prefix}{line_num:4d}: {display_line_text}{RESET}\n"
                 sys.stdout.buffer.write(line_display.encode("utf-8", errors="replace"))
 
             sys.stdout.flush()
 
         except (OSError, UnicodeEncodeError):
-            # Fallback to basic output
+            # Fallback to basic output (without colors)
             sys.stdout = sys.__stdout__
             print(f"Editing: {filename or 'New file'}")
             print("Commands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,")
@@ -160,6 +196,7 @@ class TextLib:
                         prefix = ">"
                     else:
                         prefix = " "
+                    # Use original lines (without color codes) in fallback mode
                     print(f"{prefix}{line_num:4d}: {lines[idx]}")
 
     @staticmethod
