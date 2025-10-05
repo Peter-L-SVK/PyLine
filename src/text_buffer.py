@@ -85,6 +85,7 @@ class TextBuffer:
             TextLib.show_status_message(f"File saved successfully: {self.buffer_manager.filename}\n")
         else:
             print(f"\nError: Could not save {self.buffer_manager.filename}\n")
+        self.display()
         return success
 
     # Navigation ---------------------------------------------------------------
@@ -177,6 +178,7 @@ class TextBuffer:
             TextLib.show_status_message("Undo completed")
         else:
             TextLib.show_status_message("Nothing to undo")
+        self.display()
 
     def redo(self) -> None:
         """Redo the last undone operation."""
@@ -187,6 +189,7 @@ class TextBuffer:
             TextLib.show_status_message("Redo completed")
         else:
             TextLib.show_status_message("Nothing to redo")
+        self.display()
 
     # Editing operations -------------------------------------------------------
     def edit_current_line(self) -> None:
