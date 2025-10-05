@@ -4,7 +4,7 @@ A comprehensive terminal-based line editor with advanced features and extensible
 
 ## 🖥️ Main Interface
 
-![Initial Screen](init-scr.png)
+![Initial Screen](init-scr.png)    
 *Clean startup interface with hook system initialization and main menu*
 
 ## 📁 File Operations
@@ -14,7 +14,7 @@ A comprehensive terminal-based line editor with advanced features and extensible
 *Interactive file browser for selecting files to edit*
 
 ### Execution Mode
-![Execution Mode](exec.png)
+![Execution Mode](exec.png)    
 *File operations mode with navigation and management commands*
 
 ## ✏️ Editing Features
