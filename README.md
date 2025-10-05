@@ -7,7 +7,8 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
 
 ## Features
 - **Theme System**: 
-  - Customizable color schemes with for now only for coloring syntax and listing, adjustable for dark and light themes, basic text and bacground still from terminal theme
+  - Customizable color schemes with only coloring syntax and listing, adjustable for dark and light themes
+  - basic text and bacground still from terminal theme (for now)
   - Inhouse solution for editing themes in theme manager
 - **Configuration Management**: 
   - Persistent settings with JSON-based configuration
@@ -303,7 +304,7 @@ Theme file structure (`~/.pyline/themes/my-theme.json`):
 |`c`|Copy current line or multiple selected|
 |`d`|Delete current line or multiple selected|
 |`Enter`/`e`|Edit current line|
-|`H`|Help screen|
+|`h`|Help screen|
 |`Home`|Jump to beginning of the file|
 |`i`|Insert new line|
 |`j`|Jump to user specified line|
