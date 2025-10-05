@@ -27,6 +27,9 @@ A comprehensive terminal-based line editor with advanced features and extensible
 ![Paste Lines](paste-lines.png)
 *Multi-line copy and paste functionality with visual feedback*
 
+![Helpscreen](helpscreen.png)
+*Helpscreen after pressing H*
+
 ## 🔍 Search & Replace
 
 ### Replace Operations
