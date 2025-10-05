@@ -1,11 +1,10 @@
 #!/usr/bin/env sh
-# install-smart-tab.sh
 
-echo "Installing Smart Tab Handler for PyLine..."
-echo "This provides multi-language smart indentation with input"
+echo "Installing search/replace hook for PyLine..."
+echo "This hook provides incremental search, highlighting, and sed-style replace for all matches."
 
-HOOK_DIR="$HOME/.pyline/hooks/input_handlers/edit_line"
-HOOK_FILE="smart_tab__90.py"
+HOOK_DIR="$HOME/.pyline/hooks/event_handlers/search_replace"
+HOOK_FILE="search_replace__75.pl"
 
 # Create directory structure
 if ! mkdir -p "$HOOK_DIR"; then
@@ -31,8 +30,9 @@ if ! chmod +x "$HOOK_DIR/$HOOK_FILE"; then
     exit 1
 fi
 
-echo "Smart tab handler installed successfully!"
+
+echo "Search/replace hook installed successfully!"
 echo "Location: $HOOK_DIR/$HOOK_FILE"
 echo ""
-echo "PyLine will now use auto indentation based on suffix of file."
+echo "Restart PyLine or reload hooks for changes to take effect."
 exit 0

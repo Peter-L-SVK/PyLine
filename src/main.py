@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Line Editor (GPLv3)
+# PyLine 1.0 - Line Editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -13,7 +13,7 @@ import signal
 from typing import Any, NoReturn
 
 # Local application imports
-from config import ConfigManager
+from config import config_manager
 import dirops
 import execmode
 from hook_manager import HookManager
@@ -25,19 +25,44 @@ import theme_manager_mode
 import utils
 
 
+def scan_and_initialize_hooks() -> None:
+    """Initialize and scan all hooks at startup"""
+    print("Initializing hook system...")
+
+    # Create hook manager with config integration
+    hook_manager = HookManager(config_manager=config_manager)
+
+    # Scan and load all hooks
+    hook_manager._load_disabled_hooks()
+
+    # Get hook statistics
+    all_hooks = hook_manager.list_all_hooks()
+    enabled_count = sum(1 for hook in all_hooks if hook["enabled"])
+
+    print(f"Hook system ready: {len(all_hooks)} hooks found ({enabled_count} enabled)\n")
+
+    return None
+
+
 def main() -> NoReturn:
     # Register signal handler (for OS-level interrupts)
     signal.signal(signal.SIGINT, utils.handle_sigint)
-    config_manager = ConfigManager()
+
+    # Initialize configuration and themes
     config_manager.validate_themes()
     os.system("clear")
 
+    # Initialize directory system
     original_dir = dirops.currentdir()
     dirops.original_path(original_dir)
     original_destination = dirops.original_destination()
     dirops.default_path(original_destination)
     current_dir = dirops.currentdir()
 
+    # Initialize hook system with scanning
+    scan_and_initialize_hooks()
+
+    # Parse command line arguments
     args = utils.parse_arguments()
     if args:
         buffer = TextBuffer()
@@ -63,7 +88,7 @@ def main() -> NoReturn:
                     print("Failed to create directory structure")
             utils.clean_exit()
 
-        print("PyLine 0.9.8 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič")
+        print("PyLine 1.0 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič")
         print("This program comes with ABSOLUTELY NO WARRANTY; for details type 'i'.\n")
 
         choice = None
@@ -117,7 +142,7 @@ def count_words() -> None:
     os.system("clear")
 
     # Initialize hook utilities
-    hook_manager = HookManager()
+    hook_manager = HookManager(config_manager)
     hook_utils = get_hook_utils(hook_manager)
 
     answer = None
@@ -162,7 +187,6 @@ def count_words() -> None:
                         print(f"- {num_of_lines} lines")
                         print(f"- {num_of_chars} characters")
                         print("************************************************************\n")
-
                 break
 
         elif answer == "n":

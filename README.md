@@ -2,14 +2,21 @@
 
 ![PyLine Demo](scrshots/demo.png) 
 
-PyLine is a minimalist command-line text editor designed for Linux/BSD systems, written in Python 3 with use of systems calls. Originally created in 2018 and modernized in 2025, it combines improved text management with a simple, line-by-line workflow. 
+PyLine is a minimalist command-line text editor designed for Linux/BSD systems, written in Python 3 with use of systems calls. Originally created in 2018 and modernized after long pause in 2025, it combines improved text management with a simple, line-by-line workflow. 
 (*Note: This is a hobby project, not a professional application.*)
 
 ## Features
-- **Theme System**: Customizable color schemes with for now only for coloring syntax and listing, adjustable for dark and light themes, basic text and bacground still from terminal theme
-- **Configuration Management**: Persistent settings with JSON-based configuration
+- **Theme System**: 
+  - Customizable color schemes with for now only for coloring syntax and listing, adjustable for dark and light themes, basic text and bacground still from terminal theme
+  - Inhouse solution for editing themes in theme manager
+- **Configuration Management**: 
+  - Persistent settings with JSON-based configuration
+  - Run time config modifying and checking
 - **Lightweight & Fast**: Runs entirely in terminal with minimal dependencies
-- **Advanced Hook System**: Extensible plugin architecture with support for multiple languages (Python, JavaScript, Perl, Ruby, Lua, PHP, Shell)
+- **Advanced Hook System**: 
+  - Extensible plugin architecture with support for multiple languages (Python, JavaScript, Perl, Ruby, Lua, PHP, Shell)
+  - Fully interconnected Hook manager with Config manager
+  - Incudes core hook utils for search and replace, smart tab, shell syntax highligting and more
 - **File Operations**:
   - Edit existing files with full hook integration
   - Create new files with directory structure creation
@@ -18,8 +25,11 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
 - **Navigation**:
   - Move between lines and scroll file with arrow keys
   - Scroll file by keys PageUp and PageDown
+  - Jump to specified line number by J
   - Jump to end of file (Ctrl+D for EOF)
   - Smart viewport management
+  - Stylized helpscreen
+  - Search and replace functionality provided by core util hook
 - **Editing**:
   - Line-by-line editing with hook-integrated input handling
   - Preserves existing text when modifying lines
@@ -29,6 +39,7 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
   - Cross-platform clipboard support (X11, Wayland, macOS, Windows)
   - Smart indentation preservation during paste operations
   - Syntax highlighting for Python with advanced token recognition
+  - Aditional syntax highlighting for shells and JSON via core hooks
 - **File Browser**:
   - Colorized directory listings
   - Change working directories with path persistence
@@ -43,6 +54,8 @@ PyLine is a minimalist command-line text editor designed for Linux/BSD systems, 
   - Hook categories: input handlers, event handlers, syntax handlers, editing operations, clipboard operations, session handlers
 
 ## Example screens
+
+Complete screenshot example galery in [screenshot-gallery](https://github.com/Peter-L-SVK/PyLine/blob/main/scrshots/README.md)
 
 PyLine after the initialization:  
 ![PyLine Init](scrshots/init-scr.png) 
@@ -212,7 +225,7 @@ pyline
 # Then 'create my-theme' to create a new theme
 ```
 
-Theme file structure (`~/.pyline/themes/my-theme.theme`):
+Theme file structure (`~/.pyline/themes/my-theme.json`):
 ```json
 {
   "name": "My Custom Theme",
@@ -266,31 +279,37 @@ Theme file structure (`~/.pyline/themes/my-theme.theme`):
 |`Ctrl+D`|Escape from function|
 |`Ctrl+C`|Interupt the program|
 
-**Hook Management Commands:**
-- `hm` - Enter hook manager interface
-- `ls` - List all available hooks
-- `info` - Show detailed hook information
-- `enable` - Enable a specific hook
-- `disable` - Disable a specific hook
-- `reload` - Reload hook system from filesystem
+### Hook Management Commands
+|---|---|
+|`hm`|Enter hook manager interface|
+|`ls`|List all available hooks|
+|`info`|Show detailed hook information|
+|`enable`|Enable a specific hook|
+|`disable`|Disable a specific hook|
+|`reload`|Reload hook system from filesystem|
 
 ### Editor Controls
 |Command|Action|
 |---|---|
 |`↑`/`↓`|Navigate between lines / Scroll by lines|
-| `PgUp` / `PgDn` | Scroll by 52 lines buffer|
-|`Ctrl+B` / `F` | Undo/Redo 
-|`Enter`/`e`|Edit current line|
-|`i`|Insert new line|
-|`d`|Delete current line or multiple selected|
+|`PgUp` / `PgDn`|Scroll by 52 lines buffer|
+|`Ctrl+B` / `F`|Undo/Redo|
+|`Ctrl+D` / `End`|Jump to end of the file|
+|`Ctrl+Alt+f`|Search for text|
+|`Ctrl+Alt+r`|Search and replace|
 |`c`|Copy current line or multiple selected|
+|`d`|Delete current line or multiple selected|
+|`Enter`/`e`|Edit current line|
+|`H`|Help screen|
+|`Home`|Jump to beginning of the file|
+|`i`|Insert new line|
+|`j`|Jump to user specified line|
 |`v`|Paste from clipboard|
 |`o`|Overwrite lines|
 |`s`|Start / End of selection|
-|`q` /`esc`|Quit editor|
-|`w`|Write changes|
-|`Home`|Jump to beginning of the file|
-|`Ctrl+D` / `End`|Jump to end of the file|
+|`q` /`Esc`|Quit editor|
+|`w`|Write/save changes|
+
 
 ### File Management Mode
 

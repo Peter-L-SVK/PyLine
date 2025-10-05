@@ -6,6 +6,7 @@ PREFIX="${PREFIX:-/usr/local}"
 CONFIG_DIR="$HOME/.pyline"
 BIN_DIR="$PREFIX/bin"
 LICENSE_DIR="$PREFIX/share/licenses/PyLine"
+HOOKS_DIR="$(pwd)/hooks"
 
 # Function to check if command exists
 command_exists() {
@@ -23,9 +24,56 @@ run_elevated() {
     fi
 }
 
+# Function to install core util hooks
+install_hooks() {
+    if [ -d "$HOOKS_DIR" ] && [ -f "$HOOKS_DIR/install-all.sh" ]; then
+        echo ""
+        echo "Installing core utility hooks..."
+        cd "$HOOKS_DIR"
+        chmod +x install-all.sh
+        if ./install-all.sh; then
+            echo "✓ Core utility hooks installed successfully"
+        else
+            echo "⚠ Core utility hooks installation had issues, but continuing..."
+        fi
+        cd - > /dev/null
+    else
+        echo "⚠ Hooks directory or installer not found, skipping hook installation"
+    fi
+}
+
+# Function to uninstall hooks
+uninstall_hooks() {
+    if [ -d "$HOOKS_DIR" ] && [ -f "$HOOKS_DIR/uninstall-all.sh" ]; then
+        echo ""
+        echo "Uninstalling core utility hooks..."
+        cd "$HOOKS_DIR"
+        chmod +x uninstall-all.sh
+        if ./uninstall-all.sh; then
+            echo "✓ Core utility hooks uninstalled successfully"
+        else
+            echo "⚠ Core utility hooks uninstallation had issues, but continuing..."
+        fi
+        cd - > /dev/null
+    else
+        echo "⚠ Hooks uninstaller not found, skipping hook uninstallation"
+    fi
+}
+
 # Uninstall function
 uninstall_pyline() {
     echo "Uninstalling PyLine from $PREFIX..."
+    
+    # Ask about hook uninstallation
+    echo ""
+    read -p "Also uninstall core utility hooks? [y/N]: " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        uninstall_hooks
+    else
+        echo "Skipping hook uninstallation"
+    fi
+    echo ""
     
     # Remove installed files
     for file in "$BIN_DIR/pyline" "$BIN_DIR/license-parts.txt"; do
@@ -63,6 +111,19 @@ fi
 
 # Normal installation process
 echo "Installing PyLine..."
+
+# Ask about hook installation
+echo ""
+read -p "Install core utility hooks? [Y/n]: " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+    HOOKS_INSTALL=true
+    echo "✓ Will install core utility hooks"
+else
+    HOOKS_INSTALL=false
+    echo "✓ Skipping hook installation"
+fi
+echo ""
 
 # Check for pyinstaller
 if ! command_exists pyinstaller; then
@@ -121,6 +182,11 @@ run_elevated cp ../LICENSE "$LICENSE_DIR/" || {
     echo "Note: License installation failed (non-critical)" >&2
 }
 
+# Install hooks if requested
+if [ "$HOOKS_INSTALL" = true ]; then
+    install_hooks
+fi
+
 # Cleanup
 rm -rf ./build ./dist
 
@@ -134,6 +200,12 @@ echo "║                                                ║"
 echo "║  • Binary location: $PREFIX/bin/pyline      ║"
 echo "║  • Config directory: $CONFIG_DIR         ║"
 echo "║                                                ║"
+if [ "$HOOKS_INSTALL" = true ]; then
+echo "║  • Core utility hooks: INSTALLED               ║"
+else
+echo "║  • Core utility hooks: SKIPPED                 ║"
+fi
+echo "║                                                ║"
 echo "║  To run:                                       ║"
 echo "║    $ pyline                                    ║"
 echo "║                                                ║"
@@ -142,4 +214,5 @@ echo "║    $ ./install.sh -u                           ║"
 echo "║                                                ║"
 echo "╚════════════════════════════════════════════════╝"
 echo ""
+
 exit 0

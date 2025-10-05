@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 0.9.8 - Hook Manager Core (GPLv3)
+# PyLine 1.0 - Hook Manager Core (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -21,47 +21,92 @@ class HookManager:
         self._load_disabled_hooks()
 
     def _load_disabled_hooks(self) -> None:
-        """Load disabled hooks from config and filesystem"""
+        """Load disabled hooks from config and filesystem with config taking priority"""
         self.disabled_hooks.clear()
 
         # Load from filesystem (files starting with underscore)
+        fs_disabled = set()
         for hook_file in self.hooks_dir.rglob("*"):
             if not hook_file.is_file():
                 continue
             if hook_file.suffix not in [".py", ".js", ".pl", ".rb", ".sh", ".lua", ".php"]:
                 continue
 
-            # If file starts with underscore, add to disabled set
+            # If file starts with underscore, add to filesystem disabled set
             if hook_file.name.startswith("_"):
                 rel_path = hook_file.relative_to(self.hooks_dir)
                 hook_id = str(rel_path).replace(".py", "").lstrip("_")
-                self.disabled_hooks.add(hook_id)
+                fs_disabled.add(hook_id)
 
         # Load from config (if config manager is available)
+        config_disabled = set()
         if self.config_manager:
             try:
                 hook_configs = self.config_manager.get_all_hook_configs()
-                for hook_id, config in hook_configs.items():
-                    if hook_id != "enabled" and hook_id != "auto_reload":  # Skip global settings
-                        if not config.get("enabled", True):
-                            self.disabled_hooks.add(hook_id)
+                if isinstance(hook_configs, dict):
+                    for hook_id, config in hook_configs.items():
+                        if isinstance(config, dict) and not config.get("enabled", True):
+                            config_disabled.add(hook_id)
             except Exception as e:
                 print(f"Error loading hook configs: {e}")
+                # Fall back to filesystem only
+                self.disabled_hooks = fs_disabled
+                return
+
+        # CONFIG TAKES PRIORITY: If hook is disabled in config, it's disabled regardless of filesystem
+        # If no config manager, use filesystem state
+        if self.config_manager:
+            self.disabled_hooks = config_disabled
+            # Also sync filesystem to match config for hooks that exist
+            self._sync_filesystem_to_config(config_disabled, fs_disabled)
+        else:
+            self.disabled_hooks = fs_disabled
+
+    def _sync_filesystem_to_config(self, config_disabled: Set[str], fs_disabled: Set[str]) -> None:
+        """Sync filesystem state to match config state"""
+        try:
+            # Enable hooks that are in config enabled but filesystem disabled
+            for hook_id in fs_disabled - config_disabled:
+                hook_file = self.find_hook_file_by_id(hook_id)
+                if hook_file and hook_file.name.startswith("_"):
+                    new_name = hook_file.name.lstrip("_")
+                    new_path = hook_file.parent / new_name
+                    hook_file.rename(new_path)
+
+            # Disable hooks that are in config disabled but filesystem enabled
+            for hook_id in config_disabled - fs_disabled:
+                hook_file = self.find_hook_file_by_id(hook_id)
+                if hook_file and not hook_file.name.startswith("_"):
+                    new_name = f"_{hook_file.name}"
+                    new_path = hook_file.parent / new_name
+                    hook_file.rename(new_path)
+
+        except Exception as e:
+            print(f"Warning: Could not sync filesystem to config: {e}")
 
     def is_hook_enabled(self, hook_id: str) -> Any:
-        """Check if a hook is enabled using config and runtime state"""
-        # First check runtime disabled state
-        if hook_id in self.disabled_hooks:
-            return False
-
-        # Then check config if available
+        """Check if a hook is enabled - CONFIG TAKES PRIORITY"""
+        # Config manager takes priority if available
         if self.config_manager:
             return self.config_manager.get_hook_enabled(hook_id)
 
-        return True  # Default to enabled if no config manager
+        # Fall back to runtime state if no config manager
+        return hook_id not in self.disabled_hooks
 
     def find_hook_file_by_id(self, hook_id: str) -> Optional[Path]:
         """Find the actual file for a hook ID"""
+        # First try the exact ID
+        potential_path = self.hooks_dir / f"{hook_id}.py"
+        if potential_path.exists():
+            return potential_path
+
+        # Search for other file extensions
+        for ext in [".js", ".pl", ".rb", ".sh", ".lua", ".php"]:
+            potential_path = self.hooks_dir / f"{hook_id}{ext}"
+            if potential_path.exists():
+                return potential_path
+
+        # Fall back to recursive search for complex paths
         for hook_file in self.hooks_dir.rglob("*"):
             if not hook_file.is_file():
                 continue
@@ -71,35 +116,73 @@ class HookManager:
                 return hook_file
         return None
 
-    def enable_hook(self, hook_id: str) -> None:
-        """Enable a hook in both runtime state and config"""
-        if hook_id in self.disabled_hooks:
-            self.disabled_hooks.remove(hook_id)
+    def enable_hook(self, hook_id: str) -> bool:
+        """Enable a hook in both config and filesystem"""
+        try:
+            # Update config first (if available)
+            if self.config_manager:
+                self.config_manager.set_hook_enabled(hook_id, True)
 
-        if self.config_manager:
-            self.config_manager.set_hook_enabled(hook_id, True)
+            # Then update filesystem
+            hook_file = self.find_hook_file_by_id(hook_id)
+            if hook_file and hook_file.name.startswith("_"):
+                new_name = hook_file.name.lstrip("_")
+                new_path = hook_file.parent / new_name
+                hook_file.rename(new_path)
 
-    def disable_hook(self, hook_id: str) -> None:
-        """Disable a hook in both runtime state and config"""
-        self.disabled_hooks.add(hook_id)
+            # Update runtime state
+            if hook_id in self.disabled_hooks:
+                self.disabled_hooks.remove(hook_id)
 
-        if self.config_manager:
-            self.config_manager.set_hook_enabled(hook_id, False)
+            return True
+
+        except Exception as e:
+            print(f"Error enabling hook {hook_id}: {e}")
+            return False
+
+    def disable_hook(self, hook_id: str) -> bool:
+        """Disable a hook in both config and filesystem"""
+        try:
+            # Update config first (if available)
+            if self.config_manager:
+                self.config_manager.set_hook_enabled(hook_id, False)
+
+            # Then update filesystem
+            hook_file = self.find_hook_file_by_id(hook_id)
+            if hook_file and not hook_file.name.startswith("_"):
+                new_name = f"_{hook_file.name}"
+                new_path = hook_file.parent / new_name
+                hook_file.rename(new_path)
+
+            # Update runtime state
+            self.disabled_hooks.add(hook_id)
+
+            return True
+
+        except Exception as e:
+            print(f"Error disabling hook {hook_id}: {e}")
+            return False
 
     def get_hook_id(self, hook_file: Path) -> str:
         """Generate a unique ID for a hook file based on its relative path"""
         rel_path = hook_file.relative_to(self.hooks_dir)
-        return str(rel_path).replace(".py", "").lstrip("_")
+        hook_id = str(rel_path).replace(".py", "").lstrip("_")
+
+        # Remove priority suffix for ID purposes
+        if "__" in hook_id:
+            base_id = "__".join(hook_id.split("__")[:-1])
+            # Check if the last part is a number (priority)
+            try:
+                int(hook_id.split("__")[-1])
+                return base_id
+            except ValueError:
+                pass
+
+        return hook_id
 
     def _get_hook_priority(self, hook_file: Path) -> int:
         """
         Extract priority from filename (e.g., handler__90.py -> priority 90)
-
-        Args:
-        hook_file: Path object pointing to the hook file
-
-        Returns:
-        int: Priority value (default 50 if not specified)
         """
         name = hook_file.stem.lstrip("_")  # Remove leading underscore for disabled hooks
         if "__" in name:
@@ -118,13 +201,13 @@ class HookManager:
         for hook_file in hook_dir.iterdir():
             # ONLY include supported file types
             if hook_file.suffix not in [".py", ".js", ".pl", ".rb", ".sh", ".lua", ".php"]:
-                continue  # Skip unsupported files
+                continue
 
             # Skip disabled hooks (those starting with underscore)
             if hook_file.name.startswith("_"):
                 continue
 
-            # Check if hook is disabled at runtime
+            # Check if hook is disabled in config/runtime
             hook_id = self.get_hook_id(hook_file)
             if not self.is_hook_enabled(hook_id):
                 continue
@@ -137,7 +220,7 @@ class HookManager:
         return [(hook_id, hook_file) for priority, hook_id, hook_file in hooks]
 
     def _execute_hook(self, hook_file: Path, context: Dict[str, Any]) -> Optional[Any]:
-        """Execute a single hook file (NEW METHOD)"""
+        """Execute a single hook file"""
         if hook_file.suffix == ".py":
             # Python hook execution
             try:
@@ -170,7 +253,8 @@ class HookManager:
 
     def execute_hooks(self, hook_category: str, hook_type: str, context: Dict[str, Any]) -> Optional[Any]:
         """
-        Execute all hooks in a category/type and return the first non-None result
+        Execute all hooks in a category/type and return the first hook that
+        returns handled_output=1 or produces actual output
         """
         hook_dir = self.hooks_dir / hook_category / hook_type
         if not hook_dir.exists():
@@ -179,8 +263,25 @@ class HookManager:
         for hook_id, hook_file in self._get_sorted_hooks(hook_dir):
             try:
                 result = self._execute_hook(hook_file, context)
+
+                # Check if this hook actually handled the output
                 if result is not None:
-                    return result
+                    # If it's a dict with handled_output=1, use it
+                    if isinstance(result, dict) and result.get("handled_output") == 1:
+                        return result
+
+                    # If it's a string with content, use it (assume it handled it)
+                    elif isinstance(result, str) and result.strip():
+                        return result
+
+                    # If it's a dict with handled_output=0, CONTINUE to next hook
+                    elif isinstance(result, dict) and result.get("handled_output") == 0:
+                        continue  # Try next hook
+
+                    # For any other non-None result, use it
+                    else:
+                        return result
+
             except Exception as e:
                 print(f"Hook {hook_id} failed: {e}")
 
@@ -219,7 +320,7 @@ class HookManager:
                 continue
 
             hook_id = self.get_hook_id(hook_file)
-            enabled = self.is_hook_enabled(hook_id)  # Only check runtime state
+            enabled = self.is_hook_enabled(hook_id)
 
             # Determine category and type based on directory structure
             rel_path = hook_file.relative_to(self.hooks_dir)
