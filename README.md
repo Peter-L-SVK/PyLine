@@ -101,8 +101,8 @@ PyLine stores configuration in `~/.pyline/config.json` with the following struct
 ```json
 {
     "paths": {
-        "default_path": "/home/xgf",
-        "original_path": "/home/xgf/Desktop/Zdrojaky/Python3/PyLine/src"
+        "default_path": "/home/<username>",
+        "original_path": "/home/<path-to-pyline>/PyLine/src"
     },
     "editor": {
         "theme": "black-on-white"
@@ -280,15 +280,18 @@ Theme file structure (`~/.pyline/themes/my-theme.json`):
 |`Ctrl+C`|Interupt the program|
 
 ### Hook Management Commands
+
+| Command | Action |
 |---|---|
-|`hm`|Enter hook manager interface|
-|`ls`|List all available hooks|
-|`info`|Show detailed hook information|
-|`enable`|Enable a specific hook|
-|`disable`|Disable a specific hook|
-|`reload`|Reload hook system from filesystem|
+| `hm` | Enter hook manager interface |
+| `ls` | List all available hooks |
+| `info` | Show detailed hook information |
+| `enable` | Enable a specific hook |
+| `disable` | Disable a specific hook |
+| `reload` | Reload hook system from filesystem |
 
 ### Editor Controls
+
 |Command|Action|
 |---|---|
 |`↑`/`↓`|Navigate between lines / Scroll by lines|
@@ -310,21 +313,20 @@ Theme file structure (`~/.pyline/themes/my-theme.json`):
 |`q` /`Esc`|Quit editor|
 |`w`|Write/save changes|
 
-
 ### File Management Mode
 
-|Command|Action|
-|---|---|
-|`af`|List all files|
-|`cwd`|Change working directory|
-|`cdp`|Change the default path|
-|`mkdir`|Create new directory|
-|`rename`|Rename a file/directory|
-|`rmdir`|Remove a non empty/empty directory|
-|`rmfile`|Remove a file|
-|`cls`|Clear screen|
-|`q`|Exit file management|
-|`Ctrl+D`|Escape from function|
+| Command   | Action                               |
+|-----------|--------------------------------------|
+| `af`      | List all files                       |
+| `cwd`     | Change working directory             |
+| `cdp`     | Change the default path              |
+| `mkdir`   | Create new directory                 |
+| `rename`  | Rename a file/directory              |
+| `rmdir`   | Remove a non empty/empty directory   |
+| `rmfile`  | Remove a file                        |
+| `cls`     | Clear screen                         |
+| `q`       | Exit file management                 |
+| `Ctrl+D`  | Escape from function                 |
 
 ### Theme Manager Commands
 
