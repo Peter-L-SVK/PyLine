@@ -176,6 +176,7 @@ To unninstall the program:
 
 More about hooks in: [hooks-creation](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/hooks-creation.md) and [hooks-overview](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/hooks-overview.md)  
 Manual on how to perform various types of search and replace within core hook in [serach-replace manual](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/search_replace/readme.md)  
+  
 PyLine features a comprehensive hook system that allows extending functionality through plugins. The hook system supports multiple programming languages and follows a structured directory hierarchy:
 
 ```
