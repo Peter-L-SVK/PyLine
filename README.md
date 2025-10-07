@@ -90,6 +90,15 @@ Hook manager:
 git clone https://github.com/Peter-L-SVK/PyLine.git
 cd PyLine/src/
 chmod +x main.py
+#Run pwd and copy result path
+pwd
+#add to your shell config file to run from everywhere
+alias pyline='<result of pwd>/main.py'
+#run separate install-all.sh in hooks directory
+$(pwd)/../hooks/install-all.sh
+#copy themes to editor's config directory
+cp -r $(pwd)/../themes ~/.pyline/
+#restart terminal
 ```
 2nd method (script will run sudo command):
 ```bash
