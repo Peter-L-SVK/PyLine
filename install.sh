@@ -42,37 +42,10 @@ install_hooks() {
     fi
 }
 
-# Function to uninstall hooks
-uninstall_hooks() {
-    if [ -d "$HOOKS_DIR" ] && [ -f "$HOOKS_DIR/uninstall-all.sh" ]; then
-        echo ""
-        echo "Uninstalling core utility hooks..."
-        cd "$HOOKS_DIR"
-        chmod +x uninstall-all.sh
-        if ./uninstall-all.sh; then
-            echo "✓ Core utility hooks uninstalled successfully"
-        else
-            echo "⚠ Core utility hooks uninstallation had issues, but continuing..."
-        fi
-        cd - > /dev/null
-    else
-        echo "⚠ Hooks uninstaller not found, skipping hook uninstallation"
-    fi
-}
 
 # Uninstall function
 uninstall_pyline() {
     echo "Uninstalling PyLine from $PREFIX..."
-    
-    # Ask about hook uninstallation
-    echo ""
-    read -p "Also uninstall core utility hooks? [y/N]: " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        uninstall_hooks
-    else
-        echo "Skipping hook uninstallation"
-    fi
     echo ""
     
     # Remove installed files

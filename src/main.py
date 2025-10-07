@@ -57,7 +57,7 @@ def main() -> NoReturn:
     dirops.original_path(original_dir)
     original_destination = dirops.original_destination()
     dirops.default_path(original_destination)
-    current_dir = dirops.currentdir()
+    current_dir = dirops.cd(config_manager.get_path("original_path"))
 
     # Initialize hook system with scanning
     scan_and_initialize_hooks()
