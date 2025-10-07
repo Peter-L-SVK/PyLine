@@ -95,7 +95,7 @@ pwd
 #add to your shell config file to run from everywhere
 alias pyline='<result of pwd>/main.py'
 #run separate install-all.sh in hooks directory
-$(pwd)/../hooks/install-all.sh
+../hooks/install-all.sh
 #copy themes to editor's config directory
 cp -r $(pwd)/../themes ~/.pyline/
 #restart terminal
