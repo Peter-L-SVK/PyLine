@@ -69,7 +69,10 @@ Example of line selection:
 
 After pasting the selection from clipboard:
 ![PyLine v-Paste Selected](scrshots/paste-lines.png)
-  
+
+Editing  text:  
+![Text Editing2](scrshots/editing.png)
+
 Execmode(Filemanager):  
 ![PyLine Execmode](scrshots/exec.png)
   

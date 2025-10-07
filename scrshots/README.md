@@ -23,6 +23,9 @@ A comprehensive terminal-based line editor with advanced features and extensible
 ![Text Editing](copy-selected.png)
 *Main editing interface with comprehensive command set*
 
+![Text Editing2](editing.png)
+*How editing text looks like*
+
 ### Copy & Paste Operations
 ![Paste Lines](paste-lines.png)
 *Multi-line copy and paste functionality with visual feedback*
