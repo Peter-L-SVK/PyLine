@@ -51,8 +51,8 @@ def main() -> NoReturn:
     # Initialize configuration and themes
     config_manager.validate_themes()
     os.system("clear")
-
     # Initialize directory system
+    source_path = os.path.dirname(__file__)
     original_dir = dirops.currentdir()
     dirops.original_path(original_dir)
     original_destination = dirops.original_destination()
@@ -119,7 +119,7 @@ def main() -> NoReturn:
                 elif choice == "cls":
                     os.system("clear")
                 elif choice == "i":
-                    utils.show_info(original_destination)
+                    utils.show_info(source_path)
                 elif choice == "q":
                     break
                 else:
