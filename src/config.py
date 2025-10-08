@@ -103,7 +103,7 @@ class ConfigManager:
         if path_type is None:
             # Return a default path if no specific type requested
             return str(Path.home())
-    
+
         path = self.get(f"paths.{path_type}")
         return str(path) if path is not None else str(Path.home())
 

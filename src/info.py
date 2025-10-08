@@ -17,7 +17,7 @@ def print_info() -> None:
     print("        ###################################################################\n")
 
 
-def print_license_parts(original_destination: str) -> None:
+def print_license_parts(source_path: str) -> None:
     install_path = "/usr/local/bin"
     install_license = "/usr/share/licenses/PyLine"
     print("\n        For full license details, see the LICENSE file in:")
@@ -27,7 +27,7 @@ def print_license_parts(original_destination: str) -> None:
     if os.path.exists(license_path):
         print(f"        {license_path}")
     else:
-        os.chdir(original_destination + "/..")
+        os.chdir(source_path + "/..")
         new_path = os.getcwd()
         print(f"        {os.path.join(new_path, 'LICENSE')}")
 
@@ -42,7 +42,7 @@ def print_license_parts(original_destination: str) -> None:
             print("License excerpt not found in installation directory.\n")
     else:
         # Fallback to original_destination/src/license-parts.txt
-        fallback_path = os.path.join(original_destination, "license-parts.txt")
+        fallback_path = os.path.join(source_path, "license-parts.txt")
         try:
             with open(fallback_path, "r") as f:
                 print(f.read())
