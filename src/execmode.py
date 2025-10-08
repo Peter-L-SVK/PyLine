@@ -52,28 +52,17 @@ def execmode(original_destination: str) -> str:
                         break
 
             elif choice_exec == "cdp":
-                answer = None
-                while answer != "y":
-                    answer = input("Would you like to change default path? [Y/N]: ").lower()
-                    if answer == "y":
-                        try:
-                            dirops.change_default_path(original_destination)
-                        except OSError:
-                            print("Invalid path or directory doesn't exist!\n")
-                            prompt_continue()
-                            continue
-
-                        current_dir = dirops.currentdir()
+                while True:
+                    try:
+                        dirops.change_default_path(original_destination)
+                    except OSError:
+                        print("Invalid path or directory doesn't exist!\n")
                         prompt_continue()
-                        break
+                        continue
 
-                    elif answer == "n":
-                        print("Ok, won't change default path.\n")
-                        prompt_continue()
-                        break
-
-                    else:
-                        print("Only Y/N!\n")
+                    current_dir = dirops.currentdir()
+                    prompt_continue()
+                    break
 
             elif choice_exec == "mkdir":
                 answer = None
