@@ -98,10 +98,14 @@ class ConfigManager:
         current[keys[-1]] = value
         self._save_config(config)
 
-    def get_path(self, path_type: str) -> Optional[str]:
+    def get_path(self, path_type: Optional[str] = None) -> str:
         """Get a path from configuration"""
+        if path_type is None:
+            # Return a default path if no specific type requested
+            return str(Path.home())
+    
         path = self.get(f"paths.{path_type}")
-        return str(path) if path is not None else None
+        return str(path) if path is not None else str(Path.home())
 
     def set_path(self, path_type: str, path: str) -> None:
         """Set a path in configuration"""

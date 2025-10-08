@@ -28,7 +28,7 @@ def execmode(original_destination: str) -> str:
             elif choice_exec == "cwd":
                 while True:
                     try:
-                        new_dir = input("Enter the new directory path: ")
+                        new_dir = input("Enter the new directory path: (or 0 to default path)")
                         if new_dir == "0":
                             current_dir = dirops.cd(original_destination)
                         else:
