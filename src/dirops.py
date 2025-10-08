@@ -145,7 +145,7 @@ def safe_path(current_path: str) -> bool:
 def default_path(original_destination: str) -> bool:
     """Set the default directory path from config."""
     default_path = config_manager.get_path("default_path")
-
+    config_manager.set_path("default_path", default_path)
     if not default_path or not os.path.exists(default_path):
         # Fallback to original destination if default path is invalid
         default_path = original_destination

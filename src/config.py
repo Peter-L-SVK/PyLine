@@ -85,8 +85,16 @@ class ConfigManager:
                 if theme_name not in available_themes:
                     available_themes.append(theme_name)
 
+        source_path = self.get_path("source_path")
+        if not source_path or source_path == str(Path.home()):
+            source_path = str(Path(__file__).parent.resolve())
+
         return {
-            "paths": {"default_path": str(Path.home()), "original_path": str(Path.home())},
+            "paths": {
+                "source_path": source_path,
+                "default_path": str(Path.home()), 
+                "original_path": str(Path.home())
+            },
             "editor": {
                 "theme": "black-on-white",  # Keep this for backward compatibility
             },
