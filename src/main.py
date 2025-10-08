@@ -49,10 +49,10 @@ def main() -> NoReturn:
     signal.signal(signal.SIGINT, utils.handle_sigint)
 
     # Initialize configuration and themes
+    src_path = config_manager.get_path("source_path")
     config_manager.validate_themes()
     os.system("clear")
     # Initialize directory system
-    source_path = os.path.dirname(__file__)
     original_dir = dirops.currentdir()
     dirops.original_path(original_dir)
     original_destination = dirops.original_destination()
@@ -68,7 +68,7 @@ def main() -> NoReturn:
         buffer = TextBuffer()
     try:
         if args.info:
-            utils.show_info(original_destination)
+            utils.show_info(src_path)
             utils.clean_exit_wop()
 
         if args.filename:  # File specified via command line
@@ -119,7 +119,7 @@ def main() -> NoReturn:
                 elif choice == "cls":
                     os.system("clear")
                 elif choice == "i":
-                    utils.show_info(source_path)
+                    utils.show_info(src_path)
                 elif choice == "q":
                     break
                 else:
