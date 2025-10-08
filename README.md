@@ -115,7 +115,8 @@ PyLine stores configuration in `~/.pyline/config.json` with the following struct
 {
     "paths": {
         "default_path": "/home/<username>",
-        "original_path": "/home/<path-to-pyline>/PyLine/src"
+        "original_path": "<current_path_in_terminal>"
+        "source_path": "/home/<path-to-pyline>/PyLine/src"
     },
     "editor": {
         "theme": "black-on-white"
