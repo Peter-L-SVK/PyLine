@@ -460,7 +460,9 @@ class TextBuffer:
                 # Use buffer manager's hook-integrated insert
                 inserted_text = self.buffer_manager.insert_line(current_line + 1, text_to_paste)
                 if inserted_text is not None:
-                    cmd: Union[InsertLineCommand, LineEditCommand, MultiPasteInsertCommand, MultiPasteOverwriteCommand] = InsertLineCommand(current_line + 1, inserted_text)
+                    cmd: Union[
+                        InsertLineCommand, LineEditCommand, MultiPasteInsertCommand, MultiPasteOverwriteCommand
+                    ] = InsertLineCommand(current_line + 1, inserted_text)
                     self.push_undo_command(cmd)
                     self.navigation_manager.set_current_line(current_line + 1, self.buffer_manager.get_line_count())
                 else:  # overwrite

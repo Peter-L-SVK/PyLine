@@ -20,11 +20,11 @@ A comprehensive terminal-based line editor with advanced features and extensible
 ## ✏️ Editing Features
 
 ### Basic Text Editing
-![Text Editing](copy-selected.png)
-*Main editing interface with comprehensive command set*
-
 ![Text Editing2](editing.png)
 *How editing text looks like*
+
+![Text Editing](copy-selected.png)
+*Main editing interface with comprehensive command set*
 
 ### Copy & Paste Operations
 ![Paste Lines](paste-lines.png)
