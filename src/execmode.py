@@ -9,6 +9,7 @@
 import os
 
 # Local application imports
+from config import config_manager
 import dirops
 from utils import prompt_continue, exec_menu
 
@@ -28,9 +29,12 @@ def execmode(original_destination: str) -> str:
             elif choice_exec == "cwd":
                 while True:
                     try:
-                        new_dir = input("Enter the new directory path: (or 0 to default path)")
+                        new_dir = input("Enter the new directory path (or 0 to default path): ")
                         if new_dir == "0":
-                            current_dir = dirops.cd(original_destination)
+                            original_path = config_manager.get_path("default_path")
+                            os.system("clear")
+                            current_dir = dirops.cd(original_path)
+                            break
                         else:
                             try:
                                 current_dir = dirops.cd(new_dir)
