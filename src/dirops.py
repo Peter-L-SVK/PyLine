@@ -76,8 +76,29 @@ def contentdir() -> None:
 
 
 def cd(new_dir: str) -> str:
-    # Change the current working directory.
-    os.chdir(new_dir)
+    """Change the current working directory with Unix path substitution support"""
+    # Handle standard Unix path substitutions
+    if new_dir == "~" or new_dir.startswith("~/"):
+        # Expand home directory
+        expanded_dir = os.path.expanduser(new_dir)
+    elif new_dir == ".":
+        # Current directory - no change needed
+        expanded_dir = os.getcwd()
+    elif new_dir == "..":
+        # Parent directory
+        expanded_dir = os.path.dirname(os.getcwd())
+    elif new_dir.startswith("./"):
+        # Relative to current directory
+        expanded_dir = os.path.join(os.getcwd(), new_dir[2:])
+    else:
+        # Regular path
+        expanded_dir = new_dir
+    
+    # Normalize the path to resolve any .. or . components
+    expanded_dir = os.path.abspath(expanded_dir)
+    
+    # Change to the directory
+    os.chdir(expanded_dir)
     return currentdir()
 
 
