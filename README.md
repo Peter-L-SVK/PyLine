@@ -190,6 +190,12 @@ To unninstall the program:
 More about hooks in: [hooks-creation](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/hooks-creation.md) and [hooks-overview](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/hooks-overview.md)  
 Manual on how to perform various types of search and replace within core hook in [serach-replace manual](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/search_replace/readme.md)  
   
+Manual on AI asisted grammar hook in  [AI-grammar-check](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/AI-grammar-check/readme.md)  
+For it's proper usage and functionality, install:
+```sh
+pip install language-tool-python numpy pandas
+```
+  
 PyLine features a comprehensive hook system that allows extending functionality through plugins. The hook system supports multiple programming languages and follows a structured directory hierarchy:
 
 ```
@@ -319,6 +325,7 @@ Theme file structure (`~/.pyline/themes/my-theme.json`):
 |`c`|Copy current line or multiple selected|
 |`d`|Delete current line or multiple selected|
 |`Enter`/`e`|Edit current line|
+|`g`|Grammar check|
 |`h`|Help screen|
 |`Home`|Jump to beginning of the file|
 |`i`|Insert new line|
