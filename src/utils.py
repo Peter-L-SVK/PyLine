@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 1.0 - Utils (GPLv3)
+# PyLine 1.1 - Utils (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -192,6 +192,7 @@ def help_scr_prepare() -> str:
     {COMMAND_COLOR}  Ctrl+Alt+R{DESCRIPTION_COLOR}      - Search and replace
 
     {HEADER_COLOR}File Operations:{RESET}
+    {COMMAND_COLOR}  G{DESCRIPTION_COLOR}               - Check grammar 
     {COMMAND_COLOR}  W{DESCRIPTION_COLOR}               - Write/save file
     {COMMAND_COLOR}  Q / Esc{DESCRIPTION_COLOR}         - Quit (with save prompt if modified)
 

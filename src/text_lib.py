@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 1.0 - TextBuffer Library (GPLv3)
+# PyLine 1.1 - TextBuffer Library (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -112,9 +112,9 @@ class TextLib:
         try:
             # Header lines
             header = f"{HEADER_COLOR}Editing: {filename or 'New file'}{RESET}\n"
-            header += f"""{HEADER_COLOR}Commands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
-            C - Copy, V - Paste, O - Overwrite lines, W - Write changes, S - Select,  Q - Quit{RESET}\n"""
-            header += f"{BORDER_COLOR}" + "-" * 92 + f"{RESET}\n"
+            header += f"""{HEADER_COLOR}Commands: ↑/↓, PgUp/PgDn/Home/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
+          C - Copy, V - Paste, O - Overwrite lines, W - Write changes, J - Jump, S - Select, H - Help,  Q - Quit{RESET}\n"""
+            header += f"{BORDER_COLOR}" + "-" * 115 + f"{RESET}\n"
 
             sys.stdout.buffer.write(header.encode("utf-8", errors="replace"))
 
@@ -182,9 +182,9 @@ class TextLib:
             # Fallback to basic output (without colors)
             sys.stdout = sys.__stdout__
             print(f"Editing: {filename or 'New file'}")
-            print("Commands: ↑/↓, PgUp/PgDn/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,")
-            print("C - Copy, V - Paste, O - Overwrite lines, W - Write changes, S - Select, Q - Quit")
-            print("-" * 92)
+            print("Command [↑↓, PgUp/PgDn, Home/End, J(ump), E(dit), I(nsert), D(el), S(elect), H(elp), G(ramar)")
+            print("C(opy), V(paste), O(verwrite), W(rite), Q(uit)]:")
+            print("-" * 115)
 
             # Handle empty buffer in fallback
             if not lines:

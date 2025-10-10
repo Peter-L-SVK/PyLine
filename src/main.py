@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # ----------------------------------------------------------------
-# PyLine 1.0 - Line Editor (GPLv3)
+# PyLine 1.1 - Line Editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -88,7 +88,7 @@ def main() -> NoReturn:
                     print("Failed to create directory structure")
             utils.clean_exit()
 
-        print("PyLine 1.0 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič")
+        print("PyLine 1.1 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič")
         print("This program comes with ABSOLUTELY NO WARRANTY; for details type 'i'.\n")
 
         choice = None

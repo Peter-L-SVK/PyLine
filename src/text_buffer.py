@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 1.0 - Text Buffer (GPLv3)
+# PyLine 1.1 - Text Buffer (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -87,8 +87,7 @@ class TextBuffer:
         if success:
             TextLib.show_status_message(f"File saved successfully: {self.buffer_manager.filename}\n")
         else:
-            print(f"\nError: Could not save {self.buffer_manager.filename}\n")
-        self.display()
+            print(f"Error: Could not save {self.buffer_manager.filename}\n")
         return success
 
     # Navigation ---------------------------------------------------------------
@@ -727,6 +726,56 @@ class TextBuffer:
             utils.prompt_continue_woc()
             self.display()
 
+    def check_grammar(self) -> None:
+        """Manually trigger grammar check on current buffer"""
+        if not self.buffer_manager.lines:
+            TextLib.show_status_message("Buffer is empty - nothing to check")
+            return
+
+        # Prepare context for grammar check
+        grammar_context = {
+            "action": "process_content",
+            "content": self.buffer_manager.lines,
+            "filename": self.buffer_manager.filename,
+            "operation": "manual_grammar_check",
+        }
+
+        # Execute the grammar checker hook
+        result = self.hook_utils.execute_editing_handlers("process_content", grammar_context)
+
+        # Detailed result analysis
+        if result is None:
+            TextLib.show_status_message("No grammar checker hook found - install hook in ~/.pyline/hooks/editing_ops/")
+            self.display()
+            return
+
+        if not isinstance(result, dict):
+            TextLib.show_status_message("Grammar checker returned invalid response")
+            self.display
+            return
+
+        if result.get("handled_output") == 1:
+            # Hook handled the output - display it
+            output = result.get("output", "")
+            if output:
+                # Clear screen and show grammar results
+                os.system("clear")
+                print(output)
+                utils.prompt_continue_woc()
+                self.display()  # Refresh editor display
+            else:
+                TextLib.show_status_message("Grammar checker ran but produced no output")
+                self.display()
+        else:
+            # Hook exists but didn't handle the output - provide specific guidance
+            error_msg = result.get("error", "")
+            if error_msg:
+                TextLib.show_status_message(f"Grammar checker error: {error_msg}")
+                self.display()
+            else:
+                TextLib.show_status_message("Grammar checker found no issues in your text")
+                self.display()
+
     # Display ------------------------------------------------------------------
     def display(self) -> None:
         """Render current buffer state using TextLib."""
@@ -780,7 +829,7 @@ class TextBuffer:
             while True:
                 self.display()
                 sys.stdout.write(
-                    "Command [↑↓, PgUp/PgDn/End, E(dit), I(nsert), D(el), S(elect),\
+                    "Command [↑↓, PgUp/PgDn, Home/End, J(ump), E(dit), I(nsert), D(el), S(elect), H(elp), G(ramar),\
  C(opy), V(paste), O(verwrite), W(rite), Q(uit)]: "
                 )
                 sys.stdout.flush()
@@ -806,6 +855,8 @@ class TextBuffer:
                 # Handle editing commands
                 elif cmd in ("", "e", "\r", "\n"):
                     self.edit_current_line()
+                elif cmd == "g":  # Grammar check
+                    self.check_grammar()
                 elif cmd == "h":  # Help
                     utils.show_help()
                 elif cmd == "i":
@@ -841,9 +892,11 @@ class TextBuffer:
                     self.start_replace_mode()
                 elif cmd == "w":
                     if self.save():
+                        self.display()
                         continue
                     else:
-                        TextLib.show_status_message("Save failed!")
+                        TextLib.show_status_message("\nSave failed!")
+                        self.display()
                 elif cmd == "q" or cmd == "\x1b":
                     return self._handle_quit()
                 else:

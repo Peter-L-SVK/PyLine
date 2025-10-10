@@ -81,6 +81,24 @@ are undoable as single actions. Includes tests for:
 - Overwrite paste
 - Cross-platform clipboard handling
 ```
+
+## Versioning Policy
+
+### File Headers vs Release Versions
+File headers should use major.minor format (e.g., "PyLine 1.0") and do not need to be updated for patch releases. Only update file headers when there are significant architectural changes.
+
+**Examples:**
+- Release v1.0.2 → File headers remain "PyLine 1.0"
+- Release v1.1.0 → File headers updated to "PyLine 1.1"
+- Release v1.1.3 → File headers remain "PyLine 1.1"
+- Release v2.0.0 → File headers updated to "PyLine 2.0"
+
+### Release Tagging
+- Use semantic versioning (MAJOR.MINOR.PATCH) for GitHub releases
+- Patch versions (1.0.1, 1.0.2) don't require file header updates
+- Minor versions (1.1.0) should update headers to reflect feature additions
+- Major versions (2.0.0) must update headers for breaking changes
+
 ## Branching Strategy
 
 We use a multi-branch workflow to keep development organized and stable:

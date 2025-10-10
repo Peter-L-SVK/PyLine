@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # install-all-hooks.sh
 
 set -e  # Exit on any error
@@ -22,6 +22,12 @@ declare -A hooks=(
     ["json_highlight"]="syntax_handlers/highlight json_highlight__60.py highlighters"
     ["shell_highlight"]="syntax_handlers/highlight shell_highlight__70.py highlighters"
     ["search_replace"]="event_handlers/search_replace search_replace__75.pl search_replace"
+    ["grammar_checker"]="editing_ops/search_replace grammar_checker__70.py AI-grammar-check"
+)
+
+# Additional config files to install (non-executable)
+declare -A config_files=(
+    ["grammar_config"]="editing_ops/search_replace grammar_config.json AI-grammar-check"
 )
 
 # Base directories
@@ -99,12 +105,48 @@ install_hook() {
     return 0
 }
 
+# Function to install config files (non-executable)
+install_config_file() {
+    local config_name="$1"
+    local config_path="$2"
+    local config_file="$3"
+    local source_dir="$4"
+    
+    local source_file="$SCRIPT_DIR/$source_dir/$config_file"
+    local target_dir="$HOOK_BASE/$config_path"
+    local target_file="$target_dir/$config_file"
+    
+    print_status "Installing $config_name configuration..."
+    
+    # Check if source file exists
+    if [ ! -f "$source_file" ]; then
+        print_error "Source file $source_file not found for $config_name"
+        return 1
+    fi
+    
+    # Create target directory
+    if ! mkdir -p "$target_dir"; then
+        print_error "Could not create directory $target_dir"
+        return 1
+    fi
+    
+    # Copy config file
+    if ! cp "$source_file" "$target_file"; then
+        print_error "Could not copy $source_file to $target_dir"
+        return 1
+    fi
+    
+    print_success "$config_name configuration installed to $target_file"
+    return 0
+}
+
 # Function to verify hook installation
 verify_installation() {
     print_status "Verifying installations..."
     
     local all_ok=true
     
+    # Verify executable hooks
     for hook_name in "${!hooks[@]}"; do
         IFS=' ' read -r hook_path hook_file source_dir <<< "${hooks[$hook_name]}"
         local target_file="$HOOK_BASE/$hook_path/$hook_file"
@@ -126,10 +168,23 @@ verify_installation() {
         fi
     done
     
+    # Verify config files
+    for config_name in "${!config_files[@]}"; do
+        IFS=' ' read -r config_path config_file source_dir <<< "${config_files[$config_name]}"
+        local target_file="$HOOK_BASE/$config_path/$config_file"
+        
+        if [ -f "$target_file" ]; then
+            echo -e "  ${GREEN}✓${NC} $config_name: configuration installed"
+        else
+            echo -e "  ${RED}✗${NC} $config_name: configuration NOT installed"
+            all_ok=false
+        fi
+    done
+    
     if $all_ok; then
-        print_success "All hooks verified successfully!"
+        print_success "All hooks and configurations verified successfully!"
     else
-        print_warning "Some hooks may have installation issues"
+        print_warning "Some hooks or configurations may have installation issues"
     fi
 }
 
@@ -154,6 +209,17 @@ test_hooks() {
             echo -e "  ${GREEN}✓${NC} JSON highlighter: Python environment OK"
         else
             echo -e "  ${YELLOW}⚠${NC} JSON highlighter: Python check failed"
+        fi
+    fi
+    
+    # Test Grammar Checker dependencies
+    if [ -f "$SCRIPT_DIR/AI-grammar-check/grammar_checker__70.py" ]; then
+        python3 -c "import language_tool_python, pandas, numpy; print('Grammar checker dependencies OK')" >/dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            echo -e "  ${GREEN}✓${NC} Grammar checker: All dependencies available"
+        else
+            echo -e "  ${YELLOW}⚠${NC} Grammar checker: Some dependencies missing"
+            echo -e "     Run: pip install language-tool-python pandas numpy"
         fi
     fi
     
@@ -184,6 +250,14 @@ check_directories_exist() {
         fi
     done
     
+    for config_name in "${!config_files[@]}"; do
+        IFS=' ' read -r config_path config_file source_dir <<< "${config_files[$config_name]}"
+        local source_dir_path="$SCRIPT_DIR/$source_dir"
+        if [ ! -d "$source_dir_path" ]; then
+            missing_dirs+=("$source_dir")
+        fi
+    done
+    
     if [ ${#missing_dirs[@]} -gt 0 ]; then
         print_error "Missing hook directories:"
         for dir in "${missing_dirs[@]}"; do
@@ -192,6 +266,7 @@ check_directories_exist() {
         echo ""
         echo "Expected directory structure:"
         echo "  $(pwd)/"
+        echo "  ├── AI-grammar-check/"
         echo "  ├── highlighters/"
         echo "  ├── lower-to-upper/" 
         echo "  ├── search_replace/"
@@ -213,6 +288,14 @@ check_files_exist() {
         fi
     done
     
+    for config_name in "${!config_files[@]}"; do
+        IFS=' ' read -r config_path config_file source_dir <<< "${config_files[$config_name]}"
+        local source_file="$SCRIPT_DIR/$source_dir/$config_file"
+        if [ ! -f "$source_file" ]; then
+            missing_files+=("$source_dir/$config_file")
+        fi
+    done
+    
     if [ ${#missing_files[@]} -gt 0 ]; then
         print_error "Missing hook files:"
         for file in "${missing_files[@]}"; do
@@ -231,6 +314,10 @@ main() {
     for hook_name in "${!hooks[@]}"; do
         IFS=' ' read -r hook_path hook_file source_dir <<< "${hooks[$hook_name]}"
         echo "  - $hook_name: $source_dir/$hook_file → $HOOK_BASE/$hook_path/"
+    done
+    for config_name in "${!config_files[@]}"; do
+        IFS=' ' read -r config_path config_file source_dir <<< "${config_files[$config_name]}"
+        echo "  - $config_name: $source_dir/$config_file → $HOOK_BASE/$config_path/"
     done
     echo ""
     
@@ -254,6 +341,16 @@ main() {
         total_count=$((total_count + 1))
         
         if install_hook "$hook_name" "$hook_path" "$hook_file" "$source_dir"; then
+            installed_count=$((installed_count + 1))
+        fi
+    done
+    
+    # Install all config files
+    for config_name in "${!config_files[@]}"; do
+        IFS=' ' read -r config_path config_file source_dir <<< "${config_files[$config_name]}"
+        total_count=$((total_count + 1))
+        
+        if install_config_file "$config_name" "$config_path" "$config_file" "$source_dir"; then
             installed_count=$((installed_count + 1))
         fi
     done
@@ -286,8 +383,12 @@ main() {
     echo "   - Edit .sh files for shell highlighting"
     echo "   - Use search/replace functionality"
     echo "   - Press Tab in edit mode for smart indentation"
+    echo "   - Open any text file for AI grammar checking"
     echo ""
-    echo "3. If you encounter issues:"
+    echo "3. For AI Grammar Checker, install dependencies:"
+    echo "   - pip install language-tool-python pandas numpy"
+    echo ""
+    echo "4. If you encounter issues:"
     echo "   - Check that all hook files are executable"
     echo "   - Verify Perl and Python are installed"
     echo "   - Review the backup in: $BACKUP_DIR"
