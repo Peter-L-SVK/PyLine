@@ -24,6 +24,12 @@ declare -A hooks=(
     ["json_highlight"]="syntax_handlers/highlight json_highlight__60.py"
     ["shell_highlight"]="syntax_handlers/highlight shell_highlight__70.py"
     ["search_replace"]="event_handlers/search_replace search_replace__75.pl"
+    ["grammar_checker"]="editing_ops/search_replace grammar_checker__70.py"
+)
+
+# Config files to remove
+declare -A config_files=(
+    ["grammar_config"]="editing_ops/search_replace grammar_config.json"
 )
 
 print_status() {
@@ -45,6 +51,10 @@ uninstall_hooks() {
         IFS=' ' read -r hook_path hook_file <<< "${hooks[$hook_name]}"
         echo "  - $hook_name: $HOOK_BASE/$hook_path/$hook_file"
     done
+    for config_name in "${!config_files[@]}"; do
+        IFS=' ' read -r config_path config_file <<< "${config_files[$config_name]}"
+        echo "  - $config_name: $HOOK_BASE/$config_path/$config_file"
+    done
     echo ""
     
     read -p "Are you sure you want to continue? (y/N): " -n 1 -r
@@ -57,6 +67,7 @@ uninstall_hooks() {
     local removed_count=0
     local total_count=0
     
+    # Remove executable hooks
     for hook_name in "${!hooks[@]}"; do
         IFS=' ' read -r hook_path hook_file <<< "${hooks[$hook_name]}"
         local target_file="$HOOK_BASE/$hook_path/$hook_file"
@@ -80,6 +91,30 @@ uninstall_hooks() {
         fi
     done
     
+    # Remove config files
+    for config_name in "${!config_files[@]}"; do
+        IFS=' ' read -r config_path config_file <<< "${config_files[$config_name]}"
+        local target_file="$HOOK_BASE/$config_path/$config_file"
+        total_count=$((total_count + 1))
+        
+        if [ -f "$target_file" ]; then
+            if rm "$target_file"; then
+                echo -e "  ${GREEN}✓${NC} Removed: $config_name configuration"
+                removed_count=$((removed_count + 1))
+                
+                # Remove empty directories
+                local config_dir="$HOOK_BASE/$config_path"
+                if [ -d "$config_dir" ] && [ -z "$(ls -A "$config_dir")" ]; then
+                    rmdir "$config_dir" 2>/dev/null || true
+                fi
+            else
+                echo -e "  ${RED}✗${NC} Failed to remove: $config_name configuration"
+            fi
+        else
+            echo -e "  ${YELLOW}⚠${NC} Not found: $config_name configuration"
+        fi
+    done
+    
     echo ""
     echo "=================================================="
     echo "           Uninstallation Summary"
@@ -93,6 +128,7 @@ uninstall_hooks() {
     echo "  - Search/replace"
     echo "  - Tab handling"
     echo "  - Text transformation"
+    echo "  - Grammar checking (will use basic checking if available)"
     echo ""
     print_success "Uninstallation completed!"
 }

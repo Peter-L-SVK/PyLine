@@ -1,0 +1,514 @@
+{
+  "common_errors": {
+    "their_there_theyre": [
+      {
+        "pattern": "\\btheir\\b",
+        "suggestion": "they're",
+        "explanation": "their (possessive) vs they're (they are)",
+        "confidence": 0.7,
+        "context_rules": {
+          "likely_correct": "\\btheir\\s+\\w+",
+          "likely_incorrect": "\\btheir\\s+(going|coming|having|doing|waiting|trying|planning)"
+        }
+      },
+      {
+        "pattern": "\\bthere\\b", 
+        "suggestion": "they're",
+        "explanation": "there (location) vs they're (they are)",
+        "confidence": 0.6,
+        "context_rules": {
+          "likely_correct": "\\b(over|under|around|in|at)\\s+there\\b|\\bthere\\s+(is|are|was|were)",
+          "likely_incorrect": "\\bthere\\s+(going|coming|having|doing|waiting|trying)"
+        }
+      }
+    ],
+    
+    "your_youre": [
+      {
+        "pattern": "\\byour\\b",
+        "suggestion": "you're", 
+        "explanation": "your (possessive) vs you're (you are)",
+        "confidence": 0.7,
+        "context_rules": {
+          "likely_correct": "\\byour\\s+(\\w+ing|\\w+ed|\\w+s)\\b|\\byour\\s+\\w+",
+          "likely_incorrect": "\\byour\\s+(welcome|amazing|great|wrong|right|crazy|kidding|joking)"
+        }
+      }
+    ],
+    
+    "its_its": [
+      {
+        "pattern": "\\bits\\b",
+        "suggestion": "it's",
+        "explanation": "its (possessive) vs it's (it is)",
+        "confidence": 0.8,
+        "context_rules": {
+          "likely_correct": "\\bits\\s+\\w+",
+          "likely_incorrect": "\\bits\\s+(a|an|the|not|very|quite|really|too|so|just)"
+        }
+      }
+    ],
+    
+    "missing_is": [
+      {
+        "pattern": "\\b(I|he|she|it)\\s+(going|coming|waiting|trying|working|looking|thinking|doing|having|saying|getting|making|taking|seeing|using|giving|finding|telling|putting)(\\s+|$)",
+        "explanation": "Missing 'am' or 'is' in present continuous tense",
+        "confidence": 0.8
+      }
+    ],
+    
+    "missing_copula": [
+      {
+        "pattern": "\\b(I|he|she|it|that|this)\\s+(a|an|the|very|quite|really|too|so|just|not|always|never|sometimes|often|usually|probably|possibly|certainly|definitely|absolutely|happy|sad|good|bad|nice|great|awesome|terrible|beautiful|ugly|smart|stupid|easy|hard|simple|complex|interesting|boring|important|necessary|essential)(\\s+\\w+)+\\b",
+        "explanation": "Missing 'am', 'is', or 'are' before adjectives",
+        "confidence": 0.7
+      }
+    ],
+
+    "greeting_missing_copula": [
+      {
+        "pattern": "\\b(Hello|Hi|Hey)\\s+(this|that)(?!\\s+is\\b|\\s+are\\b|\\s+am\\b|\\s+was\\b|\\s+were\\b)\\s+([^.!?]*)(\\?)?",
+        "explanation": "Missing 'is' in greeting phrases like 'Hello this'",
+        "confidence": 0.9
+      }
+    ],
+    
+    "missing_articles": [
+      {
+        "pattern": "\\b(I|you|we|they)\\s+(have|need|want|see|buy|find|get)\\s+([aeiou]\\w+)\\b",
+        "suggestion": "$1 $2 an $3",
+        "explanation": "Missing article 'an' before vowel sounds",
+        "confidence": 0.5
+      },
+      {
+        "pattern": "\\b(I|you|we|they)\\s+(have|need|want|see|buy|find|get)\\s+([^aeiou\\s]\\w+)\\b",
+        "suggestion": "$1 $2 a $3", 
+        "explanation": "Missing article 'a' before consonant sounds",
+        "confidence": 0.5
+      }
+    ],
+    
+    "subject_verb_agreement": [
+      {
+        "pattern": "\\b(I|you|we|they)\\s+(is|was)\\b",
+        "suggestion": "$1 are",
+        "explanation": "Subject-verb agreement error: use 'are' with I/you/we/they",
+        "confidence": 0.9
+      },
+      {
+        "pattern": "\\b(he|she|it)\\s+(are|were)\\b",
+        "suggestion": "$1 is",
+        "explanation": "Subject-verb agreement error: use 'is' with he/she/it",
+        "confidence": 0.9
+      },
+      {
+        "pattern": "\\b(I)\\s+(are|were)\\b",
+        "suggestion": "$1 am",
+        "explanation": "Subject-verb agreement error: use 'am' with I",
+        "confidence": 0.9
+      }
+    ],
+    
+    "then_than": [
+      {
+        "pattern": "\\b(then)\\s+(\\w+er|more|less|better|worse|older|younger|bigger|smaller)\\b",
+        "suggestion": "than",
+        "explanation": "then (time) vs than (comparison)",
+        "confidence": 0.8
+      },
+      {
+        "pattern": "\\b(more|less|better|worse|rather|older|younger|bigger|smaller)\\s+then\\b",
+        "suggestion": "than", 
+        "explanation": "Use 'than' for comparisons",
+        "confidence": 0.9
+      }
+    ],
+    
+    "affect_effect": [
+      {
+        "pattern": "\\b(effect)\\s+(\\w+ing|to\\s+\\w+)\\b",
+        "suggestion": "affect",
+        "explanation": "effect (noun, result) vs affect (verb, influence)",
+        "confidence": 0.7
+      },
+      {
+        "pattern": "\\b(have|has|had)\\s+an?\\s+affect\\b",
+        "suggestion": "effect",
+        "explanation": "Use 'effect' as a noun after 'have an'",
+        "confidence": 0.7
+      }
+    ],
+    
+    "loose_lose": [
+      {
+        "pattern": "\\bloose\\s+(weight|money|game|match|battle|contest|competition|race)\\b",
+        "suggestion": "lose",
+        "explanation": "loose (not tight) vs lose (misplace, fail to win)",
+        "confidence": 0.9
+      }
+    ],
+    
+    "could_of_would_of": [
+      {
+        "pattern": "\\b(could|would|should)\\s+of\\b",
+        "suggestion": "$1 have",
+        "explanation": "Use 'have' not 'of' after could/would/should",
+        "confidence": 0.95
+      }
+    ],
+    
+    "double_prepositions": [
+      {
+        "pattern": "\\b(of|for|to|in|on|at|by|with)\\s+of\\b",
+        "suggestion": "of",
+        "explanation": "Remove redundant preposition",
+        "confidence": 0.6
+      },
+      {
+        "pattern": "\\b(up|down|in|out|on|off|over|under)\\s+(up|down|in|out|on|off|over|under)\\b",
+        "suggestion": "$1",
+        "explanation": "Remove redundant directional preposition",
+        "confidence": 0.7
+      }
+    ],
+    
+    "missing_to": [
+      {
+        "pattern": "\\b(want|need|like|try|help|love|hate|prefer|choose|decide|expect|hope|wish|plan|attempt|manage|fail|refuse)\\s+(go|see|do|make|take|get|find|give|tell|show|ask|work|play|write|read|speak|talk|think|feel|know|understand|learn|study|teach|create|build|develop|change|improve|solve|fix|break|open|close|start|stop|continue|begin|end)\\b",
+        "suggestion": "$1 to $2",
+        "explanation": "Missing 'to' before infinitive verb",
+        "confidence": 0.6
+      }
+    ],
+    
+    "comma_splices": [
+      {
+        "pattern": "\\b\\w+[^.!?],\\s+(I|you|he|she|it|we|they)\\s+\\w+\\b",
+        "suggestion": ". $1",
+        "explanation": "Possible comma splice - consider using period or semicolon",
+        "confidence": 0.4
+      }
+    ],
+    
+    "apostrophe_errors": [
+      {
+        "pattern": "\\b(its|your|their|whose)\\s+(\\w+'s)\\b",
+        "suggestion": "$1 $2",
+        "explanation": "Redundant apostrophe - these are already possessive",
+        "confidence": 0.8
+      },
+      {
+        "pattern": "\\b(childs|mans|womans|childrens|peoples)\\b",
+        "suggestion": "children's, man's, woman's, people's",
+        "explanation": "Incorrect plural possessive form",
+        "confidence": 0.9
+      }
+    ],
+    
+    "redundant_words": [
+      {
+        "pattern": "\\b(both)\\s+(and|or)\\s+\\w+\\s+(together|both)\\b",
+        "suggestion": "both",
+        "explanation": "Redundant 'together' or 'both'",
+        "confidence": 0.7
+      },
+      {
+        "pattern": "\\b(revert)\\s+back\\b",
+        "suggestion": "revert",
+        "explanation": "Redundant 'back' - revert already means go back",
+        "confidence": 0.8
+      },
+      {
+        "pattern": "\\b(join)\\s+together\\b", 
+        "suggestion": "join",
+        "explanation": "Redundant 'together' - join implies togetherness",
+        "confidence": 0.8
+      },
+      {
+        "pattern": "\\b(continue)\\s+on\\b",
+        "suggestion": "continue",
+        "explanation": "Redundant 'on' - continue doesn't need it",
+        "confidence": 0.8
+      }
+    ],
+    
+    "wordiness": [
+      {
+        "pattern": "\\bdue to the fact that\\b",
+        "suggestion": "because",
+        "explanation": "Wordy - use 'because' instead",
+        "confidence": 0.8
+      },
+      {
+        "pattern": "\\bin order to\\b",
+        "suggestion": "to",
+        "explanation": "Wordy - use 'to' instead",
+        "confidence": 0.7
+      },
+      {
+        "pattern": "\\bat this point in time\\b",
+        "suggestion": "now",
+        "explanation": "Wordy - use 'now' instead", 
+        "confidence": 0.9
+      },
+      {
+        "pattern": "\\bfor the purpose of\\b",
+        "suggestion": "for",
+        "explanation": "Wordy - use 'for' instead",
+        "confidence": 0.8
+      }
+    ],
+    
+    "plural_singular_agreement": [
+      {
+        "pattern": "\\b(these|those)\\s+(is|was)\\b",
+        "suggestion": "$1 are",
+        "explanation": "Plural demonstrative pronouns need plural verbs",
+        "confidence": 0.9
+      },
+      {
+        "pattern": "\\b(this|that)\\s+(are|were)\\b",
+        "suggestion": "$1 is",
+        "explanation": "Singular demonstrative pronouns need singular verbs",
+        "confidence": 0.9
+      }
+    ],
+    
+    "question_structure": [
+      {
+        "pattern": "^(?![A-Z]).*\\?$",
+        "explanation": "Question should start with a capital letter",
+        "confidence": 0.9
+      },
+      {
+        "pattern": "\\b(is|are|am|was|were|do|does|did|have|has|had|can|could|will|would|should|may|might|must)\\s+(I|you|he|she|it|we|they|this|that|there|[A-Z][a-z]*)\\s+[^?]*[^?.!]$",
+        "explanation": "Question may be missing a question mark",
+        "confidence": 0.7
+      },
+      {
+        "pattern": "^(Why|What|When|Where|Who|How|Which|Whose).*[^?.!]$",
+        "explanation": "Question word sentence may be missing a question mark",
+        "confidence": 0.8
+      }
+    ],
+
+    "sentence_endings": [
+      {
+        "pattern": "^[A-Z][^.!?]*[a-z][^.!?]$",
+        "explanation": "Sentence may be missing ending punctuation",
+        "confidence": 0.6
+      },
+      {
+        "pattern": "\\b(this is|that is|it is|there is|here is)\\s+[^.!?]*[^.!?\\s]$",
+        "explanation": "Declarative sentence may be missing a period",
+        "confidence": 0.7
+      },
+      {
+        "pattern": "\\.\\s+[a-z]",
+        "explanation": "Sentence may not start with capital letter after period",
+        "confidence": 0.9
+      },
+      {
+        "pattern": "\\?\\s+[a-z]",
+        "explanation": "Sentence may not start with capital letter after question mark",
+        "confidence": 0.9
+      }
+    ],
+    
+    "statement_question_confusion": [
+      {
+        "pattern": "\\b(this is|that is|it is)\\s+.*\\?$",
+        "explanation": "This looks like a statement but ends with a question mark",
+        "confidence": 0.8
+      },
+      {
+        "pattern": "^(Is|Are|Am|Was|Were|Do|Does|Did|Have|Has|Had|Can|Could|Will|Would|Should|May|Might|Must)\\s+.*[^?]$",
+        "explanation": "This looks like a question but is missing a question mark",
+        "confidence": 0.8
+      }
+    ],
+    
+    "question_mark_missing": [
+      {
+        "pattern": "^(Is |Are |Am |Was |Were |Do |Does |Did |Have |Has |Had |Can |Could |Will |Would |Should |May |Might |Must |Why |What |When |Where |Who |How |Which |Whose )([^.!?]*[^.!?\\s])$",
+        "suggestion": "$1$2?",
+        "explanation": "Question may be missing a question mark",
+        "confidence": 0.6,
+        "context_rules": {
+          "likely_incorrect": "^[A-Z]",
+          "likely_correct": "\\.$|!$|,$|;$|:|^#|^-|^\\*|^\\d+\\.|\\[.*\\]|^---|^===|^```"
+        }
+      }
+    ]
+  },
+
+  "technical_vocabulary": {
+    "programming_terms": [
+      "PyLine", "byline", "filetype", "filetype", "Redone", "BG", "FG",
+      "Python", "JSON", "JavaScript", "Perl", "Ruby", "Lua", "PHP", "Shell",
+      "C/C++", "Java", "HTML", "XML", "stdin", "WIP", "PLANNED", "IMPLEMENTED",
+      "PARTIALLY", "regex", "macros", "tab", "tabs", "indentation", "config",
+      "keybindings", "keybindings", "RS", "Jason"
+    ],
+    "computer_science_terms": [
+      "algorithm", "API", "CLI", "GUI", "IDE", "SDK", "framework", "library",
+      "syntax", "semantics", "parser", "lexer", "token", "buffer", "hook",
+      "runtime", "startup", "stdin", "stdout", "stderr", "JSON", "XML"
+    ],
+    "common_abbreviations": [
+      "config", "func", "var", "param", "arg", "doc", "dir", "path", "url",
+      "uri", "api", "cli", "gui", "ide", "sdk", "wip", "todo", "fixme"
+    ]
+  },
+  
+  "writing_style_rules": {
+    "sentence_length": {
+      "too_long_threshold": 35,
+      "too_short_threshold": 5,
+      "ideal_range": [12, 25]
+    },
+    "readability": {
+      "excellent_threshold": 80,
+      "good_threshold": 60,
+      "fair_threshold": 30
+    },
+    "vocabulary": {
+      "diversity_threshold": 0.5,
+      "overused_words": ["very", "really", "just", "so", "quite", "actually", "basically", "literally"]
+    },
+    "passive_voice": {
+      "detect_passive": true,
+      "max_passive_percentage": 0.3
+    },
+    "repetition": {
+      "max_repeated_words": 3,
+      "max_similar_sentences": 2
+    },
+    "exclude_patterns": [
+      "^#",
+      "^##", 
+      "^###",
+      "^\\*\\*",
+      "^\\*\\s",
+      "^\\-\\s",
+      "^\\d+\\.",
+      "\\[IMPLEMENTED\\]",
+      "\\[PLANNED\\]",
+      "\\[WIP\\]",
+      "\\[MAYBE\\]",
+      "^```",
+      "^    ",
+      "^---",
+      "^===",
+      "^\".*\"$",
+      "^'.*'$"
+    ]
+  },
+  
+  "language_tool_config": {
+    "disabled_rules": [
+      "EN_QUOTES",
+      "COMMA_PARENTHESIS_WHITESPACE", 
+      "WHITESPACE_RULE",
+      "EN_UNPAIRED_BRACKETS",
+      "UPPERCASE_SENTENCE_START",
+      "MORFOLOGIK_RULE_EN_US"
+    ],
+    "enabled_categories": [
+      "GRAMMAR",
+      "TYPOS",
+      "STYLE",
+      "CONFUSED_WORDS",
+      "REDUNDANCY"
+    ],
+    "timeout_seconds": 15
+  },
+
+  "spelling_exceptions": {
+    "case_sensitive": [
+      "PyLine", "JSON", "XML", "HTML", "PHP", "WIP", "API", "CLI", "GUI", "IDE", "SDK"
+    ],
+    "case_insensitive": [
+      "byline", "filetype", "redone", "bg", "fg", "python", "javascript",
+      "perl", "ruby", "lua", "shell", "java", "stdin", "planned", "implemented",
+      "partially", "regex", "macros", "config", "keybindings", "rs", "jason"
+    ]
+  },
+  
+  "content_filters": {
+    "exclude_lines_matching": [
+      "^#",
+      "^##", 
+      "^###",
+      "^\\*\\*",
+      "^\\*\\s",
+      "^\\-\\s",
+      "^\\d+\\.",
+      "\\[IMPLEMENTED\\]",
+      "\\[PLANNED\\]",
+      "\\[WIP\\]",
+      "\\[MAYBE\\]",
+      "^```",
+      "^    ",
+      "^\\t",
+      "^---",
+      "^===",
+      "^\".*\"$",
+      "^'.*'$",
+      "^//",
+      "^<!--",
+      "^\\s*$"
+    ],
+    "exclude_blocks_matching": [
+      "```.*```",
+      "`.*`",
+      "\\*\\*.*\\*\\*",
+      "\\*.*\\*",
+      "_.*_",
+      "\\[.*\\]\\(.*\\)"
+    ]
+  },
+  
+  "severity_levels": {
+    "high": ["MORFOLOGIK_RULE", "TYPOS", "CONFUSED_WORDS"],
+    "medium": ["GRAMMAR", "STYLE", "PUNCTUATION"], 
+    "low": ["REDUNDANCY", "CASING", "SEMANTICS"]
+  },
+  
+  "confidence_factors": {
+    "grammar_tool": 0.9,
+    "pattern_match": 0.7,
+    "style_suggestion": 0.5,
+    "context_boost": 0.15,
+    "context_penalty": -0.25,
+    "ai_enhancement": 0.1,
+    "technical_content_penalty": -0.4
+  },
+  
+  "output_settings": {
+    "max_issues_per_category": 10,
+    "show_statistics": true,
+    "show_writing_tips": true,
+    "show_confidence_scores": true,
+    "group_by_severity": true,
+    "show_improvement_tips": true,
+    "highlight_common_patterns": true,
+    "skip_technical_content": true,
+    "min_confidence_threshold": 0.3
+  },
+  
+  "ai_enhancements": {
+    "learn_from_corrections": true,
+    "adapt_to_writing_style": true,
+    "build_personal_dictionary": true,
+    "track_common_mistakes": true,
+    "exclude_technical_patterns": true
+  },
+  
+  "performance_settings": {
+    "max_text_length": 10000,
+    "skip_long_documents": false,
+    "cache_results": true,
+    "parallel_processing": false
+  }
+}

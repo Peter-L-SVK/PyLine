@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 1.0 - Configuration Manager (GPLv3)
+# PyLine 1.1 - Configuration Manager (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -90,11 +90,7 @@ class ConfigManager:
             source_path = str(Path(__file__).parent.resolve())
 
         return {
-            "paths": {
-                "source_path": source_path,
-                "default_path": str(Path.home()), 
-                "original_path": str(Path.home())
-            },
+            "paths": {"source_path": source_path, "default_path": str(Path.home()), "original_path": str(Path.home())},
             "editor": {
                 "theme": "black-on-white",  # Keep this for backward compatibility
             },

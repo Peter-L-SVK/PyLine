@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 1.0 - Directories And Files Opertions Library (GPLv3)
+# PyLine 1.1 - Directories And Files Opertions Library (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -93,10 +93,10 @@ def cd(new_dir: str) -> str:
     else:
         # Regular path
         expanded_dir = new_dir
-    
+
     # Normalize the path to resolve any .. or . components
     expanded_dir = os.path.abspath(expanded_dir)
-    
+
     # Change to the directory
     os.chdir(expanded_dir)
     return currentdir()

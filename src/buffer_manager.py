@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 1.0 - Buffer Manager (GPLv3)
+# PyLine 1.1 - Buffer Manager (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.

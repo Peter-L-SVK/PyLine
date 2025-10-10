@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -e  # Exit on error
 
 # Path configurations
@@ -41,7 +41,6 @@ install_hooks() {
         echo "⚠ Hooks directory or installer not found, skipping hook installation"
     fi
 }
-
 
 # Uninstall function
 uninstall_pyline() {
