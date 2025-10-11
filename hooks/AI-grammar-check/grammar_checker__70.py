@@ -136,21 +136,21 @@ class GrammarChecker:
         programming_terms = self.config.get("technical_vocabulary.programming_terms", [])
         cs_terms = self.config.get("technical_vocabulary.computer_science_terms", [])
         abbreviations = self.config.get("technical_vocabulary.common_abbreviations", [])
-    
+
         tech_vocab.update(programming_terms)
         tech_vocab.update(cs_terms)
         tech_vocab.update(abbreviations)
-    
+
         # Load case insensitive exceptions
         case_insensitive = self.config.get("spelling_exceptions.case_insensitive", [])
         tech_vocab.update(term.lower() for term in case_insensitive)
-    
+
         return tech_vocab
 
     def should_exclude_line(self, line: str) -> bool:
         """Check if a line should be excluded from grammar checking"""
         exclude_patterns = self.config.get("content_filters.exclude_lines_matching", [])
-    
+
         for pattern in exclude_patterns:
             if re.search(pattern, line):
                 return True
@@ -158,15 +158,15 @@ class GrammarChecker:
 
     def filter_technical_content(self, text: str) -> str:
         """Filter out technical content before analysis"""
-        lines = text.split('\n')
+        lines = text.split("\n")
         filtered_lines = []
-    
+
         for line in lines:
             if not self.should_exclude_line(line):
                 filtered_lines.append(line)
-    
-        return '\n'.join(filtered_lines)
-    
+
+        return "\n".join(filtered_lines)
+
     def check_grammar_with_tool(self, text: str) -> List["Match"]:
         """Use LanguageTool with proper context management"""
         if not LT_AVAILABLE:
@@ -228,7 +228,7 @@ class GrammarChecker:
             return 1
 
         # Special cases
-        if word.endswith('es') or word.endswith('ed'):
+        if word.endswith("es") or word.endswith("ed"):
             if len(word) <= 4:
                 return 1
 
@@ -241,37 +241,37 @@ class GrammarChecker:
             is_vowel = char in vowels
 
             # Don't count 'y' as vowel at start of word
-            if char == 'y' and i == 0:
+            if char == "y" and i == 0:
                 is_vowel = False
 
             # Count vowel at start of vowel group
             if is_vowel and not prev_char_vowel:
                 count += 1
-        
+
             prev_char_vowel = is_vowel
 
         # Adjust for silent 'e' at end
-        if word.endswith('e') and count > 1 and len(word) > 2:
+        if word.endswith("e") and count > 1 and len(word) > 2:
             # But keep if preceded by 'l' and consonant before that (like "table")
-            if not (word.endswith('le') and len(word) > 2 and word[-3] not in vowels):
+            if not (word.endswith("le") and len(word) > 2 and word[-3] not in vowels):
                 count -= 1
-    
+
         # Ensure at least one syllable
         return max(1, count)
 
     def calculate_readability(self, text: str) -> float:
         """Calculate Flesch Reading Ease score with better error handling"""
         # Clean the text first
-        text = re.sub(r'[^\w\s.!?]', ' ', text)
+        text = re.sub(r"[^\w\s.!?]", " ", text)
 
-        sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
-        words = re.findall(r'\b\w+\b', text.lower())
+        sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
+        words = re.findall(r"\b\w+\b", text.lower())
 
         if not sentences or not words:
             return 60.0  # Default score for empty text
-    
+
         # Filter out very short "sentences" that are probably headers
-        sentences = [s for s in sentences if len(re.findall(r'\b\w+\b', s)) >= 3]
+        sentences = [s for s in sentences if len(re.findall(r"\b\w+\b", s)) >= 3]
 
         if not sentences:
             return 60.0
@@ -282,14 +282,14 @@ class GrammarChecker:
         syllables = 0
         for word in words:
             syllables += self.count_syllables(word)
-    
+
         avg_syllables_per_word = syllables / len(words)
 
         # Flesch Reading Ease formula
         try:
             score = 206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_syllables_per_word)
             return max(10.0, min(100.0, score))  # Reasonable bounds
-        except:
+        except (ValueError, ZeroDivisionError, TypeError):
             return 60.0  # Fallback score
 
     def check_grammar_advanced(self, text: str) -> List[Dict[str, Any]]:
@@ -309,18 +309,20 @@ class GrammarChecker:
                     # Skip spelling errors for technical terms
                     if self.is_technical_term(match, text, tech_vocab):
                         continue
-                    
+
                     severity = self.determine_severity(match.ruleId, match.category)
-                    issues.append({
-                        "type": "grammar",
-                        "severity": severity,
-                        "message": match.message,
-                        "suggestion": match.replacements[0] if match.replacements else "",
-                        "offset": match.offset,
-                        "length": match.errorLength,
-                        "category": match.category,
-                        "rule": match.ruleId,
-                    })
+                    issues.append(
+                        {
+                            "type": "grammar",
+                            "severity": severity,
+                            "message": match.message,
+                            "suggestion": match.replacements[0] if match.replacements else "",
+                            "offset": match.offset,
+                            "length": match.errorLength,
+                            "category": match.category,
+                            "rule": match.ruleId,
+                        }
+                    )
             except Exception as e:
                 print(f"Advanced grammar check failed: {e}")
 
@@ -336,7 +338,7 @@ class GrammarChecker:
     def is_technical_term(self, match: "Match", text: str, tech_vocab: Set[str]) -> bool:
         """Check if a match is actually a technical term"""
         if match.ruleId == "MORFOLOGIK_RULE_EN_US":
-            matched_text = text[match.offset:match.offset + match.errorLength].lower()
+            matched_text = text[match.offset : match.offset + match.errorLength].lower()
             return matched_text in tech_vocab
         return False
 
@@ -356,14 +358,14 @@ class GrammarChecker:
         common_errors = self.config.get("common_errors", {})
 
         # Split text into lines to check exclusions
-        lines = text.split('\n')
+        lines = text.split("\n")
         current_pos = 0
-    
+
         for line_num, line in enumerate(lines):
             if self.should_exclude_line(line):
                 current_pos += len(line) + 1  # +1 for newline
                 continue
-            
+
             for error_type, patterns in common_errors.items():
                 for pattern_config in patterns:
                     pattern = pattern_config["pattern"]
@@ -374,7 +376,9 @@ class GrammarChecker:
                         matched_text = match.group()
 
                         # Generate intelligent suggestion based on error type
-                        suggestion = self.generate_intelligent_suggestion(error_type, matched_text, match, pattern_config)
+                        suggestion = self.generate_intelligent_suggestion(
+                            error_type, matched_text, match, pattern_config
+                        )
 
                         if not suggestion or suggestion == matched_text:
                             continue  # Skip if no valid suggestion or no change needed
@@ -398,7 +402,7 @@ class GrammarChecker:
                                 "final_confidence": final_confidence,
                             }
                         )
-        
+
             current_pos += len(line) + 1  # +1 for newline
 
         return issues
@@ -446,6 +450,8 @@ class GrammarChecker:
             return self._fix_sentence_endings(matched_text, match)
         elif error_type == "statement_question_confusion":
             return self._fix_statement_question_confusion(matched_text, match)
+        elif error_type == "comma_splices":
+            return self._fix_comma_splices(matched_text, match)
         elif error_type == "subject_verb_agreement":
             return self._fix_subject_verb_agreement(matched_text, match)
         elif error_type == "their_there_theyre":
@@ -470,6 +476,16 @@ class GrammarChecker:
                 except Exception:
                     return str(suggestion_template)  # Ensure we return a string
             return matched_text  # Return original if no suggestion
+
+    def _fix_comma_splices(self, matched_text: str, match: re.Match[str]) -> str:
+        """Fix comma splices with proper sentence separation"""
+        groups = match.groups()
+        if len(groups) >= 3:
+            first_part = groups[0]
+            subject = groups[1]
+            verb_start = groups[2]
+            return f"{first_part}. {subject} {verb_start}"
+        return matched_text
 
     def _fix_missing_is(self, matched_text: str, match: re.Match[str]) -> str:
         """Intelligently fix missing 'is' with proper grammar"""

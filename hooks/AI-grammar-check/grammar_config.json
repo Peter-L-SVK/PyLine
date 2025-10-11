@@ -2,24 +2,24 @@
   "common_errors": {
     "their_there_theyre": [
       {
-        "pattern": "\\btheir\\b",
-        "suggestion": "they're",
-        "explanation": "their (possessive) vs they're (they are)",
-        "confidence": 0.7,
-        "context_rules": {
-          "likely_correct": "\\btheir\\s+\\w+",
-          "likely_incorrect": "\\btheir\\s+(going|coming|having|doing|waiting|trying|planning)"
-        }
+	"pattern": "\\btheir\\b",
+	"suggestion": "they're",
+	"explanation": "their (possessive) vs they're (they are)",
+	"confidence": 0.7,
+	"context_rules": {
+	  "likely_correct": "\\btheir\\s+\\w+|\\btheir\\s+(friends|opinions|lives|ideas|parents|voices)",
+	  "likely_incorrect": "\\btheir\\s+(going|coming|having|doing|waiting|trying|planning|being)"
+	}
       },
       {
-        "pattern": "\\bthere\\b", 
-        "suggestion": "they're",
-        "explanation": "there (location) vs they're (they are)",
-        "confidence": 0.6,
-        "context_rules": {
-          "likely_correct": "\\b(over|under|around|in|at)\\s+there\\b|\\bthere\\s+(is|are|was|were)",
-          "likely_incorrect": "\\bthere\\s+(going|coming|having|doing|waiting|trying)"
-        }
+	"pattern": "\\bthere\\b",
+	"suggestion": "they're",
+	"explanation": "there (location) vs they're (they are)",
+	"confidence": 0.6,
+	"context_rules": {
+	  "likely_correct": "\\b(over|under|around|in|at)\\s+there\\b|\\bthere\\s+(is|are|was|were)",
+	  "likely_incorrect": "\\bthere\\s+(going|coming|having|doing|waiting|trying)"
+	}
       }
     ],
     
@@ -183,13 +183,19 @@
     
     "comma_splices": [
       {
-        "pattern": "\\b\\w+[^.!?],\\s+(I|you|he|she|it|we|they)\\s+\\w+\\b",
-        "suggestion": ". $1",
-        "explanation": "Possible comma splice - consider using period or semicolon",
-        "confidence": 0.4
+	"pattern": "\\b(\\w[^,!?]{15,}),\\s+and\\s+[^,!?]{10,},\\s+(I|you|he|she|it|we|they)\\s+\\w+\\b",
+	"suggestion": "Consider breaking this long sentence into shorter ones",
+	"explanation": "Very long sentence with multiple clauses - may be hard to read",
+	"confidence": 0.6
+      },
+      {
+	"pattern": "\\b([^,!?]{30,}),\\s+(I|you|he|she|it|we|they)\\s+\\w+\\b",
+	"suggestion": "$1. $2 $3", 
+	"explanation": "Very long clause before comma - consider separate sentence",
+	"confidence": 0.7
       }
     ],
-    
+
     "apostrophe_errors": [
       {
         "pattern": "\\b(its|your|their|whose)\\s+(\\w+'s)\\b",
