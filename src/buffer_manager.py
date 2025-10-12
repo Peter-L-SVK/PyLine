@@ -122,7 +122,7 @@ class BufferManager(BaseManager):
                 lines_to_save = content_result["content"]
 
             # Actual file saving
-            with open(self.filename, "w") as f:
+            with open(self.filename, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines_to_save))
 
             self.dirty = False

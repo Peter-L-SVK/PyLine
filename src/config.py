@@ -15,35 +15,8 @@ class ConfigManager:
         self.config_dir = Path.home() / ".pyline"
         self.config_file = self.config_dir / "config.json"
         self.config_dir.mkdir(exist_ok=True)
-        self._ensure_source_path()
+        self._source_path = str(Path(__file__).parent.resolve())  # Store source path directly
         self._ensure_config_file()
-
-    def _ensure_source_path(self) -> None:
-        """Add source_path to config before anything else"""
-        try:
-            # Get the path to this config.py file and go up one level to get project root
-            source_path = Path(__file__).parent.resolve()
-
-            # Load existing config or create empty
-            if self.config_file.exists():
-                with open(self.config_file, "r") as f:
-                    config = json.load(f)
-            else:
-                config = {}
-
-            # Ensure paths section exists
-            if "paths" not in config:
-                config["paths"] = {}
-
-            # Set source_path if not already set or update if different
-            current_source_path = config["paths"].get("source_path")
-            if current_source_path != str(source_path):
-                config["paths"]["source_path"] = str(source_path)
-                self._save_config(config)
-                print(f"Source path set to: {source_path}")
-
-        except Exception as e:
-            print(f"Warning: Could not set source path: {e}")
 
     def _ensure_config_file(self) -> None:
         """Create default config file if it doesn't exist"""
@@ -74,7 +47,7 @@ class ConfigManager:
             print(f"Error saving config: {e}")
 
     def _get_default_config(self) -> Dict[str, Any]:
-        """Get default configuration"""
+        """Get default configuration WITHOUT recursive calls"""
         # Dynamically discover available themes
         themes_dir = Path.home() / ".pyline" / "themes"
         available_themes = ["black-on-white", "white-on-black"]  # Always include built-ins
@@ -85,9 +58,8 @@ class ConfigManager:
                 if theme_name not in available_themes:
                     available_themes.append(theme_name)
 
-        source_path = self.get_path("source_path")
-        if not source_path or source_path == str(Path.home()):
-            source_path = str(Path(__file__).parent.resolve())
+        # Use the stored source_path directly - no recursive calls!
+        source_path = self._source_path
 
         return {
             "paths": {"source_path": source_path, "default_path": str(Path.home()), "original_path": str(Path.home())},
