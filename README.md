@@ -394,7 +394,11 @@ To run all tests:
 
 ```bash
 cd PyLine/tests/
-python -m unittest discover
+./run_tests.py # preferred
+
+# or
+
+python -m unittest discover # traditional
 ```
 
 Or run a specific test file:
