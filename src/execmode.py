@@ -11,18 +11,19 @@ import os
 # Local application imports
 from config import config_manager
 import dirops
-from utils import prompt_continue, exec_menu
+from utils import prompt_continue, exec_menu, history_manager, smart_input
 
 
 def execmode(original_destination: str) -> str:
     os.system("clear")
+    history_manager.set_context("exec")
     choice_exec = None
     while choice_exec != "q":
         current_dir = dirops.currentdir()
         print(f"Current working directory: {current_dir}\n")
         exec_menu()
         try:
-            choice_exec = input("Your choice: ").lower()
+            choice_exec = smart_input("Your choice: ").lower()
             if choice_exec == "af":
                 os.system("clear")
                 dirops.contentdir()
