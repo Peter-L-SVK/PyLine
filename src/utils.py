@@ -25,9 +25,6 @@ import info
 # =============================================================================
 
 
-# ... existing imports ...
-
-
 class HistoryManager:
     """Manages readline history with context awareness"""
 
