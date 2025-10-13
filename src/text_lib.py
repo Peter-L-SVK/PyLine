@@ -202,6 +202,11 @@ class TextLib:
     @staticmethod
     def edit_line(line_num: int, old_text: str) -> str:
         """Edit a single line with readline support."""
+        # Skip history tracking for line editing to avoid conflicts
+        from utils import history_manager
+
+        history_manager.skip_next_add()
+
         readline.set_startup_hook(lambda: readline.insert_text(old_text))
         try:
             print()

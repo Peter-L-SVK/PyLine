@@ -105,6 +105,9 @@ class TextBuffer:
         current_line = self.navigation_manager.get_current_line()
         total_lines = self.buffer_manager.get_line_count()
 
+        # Skip history for jump input
+        utils.history_manager.skip_next_add()
+
         # Use readline for better input experience
         readline.set_startup_hook(lambda: readline.insert_text(str(current_line + 1)))
         try:
@@ -196,6 +199,7 @@ class TextBuffer:
     # Editing operations -------------------------------------------------------
     def edit_current_line(self) -> None:
         """Edit the current line using hook-based input system."""
+
         current_line = self.navigation_manager.get_current_line()
 
         if self.buffer_manager.get_line_count() == 0:
@@ -231,13 +235,8 @@ class TextBuffer:
 
         # Fallback to standard readline if no valid result from hook
         if new_text is None:
-            readline.set_startup_hook(lambda: readline.insert_text(old_text))
-            try:
-                print()
-                prompt = f"{current_line + 1:4d} [edit]: "
-                new_text = input(prompt)
-            finally:
-                readline.set_startup_hook(None)
+            # Use TextLib.edit_line which handles history skipping
+            new_text = TextLib.edit_line(current_line + 1, old_text)
 
         # Process the result
         if new_text is not None:
@@ -912,6 +911,8 @@ class TextBuffer:
         """Handle quit command with save prompt."""
         if not self.buffer_manager.dirty:
             print()
+            # Clear editing history when quitting file
+            utils.history_manager._clear_editing_history()
             return None
 
         while True:
@@ -919,12 +920,15 @@ class TextBuffer:
             if choice == "y":
                 TextLib.move_up()
                 if self.save():
+                    # Clear editing history after successful save/quit
+                    utils.history_manager._clear_editing_history()
                     return True
 
                 print("Error saving file!")
                 break
 
             elif choice == "n":
+                utils.history_manager._clear_editing_history()
                 return False
 
             else:

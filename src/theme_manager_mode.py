@@ -18,6 +18,7 @@ def handle_theme_manager() -> None:
     theme_manager = ThemeManager()
     config_manager = ConfigManager()
     config_manager.refresh_available_themes()
+    utils.history_manager.set_context("theme_manager")
     choice = None
     while choice != "q":
         utils.theme_manager_menu()

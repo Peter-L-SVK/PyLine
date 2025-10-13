@@ -91,6 +91,8 @@ def main() -> NoReturn:
         print("PyLine 1.1 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič")
         print("This program comes with ABSOLUTELY NO WARRANTY; for details type 'i'.\n")
 
+        utils.history_manager.set_context("main")
+
         choice = None
         while choice != "q":
             buffer = TextBuffer()
@@ -98,7 +100,7 @@ def main() -> NoReturn:
             utils.editor_menu()
 
             try:
-                choice = input("Your choice: ").lower()
+                choice = utils.smart_input("Your choice: ").lower()
 
                 if choice == "1":
                     handle_existing_file(buffer)
@@ -200,6 +202,7 @@ def count_words() -> None:
 
 def handle_existing_file(buffer: Any) -> None:
     os.system("clear")
+    utils.history_manager.set_context("editing")
     answer = None
     while answer != "y":
         answer = input("Would you like to edit the file? [Y/N]: ").lower()
@@ -233,6 +236,7 @@ def handle_existing_file(buffer: Any) -> None:
 
 def handle_new_file(buffer: Any) -> None:
     os.system("clear")
+    utils.history_manager.set_context("editing")
     answer = None
     while answer != "y":
         answer = input("Would you like to create the new file? [Y/N]: ").lower()
@@ -272,6 +276,7 @@ def handle_new_file(buffer: Any) -> None:
 
 def handle_truncate_file(buffer: Any) -> None:
     os.system("clear")
+    utils.history_manager.set_context("editing")
     answer = None
     while answer != "y":
         answer = input("Would you like to create/truncate the file? [Y/N]: ").lower()

@@ -14,13 +14,13 @@ import utils
 def handle_hook_manager() -> None:
     """Handle hook management interface"""
     os.system("clear")
-
+    utils.history_manager.set_context("hook_manager")
     choice = None
     while choice != "q":
         utils.hook_manager_menu()
 
         try:
-            choice = input("\nHook Manager Command: ").lower().strip()
+            choice = utils.smart_input("\nHook Manager Command: ").lower().strip()
 
             if choice == "ls":
                 detailed = input("Show detailed info? (y/n): ").lower() == "y"
