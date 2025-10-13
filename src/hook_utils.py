@@ -75,6 +75,10 @@ class HookUtils:
         """Execute editing operation hooks"""
         return self.hook_manager.execute_hooks("editing_ops", hook_type, context)
 
+    def execute_post_line_edit(self, context: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Execute post-line-edit hooks (can modify the final text)"""
+        return self.execute_editing_handlers("post_edit", context)
+
     def execute_pre_insert(self, context: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Execute pre-insert line hooks"""
         return self.execute_editing_handlers("pre_insert", context)

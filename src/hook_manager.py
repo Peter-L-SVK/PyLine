@@ -249,7 +249,24 @@ class HookManager:
                 return None
         else:
             # Non-Python hook execution
-            return LanguageHookExecutor.execute_script(hook_file, context)
+            result = LanguageHookExecutor.execute_script(hook_file, context)
+
+            # If it's a LanguageHookExecutor result with JSON output, parse it
+            if isinstance(result, dict) and result.get("success") and "output" in result:
+
+                try:
+                    import json
+
+                    output_text = result["output"].strip()
+                    # Try to parse as JSON
+                    parsed = json.loads(output_text)
+                    if isinstance(parsed, dict):
+                        return parsed  # Return the parsed JSON directly
+                except json.JSONDecodeError:
+                    # If it's not JSON, keep the original structure
+                    pass
+
+            return result
 
     def execute_hooks(self, hook_category: str, hook_type: str, context: Dict[str, Any]) -> Optional[Any]:
         """
