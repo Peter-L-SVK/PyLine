@@ -247,8 +247,28 @@ class TextBuffer:
             if old_text.endswith("\n"):
                 new_text = new_text + "\n"
 
-            if new_text != old_text:
-                cmd = LineEditCommand(current_line, old_text, new_text)
+            # Execute POST-EDIT hooks here
+            post_edit_context = {
+                "line_number": current_line + 1,
+                "old_text": old_text,
+                "new_text": new_text,  # The text after initial editing
+                "filename": self.buffer_manager.filename,
+                "buffer_lines": self.buffer_manager.lines,
+                "current_line_index": current_line,
+                "action": "post_edit",
+                "operation": "line_edit",
+            }
+
+            post_edit_result = self.hook_utils.execute_post_line_edit(post_edit_context)
+
+            # Apply post-edit modifications if any
+            final_text = new_text  # Start with the edited text
+            if post_edit_result and isinstance(post_edit_result, dict) and "new_text" in post_edit_result:
+                final_text = post_edit_result["new_text"]
+
+            # Compare FINAL text with original to determine if changes were made
+            if final_text != old_text:
+                cmd = LineEditCommand(current_line, old_text, final_text)
                 self.push_undo_command(cmd)
                 cmd.execute(self.buffer_manager)
                 self.buffer_manager.dirty = True
