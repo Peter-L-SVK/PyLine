@@ -446,67 +446,72 @@ class TextBuffer:
 
         # Check if buffer exists and has content
         if (
-            self.paste_buffer.buffer is None
-            or not isinstance(self.paste_buffer.buffer, list)
-            or len(self.paste_buffer.buffer) == 0
+                self.paste_buffer.buffer is None
+                or not isinstance(self.paste_buffer.buffer, list)
+                or len(self.paste_buffer.buffer) == 0
         ):
             TextLib.show_status_message("Clipboard empty - copy something first")
             return False
 
         paste_buffer_content = self.paste_buffer.buffer
 
+        # Pre-paste hooks
+        paste_context = {
+            "text": paste_buffer_content[0] if paste_buffer_content else "",
+            "mode": mode,
+            "line_number": current_line,
+            "filename": self.buffer_manager.filename,
+            "action": "pre_paste",
+            "operation": "clipboard",
+        }
+        paste_result = self.hook_utils.execute_pre_paste(paste_context)
+
+        # Apply pre-paste modifications if any
+        if paste_result and "text" in paste_result and len(paste_buffer_content) == 1:
+            paste_buffer_content = [paste_result["text"]]
+        elif paste_result and "lines" in paste_result and isinstance(paste_result["lines"], list):
+            paste_buffer_content = paste_result["lines"]
+
         # If clipboard has only one line, use single-line paste logic
         if len(paste_buffer_content) == 1:
-            paste_text = paste_buffer_content[0]
-
-            # Pre-paste hooks
-            paste_context = {
-                "text": paste_text,
-                "mode": mode,
-                "line_number": current_line,
-                "filename": self.buffer_manager.filename,
-                "action": "pre_paste",
-                "operation": "clipboard",
-            }
-            paste_result = self.hook_utils.execute_pre_paste(paste_context)
-
-            text_to_paste = paste_text
-            if paste_result and "text" in paste_result:
-                text_to_paste = paste_result["text"]
+            text_to_paste = paste_buffer_content[0]
 
             if mode == "insert":
                 # Use buffer manager's hook-integrated insert
                 inserted_text = self.buffer_manager.insert_line(current_line + 1, text_to_paste)
                 if inserted_text is not None:
-                    cmd: Union[
-                        InsertLineCommand, LineEditCommand, MultiPasteInsertCommand, MultiPasteOverwriteCommand
-                    ] = InsertLineCommand(current_line + 1, inserted_text)
+                    cmd = InsertLineCommand(current_line + 1, inserted_text)
                     self.push_undo_command(cmd)
+                    cmd.execute(self.buffer_manager)  # EXECUTE THE COMMAND
                     self.navigation_manager.set_current_line(current_line + 1, self.buffer_manager.get_line_count())
-                else:  # overwrite
-                    if current_line >= self.buffer_manager.get_line_count():
-                        self.buffer_manager.lines.append(text_to_paste)
-                    else:
-                        old_text = self.buffer_manager.get_line(current_line)
-                        # Use buffer manager's hook-integrated set_line
-                        new_text = self.buffer_manager.set_line(current_line, text_to_paste)
-                        if new_text != old_text:
-                            cmd = LineEditCommand(current_line, old_text, new_text)
-                            self.push_undo_command(cmd)
+            else:  # overwrite mode for single line
+                if current_line >= self.buffer_manager.get_line_count():
+                    # Append if beyond current buffer
+                    old_lines = self.buffer_manager.lines.copy()
+                    self.buffer_manager.lines.append(text_to_paste)
+                    # Create undo command for append operation
+                    cmd = MultiLineEditCommand(old_lines, self.buffer_manager.lines.copy())
+                    self.push_undo_command(cmd)
+                else:
+                    old_text = self.buffer_manager.get_line(current_line)
+                    # Use buffer manager's hook-integrated set_line
+                    new_text = self.buffer_manager.set_line(current_line, text_to_paste)
+                    if new_text != old_text:
+                        cmd = LineEditCommand(current_line, old_text, new_text)
+                        self.push_undo_command(cmd)
+                        cmd.execute(self.buffer_manager)  # EXECUTE THE COMMAND
 
-                # Post-paste hooks
-                post_paste_context = {
-                    "text": text_to_paste,
-                    "mode": mode,
-                    "line_number": current_line,
-                    "filename": self.buffer_manager.filename,
-                    "action": "post_paste",
-                    "operation": "clipboard",
-                }
-                self.hook_utils.execute_post_paste(post_paste_context)
-                TextLib.show_status_message("Pasting 1 line")
-                TextLib.clear_line()
-                TextLib.move_up(1)
+            # Post-paste hooks
+            post_paste_context = {
+                "text": text_to_paste,
+                "mode": mode,
+                "line_number": current_line,
+                "filename": self.buffer_manager.filename,
+                "action": "post_paste",
+                "operation": "clipboard",
+            }
+            self.hook_utils.execute_post_paste(post_paste_context)
+            TextLib.show_status_message("Pasting 1 line")
 
         else:
             # Multi-line paste - use atomic operations
@@ -519,34 +524,43 @@ class TextBuffer:
                 # Update navigation to the first pasted line
                 self.navigation_manager.set_current_line(current_line, self.buffer_manager.get_line_count())
                 TextLib.show_status_message(f"Pasting {len(paste_buffer_content)} lines")
-                TextLib.clear_line()
-                TextLib.move_up(1)
 
             else:  # overwrite mode
                 # Create changes list for atomic multi-line overwrite
                 changes = []
+                lines_to_append = []
+            
                 for i, line_text in enumerate(paste_buffer_content):
                     line_num = current_line + i
                     if line_num < self.buffer_manager.get_line_count():
                         old_text = self.buffer_manager.get_line(line_num)
                         changes.append((line_num, old_text, line_text))
                     else:
-                        # For lines beyond current buffer, we need to handle differently
-                        # For now, just append (this is a simplification)
-                        self.buffer_manager.lines.append(line_text)
+                        # For lines beyond current buffer, store for appending
+                        lines_to_append.append(line_text)
 
-                if changes:  # Only create command if we have changes to existing lines
+                # Handle overwrite of existing lines
+                if changes:
                     cmd = MultiPasteOverwriteCommand(changes)
                     self.push_undo_command(cmd)
-                    cmd.execute(self.buffer_manager)
+                    cmd.execute(self.buffer_manager)  # EXECUTE THE COMMAND
+
+                # Handle appending new lines
+                if lines_to_append:
+                    old_lines = self.buffer_manager.lines.copy()
+                    self.buffer_manager.lines.extend(lines_to_append)
+                    # Create undo command for append operation
+                    append_cmd = MultiLineEditCommand(old_lines, self.buffer_manager.lines.copy())
+                    self.push_undo_command(append_cmd)
 
                 TextLib.show_status_message(f"Overwriting with {len(paste_buffer_content)} lines")
-                TextLib.clear_line()
-                TextLib.move_up(1)
 
         self.buffer_manager.dirty = True
+        TextLib.clear_line()
+        TextLib.move_up(1)
+        self.display()  # Refresh display to show changes
         return True
-
+    
     def delete_selected_lines(self) -> bool:
         """Delete all lines in the current selection range as one atomic operation."""
         if not self.selection_manager.has_selection():
