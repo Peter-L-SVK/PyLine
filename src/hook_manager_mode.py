@@ -5,15 +5,13 @@
 # This is free software with NO WARRANTY.
 # ----------------------------------------------------------------
 
-import os
-
 from hook_ui import hook_ui
 import utils
 
 
 def handle_hook_manager() -> None:
     """Handle hook management interface"""
-    os.system("clear")
+    utils.clear_screen()
     utils.history_manager.set_context("hook_manager")
     choice = None
     while choice != "q":
@@ -24,7 +22,7 @@ def handle_hook_manager() -> None:
 
             if choice == "ls":
                 detailed = input("Show detailed info? (y/n): ").lower() == "y"
-                os.system("clear")
+                utils.clear_screen()
                 hook_ui.list_all_hooks(detailed=detailed)
                 utils.prompt_continue()
 
@@ -88,10 +86,10 @@ def handle_hook_manager() -> None:
                 utils.prompt_continue()
 
             elif choice == "cls":
-                os.system("clear")
+                utils.clear_screen()
 
             elif choice == "q":
-                os.system("clear")
+                utils.clear_screen()
                 print("Exited hook manager.\n")
                 break
 
@@ -100,11 +98,11 @@ def handle_hook_manager() -> None:
                 utils.prompt_continue()
 
         except EOFError:
-            os.system("clear")
+            utils.clear_screen()
             print("\nExited hook manager.\n")
             break
 
         except KeyboardInterrupt:
-            os.system("clear")
+            utils.clear_screen()
             print("\nExited hook manager.\n")
             break

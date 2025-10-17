@@ -14,7 +14,7 @@ import utils
 
 def handle_theme_manager() -> None:
     """Handle theme management interface"""
-    os.system("clear")
+    utils.clear_screen()
     theme_manager = ThemeManager()
     config_manager = ConfigManager()
     config_manager.refresh_available_themes()
@@ -25,7 +25,7 @@ def handle_theme_manager() -> None:
 
         try:
             choice = input("Theme Manager Command: ").lower().strip()
-            os.system("clear")
+            utils.clear_screen()
             if choice == "ls":
                 os
                 themes = theme_manager.list_themes()
@@ -105,10 +105,10 @@ def handle_theme_manager() -> None:
                 utils.prompt_continue()
 
             elif choice == "cls":
-                os.system("clear")
+                utils.clear_screen()
 
             elif choice == "q":
-                os.system("clear")
+                utils.clear_screen()
                 print("Exited theme manager.\n")
                 break
 
@@ -117,11 +117,11 @@ def handle_theme_manager() -> None:
                 utils.prompt_continue()
 
         except EOFError:
-            os.system("clear")
+            utils.clear_screen()
             print("\nExited theme manager.\n")
             break
 
         except KeyboardInterrupt:
-            os.system("clear")
+            utils.clear_screen()
             print("\nExited theme manager.\n")
             break
