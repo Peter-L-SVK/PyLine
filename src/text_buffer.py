@@ -446,9 +446,9 @@ class TextBuffer:
 
         # Check if buffer exists and has content
         if (
-                self.paste_buffer.buffer is None
-                or not isinstance(self.paste_buffer.buffer, list)
-                or len(self.paste_buffer.buffer) == 0
+            self.paste_buffer.buffer is None
+            or not isinstance(self.paste_buffer.buffer, list)
+            or len(self.paste_buffer.buffer) == 0
         ):
             TextLib.show_status_message("Clipboard empty - copy something first")
             return False
@@ -482,7 +482,7 @@ class TextBuffer:
                 if inserted_text is not None:
                     cmd = InsertLineCommand(current_line + 1, inserted_text)
                     self.push_undo_command(cmd)
-                    cmd.execute(self.buffer_manager)  # EXECUTE THE COMMAND
+                    cmd.execute(self.buffer_manager)
                     self.navigation_manager.set_current_line(current_line + 1, self.buffer_manager.get_line_count())
             else:  # overwrite mode for single line
                 if current_line >= self.buffer_manager.get_line_count():
@@ -499,19 +499,7 @@ class TextBuffer:
                     if new_text != old_text:
                         cmd = LineEditCommand(current_line, old_text, new_text)
                         self.push_undo_command(cmd)
-                        cmd.execute(self.buffer_manager)  # EXECUTE THE COMMAND
-
-            # Post-paste hooks
-            post_paste_context = {
-                "text": text_to_paste,
-                "mode": mode,
-                "line_number": current_line,
-                "filename": self.buffer_manager.filename,
-                "action": "post_paste",
-                "operation": "clipboard",
-            }
-            self.hook_utils.execute_post_paste(post_paste_context)
-            TextLib.show_status_message("Pasting 1 line")
+                        cmd.execute(self.buffer_manager)
 
         else:
             # Multi-line paste - use atomic operations
@@ -520,16 +508,11 @@ class TextBuffer:
                 cmd = MultiPasteInsertCommand(current_line, paste_buffer_content)
                 self.push_undo_command(cmd)
                 cmd.execute(self.buffer_manager)
-
-                # Update navigation to the first pasted line
-                self.navigation_manager.set_current_line(current_line, self.buffer_manager.get_line_count())
-                TextLib.show_status_message(f"Pasting {len(paste_buffer_content)} lines")
-
             else:  # overwrite mode
                 # Create changes list for atomic multi-line overwrite
                 changes = []
                 lines_to_append = []
-            
+
                 for i, line_text in enumerate(paste_buffer_content):
                     line_num = current_line + i
                     if line_num < self.buffer_manager.get_line_count():
@@ -543,7 +526,7 @@ class TextBuffer:
                 if changes:
                     cmd = MultiPasteOverwriteCommand(changes)
                     self.push_undo_command(cmd)
-                    cmd.execute(self.buffer_manager)  # EXECUTE THE COMMAND
+                    cmd.execute(self.buffer_manager)
 
                 # Handle appending new lines
                 if lines_to_append:
@@ -560,7 +543,7 @@ class TextBuffer:
         TextLib.move_up(1)
         self.display()  # Refresh display to show changes
         return True
-    
+
     def delete_selected_lines(self) -> bool:
         """Delete all lines in the current selection range as one atomic operation."""
         if not self.selection_manager.has_selection():
