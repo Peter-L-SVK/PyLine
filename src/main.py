@@ -51,7 +51,7 @@ def main() -> NoReturn:
     # Initialize configuration and themes
     src_path = config_manager.get_path("source_path")
     config_manager.validate_themes()
-    os.system("clear")
+    utils.clear_screen()
     # Initialize directory system
     original_dir = dirops.currentdir()
     dirops.original_path(original_dir)
@@ -318,7 +318,7 @@ def handle_truncate_file(buffer: Any) -> None:
 
 
 def handle_hook_status() -> None:
-    os.system("clear")
+    utils.clear_screen()
     print("Current Hook Status:")
     print("=" * 50)
 

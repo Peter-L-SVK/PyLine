@@ -6,7 +6,6 @@
 # ----------------------------------------------------------------
 
 import json
-import os
 import sys
 import readline
 
@@ -490,14 +489,14 @@ class TextBuffer:
                     old_lines = self.buffer_manager.lines.copy()
                     self.buffer_manager.lines.append(text_to_paste)
                     # Create undo command for append operation
-                    cmd = MultiLineEditCommand(old_lines, self.buffer_manager.lines.copy())
+                    cmd = MultiLineEditCommand(old_lines, self.buffer_manager.lines.copy())  # type: ignore
                     self.push_undo_command(cmd)
                 else:
                     old_text = self.buffer_manager.get_line(current_line)
                     # Use buffer manager's hook-integrated set_line
                     new_text = self.buffer_manager.set_line(current_line, text_to_paste)
                     if new_text != old_text:
-                        cmd = LineEditCommand(current_line, old_text, new_text)
+                        cmd = LineEditCommand(current_line, old_text, new_text)  # type: ignore
                         self.push_undo_command(cmd)
                         cmd.execute(self.buffer_manager)
 
@@ -505,7 +504,7 @@ class TextBuffer:
             # Multi-line paste - use atomic operations
             if mode == "insert":
                 # Create atomic multi-line insert command
-                cmd = MultiPasteInsertCommand(current_line, paste_buffer_content)
+                cmd = MultiPasteInsertCommand(current_line, paste_buffer_content)  # type: ignore
                 self.push_undo_command(cmd)
                 cmd.execute(self.buffer_manager)
             else:  # overwrite mode
@@ -524,7 +523,7 @@ class TextBuffer:
 
                 # Handle overwrite of existing lines
                 if changes:
-                    cmd = MultiPasteOverwriteCommand(changes)
+                    cmd = MultiPasteOverwriteCommand(changes)  # type: ignore
                     self.push_undo_command(cmd)
                     cmd.execute(self.buffer_manager)
 
@@ -688,59 +687,60 @@ class TextBuffer:
 
         # For search mode, we need to handle direct output from hooks
         if replace is None:
-            # Clear screen and show search header
-            os.system("clear")
-
-            # Use a new variable for the boolean-like result
+            utils.clear_screen()
             display_handled = self.hook_utils.execute_and_display("event_handlers", "search_replace", context)
-
             if display_handled:
-                # Hook handled display directly - wait for key press
                 utils.prompt_continue_woc()
             else:
-                # Fallback: if no hook handled it
                 TextLib.show_status_message(f"No matches found for: {search}")
                 utils.prompt_continue_woc()
-
         else:
             # Replace mode - process JSON result
-            # Use a separate variable for the dictionary-like result
             hook_response = self.hook_manager.execute_hooks("event_handlers", "search_replace", context)
 
-            if hook_response is not None and isinstance(hook_response, dict) and hook_response.get("success"):
-                # LanguageHookExecutor returns a wrapper - extract the actual JSON from output
-                try:
-                    hook_result = json.loads(hook_response["output"])
+            # Process the hook response - handle both direct results and LanguageHookExecutor wrappers
+            hook_result = None
 
-                    if isinstance(hook_result, dict) and hook_result.get("handled_output") == 1:
-                        # Replace mode: update buffer permanently
-                        if "content" in hook_result:
-                            old_lines = self.buffer_manager.lines.copy()
-                            self.buffer_manager.lines = hook_result["content"]
-                            self.buffer_manager.dirty = True
+            if hook_response is not None:
+                # Check if it's a LanguageHookExecutor wrapper
+                if isinstance(hook_response, dict) and hook_response.get("success") and "output" in hook_response:
+                    try:
+                        # LanguageHookExecutor wraps the actual JSON in "output"
+                        hook_result = json.loads(hook_response["output"])
+                    except (json.JSONDecodeError, KeyError):
+                        hook_result = None
+                else:
+                    # Direct result from hook (Python hooks or already parsed)
+                    hook_result = hook_response
 
-                            # Undo support
-                            try:
-                                cmd = MultiLineEditCommand(old_lines, hook_result["content"])
-                                self.push_undo_command(cmd)
-                            except ImportError:
-                                pass
+            # Process the actual hook result
+            if hook_result and isinstance(hook_result, dict) and hook_result.get("handled_output") == 1:
+                # Replace mode: update buffer permanently
+                if "content" in hook_result:
+                    old_lines = self.buffer_manager.lines.copy()
+                    self.buffer_manager.lines = hook_result["content"]
+                    self.buffer_manager.dirty = True
 
-                        # Show message
-                        if "message" in hook_result:
-                            TextLib.show_status_message(hook_result["message"])
-                        self.display()
-                        utils.prompt_continue_woc()
-                        return
+                    # Undo support
+                    cmd = MultiLineEditCommand(old_lines, hook_result["content"])
+                    self.push_undo_command(cmd)
 
-                except (json.JSONDecodeError, KeyError) as e:
-                    print(f"DEBUG: Error parsing hook result: {e}")
+                    # Show message
+                    if "message" in hook_result:
+                        TextLib.show_status_message(hook_result["message"])
+                    else:
+                        matches = hook_result.get("matches", 0)
+                        replaced = hook_result.get("replaced", 0)
+                        TextLib.show_status_message(f"Replaced {replaced} out of {matches} matches")
 
-            # Fallback for replace mode
-            TextLib.show_status_message(f"Replace operation completed for: {search}")
-            self.display()
-            utils.prompt_continue_woc()
-            self.display()
+                    self.display()
+                    utils.prompt_continue_woc()
+                    return
+
+                # Fallback for replace mode if no valid result
+                TextLib.show_status_message(f"Replace operation completed for: {search}")
+                self.display()
+                utils.prompt_continue_woc()
 
     def check_grammar(self) -> None:
         """Manually trigger grammar check on current buffer"""
@@ -775,7 +775,7 @@ class TextBuffer:
             output = result.get("output", "")
             if output:
                 # Clear screen and show grammar results
-                os.system("clear")
+                utils.clear_screen()
                 print(output)
                 utils.prompt_continue_woc()
                 self.display()  # Refresh editor display

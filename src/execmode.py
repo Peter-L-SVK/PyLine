@@ -11,11 +11,11 @@ import os
 # Local application imports
 from config import config_manager
 import dirops
-from utils import prompt_continue, exec_menu, history_manager, smart_input
+from utils import clear_screen, exec_menu, history_manager, prompt_continue, smart_input
 
 
 def execmode(original_destination: str) -> str:
-    os.system("clear")
+    clear_screen()
     history_manager.set_context("exec")
     choice_exec = None
     while choice_exec != "q":
@@ -25,7 +25,7 @@ def execmode(original_destination: str) -> str:
         try:
             choice_exec = smart_input("Your choice: ").lower()
             if choice_exec == "af":
-                os.system("clear")
+                clear_screen()
                 dirops.contentdir()
             elif choice_exec == "cwd":
                 while True:
@@ -33,7 +33,7 @@ def execmode(original_destination: str) -> str:
                         new_dir = input("Enter the new directory path (or 0 to default path): ")
                         if new_dir == "0":
                             original_path = config_manager.get_path("default_path")
-                            os.system("clear")
+                            clear_screen()
                             current_dir = dirops.cd(original_path)
                             break
                         else:
@@ -49,7 +49,7 @@ def execmode(original_destination: str) -> str:
                             break
 
                     except EOFError:
-                        os.system("clear")
+                        clear_screen()
                         break
 
             elif choice_exec == "cdp":
@@ -86,7 +86,7 @@ def execmode(original_destination: str) -> str:
                                 break
 
                             except EOFError:
-                                os.system("clear")
+                                clear_screen()
                                 break
 
                     elif answer == "n":
@@ -118,7 +118,7 @@ def execmode(original_destination: str) -> str:
                                 break
 
                             except EOFError:
-                                os.system("clear")
+                                clear_screen()
                                 break
 
                     elif answer == "n":
@@ -150,7 +150,7 @@ def execmode(original_destination: str) -> str:
                                 break
 
                             except EOFError:
-                                os.system("clear")
+                                clear_screen()
                                 break
 
                     elif answer == "n":
@@ -188,22 +188,22 @@ def execmode(original_destination: str) -> str:
                                     continue
 
                             except EOFError:
-                                os.system("clear")
+                                clear_screen()
                                 break
 
             elif choice_exec == "cls":
-                os.system("clear")
+                clear_screen()
             elif choice_exec == "q":
-                os.system("clear")
+                clear_screen()
                 print("Returned from exec mode.\n")
                 return current_dir
 
             else:
-                os.system("clear")
+                clear_screen()
                 print("Only choices from the menu!\n")
 
         except Exception:
-            os.system("clear")
+            clear_screen()
             print("Returned from exec mode.\n")
             return current_dir
 

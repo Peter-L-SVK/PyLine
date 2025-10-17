@@ -150,6 +150,30 @@ class LanguageHookExecutor:
 # =============================================================================
 
 
+def clear_screen() -> None:
+    """Clear screen using system clear command"""
+    shell_system("clear")
+
+
+def get_shell_command() -> str:
+    """Get the appropriate shell command, preferring bash"""
+    # Check if we're on a system where /bin/sh might be dash
+    if os.path.exists("/bin/bash"):
+        return "/bin/bash"
+    # Fallback to sh if bash isn't available (unlikely on modern systems)
+    return "/bin/sh"
+
+
+def shell_system(cmd: str) -> int:
+    """Execute shell command with appropriate shell"""
+    shell = get_shell_command()
+    if shell.endswith("bash") and not cmd.startswith("bash"):
+        # Use bash explicitly for commands that need bash features
+        return os.system(f'{shell} -c "{cmd}"')
+    else:
+        return os.system(cmd)
+
+
 def smart_input(prompt: str = "") -> str:
     """Enhanced input that works with our history manager"""
     try:
@@ -162,13 +186,18 @@ def smart_input(prompt: str = "") -> str:
 
 def prompt_continue_woc() -> None:
     """Prompt to continue without clearing screen"""
-    os.system('read -p "Press enter to continue..."')
+    if sys.stdout.isatty():
+        # We're in a real terminal, use bash prompt
+        os.system('/bin/bash -c "read -p \\"Press enter to continue...\\" "')
+    else:
+        # We're in a pipe or redirect, use Python
+        input("Press enter to continue...")
 
 
 def prompt_continue() -> None:
     """Prompt to continue and clear screen"""
-    os.system('read -p "Press enter to continue..."')
-    os.system("clear")
+    prompt_continue_woc()
+    clear_screen()
 
 
 # =============================================================================

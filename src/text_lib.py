@@ -16,6 +16,7 @@ import readline
 
 from typing import Any, List, Optional
 from theme_manager import theme_manager
+import utils
 
 
 class TextLib:
@@ -94,7 +95,7 @@ class TextLib:
         is_python: bool,
     ) -> None:
         """Display the buffer contents with UTF-8 support"""
-        os.system("clear")
+        utils.clear_screen()
 
         # Get colors from theme manager
         RESET = theme_manager.get_color("reset")
