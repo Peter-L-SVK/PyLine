@@ -28,14 +28,14 @@ chmod +x install.sh
 ### Manual Installation
 ```bash
 # Create the hook directory
-mkdir -p ~/.pyline/hooks/editing_ops/search_replace/
+mkdir -p ~/.pyline/hooks/editing_ops/process_content/
 
 # Copy the hook files
-cp grammar_checker__70.py ~/.pyline/hooks/editing_ops/search_replace/
-cp grammar_config.json ~/.pyline/hooks/editing_ops/search_replace/
+cp grammar_checker__70.py ~/.pyline/hooks/editing_ops/process_content/
+cp grammar_config.json ~/.pyline/hooks/editing_ops/process_content/
 
 # Set execute permissions
-chmod +x ~/.pyline/hooks/editing_ops/search_replace/grammar_checker__70.py
+chmod +x ~/.pyline/hooks/editing_ops/process_content/grammar_checker__70.py
 ```
 
 ## Dependencies
@@ -224,8 +224,8 @@ Adjust thresholds in `writing_style_rules`:
 
 ```bash
 # Remove hook files
-rm ~/.pyline/hooks/editing_ops/search_replace/grammar_checker__70.py
-rm ~/.pyline/hooks/editing_ops/search_replace/grammar_config.json
+rm ~/.pyline/hooks/editing_ops/process_content/grammar_checker__70.py
+rm ~/.pyline/hooks/editing_ops/process_content/grammar_config.json
 ```
 
 ## License

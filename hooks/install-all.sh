@@ -22,12 +22,12 @@ declare -A hooks=(
     ["json_highlight"]="syntax_handlers/highlight json_highlight__60.py highlighters"
     ["shell_highlight"]="syntax_handlers/highlight shell_highlight__70.py highlighters"
     ["search_replace"]="event_handlers/search_replace search_replace__75.pl search_replace"
-    ["grammar_checker"]="editing_ops/search_replace grammar_checker__70.py AI-grammar-check"
+    ["grammar_checker"]="editing_ops/process_content grammar_checker__70.py AI-grammar-check"
 )
 
 # Additional config files to install (non-executable)
 declare -A config_files=(
-    ["grammar_config"]="editing_ops/search_replace grammar_config.json AI-grammar-check"
+    ["grammar_config"]="editing_ops/process_content grammar_config.json AI-grammar-check"
 )
 
 # Base directories

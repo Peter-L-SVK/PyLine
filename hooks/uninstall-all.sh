@@ -24,12 +24,12 @@ declare -A hooks=(
     ["json_highlight"]="syntax_handlers/highlight json_highlight__60.py"
     ["shell_highlight"]="syntax_handlers/highlight shell_highlight__70.py"
     ["search_replace"]="event_handlers/search_replace search_replace__75.pl"
-    ["grammar_checker"]="editing_ops/search_replace grammar_checker__70.py"
+    ["grammar_checker"]="editing_ops/process_content grammar_checker__70.py"
 )
 
 # Config files to remove
 declare -A config_files=(
-    ["grammar_config"]="editing_ops/search_replace grammar_config.json"
+    ["grammar_config"]="editing_ops/process_content grammar_config.json"
 )
 
 print_status() {
