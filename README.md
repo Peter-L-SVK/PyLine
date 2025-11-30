@@ -1,5 +1,7 @@
 # PyLine - Lightweight Terminal Text Editor
 
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/leukanic.peter) - If wish to support me for future updates with some spare change
+
 ![PyLine Demo](scrshots/demo.png) 
 
 PyLine is a minimalist command-line text editor designed for Linux/BSD systems, written in Python 3 with use of systems calls. Originally created in 2018 and modernized after long pause in 2025, it combines improved text management with a simple, line-by-line workflow. 
