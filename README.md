@@ -1,6 +1,6 @@
 # PyLine - Lightweight Terminal Text Editor
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/leukanic.peter) - If wish to support me for future updates with some spare change
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/leukanic.peter) - If you wish to support me for future updates with some spare change
 
 ![PyLine Demo](scrshots/demo.png) 
 
