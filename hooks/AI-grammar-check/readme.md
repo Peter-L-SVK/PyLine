@@ -2,31 +2,25 @@
 
 ## Overview
 
-An AI-enhanced grammar checking hook for PyLine that uses advanced natural language processing with LanguageTool, pandas, and numpy for intelligent grammar and style suggestions.
+A statistical AI-assisted grammar and spell checking hook for PyLine that leverages the built-in NLP models in LanguageTool and statistical algorithms in pyspellchecker for accurate grammar and spelling detection.
 
 ## Features
 
-- **AI-Enhanced Grammar Checking**: Uses LanguageTool with custom rule enhancements
-- **Intelligent Pattern Recognition**: Advanced regex patterns for common grammar errors
-- **Statistical Analysis**: Uses pandas/numpy for text statistics and readability scoring
-- **Context-Aware Suggestions**: Analyzes context to reduce false positives
-- **Writing Style Analysis**: Provides feedback on sentence structure, vocabulary, and readability
-- **Configurable Rules**: JSON-based configuration for easy customization
-- **Line Number Tracking**: Shows exact line numbers for each issue detected
+- **Professional Grammar Checking**: Uses LanguageTool's built-in AI/statistical models for comprehensive grammar, style, and confused word detection
+- **Multi-Layer Spell Checking**: LanguageTool + pyspellchecker for thorough spell checking with no duplicates
+- **Readability Statistics**: Flesch Reading Ease, Flesch-Kincaid Grade Level, Gunning Fog Index via textstat
+- **Line Number Tracking**: Shows exact line numbers and highlighted context for each issue
+- **Configurable Rules**: JSON-based configuration for disabled rules, technical vocabulary, and output preferences
+- **Technical Content Filtering**: Automatically skips code blocks, markdown headers, and technical content
+- **Zero False Positives on Technical Terms**: Custom vocabulary support for programming terms, abbreviations, and technical jargon
 
 ## Installation
 
-### Quick Install (Recommended)
+### Quick Install
 ```bash
-# Make the install script executable
-chmod +x install.sh
+# Install dependencies
+pip install language-tool-python pyspellchecker textstat
 
-# Run the installer
-./install.sh
-```
-
-### Manual Installation
-```bash
 # Create the hook directory
 mkdir -p ~/.pyline/hooks/editing_ops/process_content/
 
@@ -42,188 +36,217 @@ chmod +x ~/.pyline/hooks/editing_ops/process_content/grammar_checker__70.py
 
 ### Required Python Packages
 ```bash
-pip install language-tool-python pandas numpy
+pip install language-tool-python pyspellchecker textstat
 ```
 
-### Optional Dependencies
-- **LanguageTool**: Local server for faster processing (optional)
-- **Java**: Required for local LanguageTool server
+| Package | Purpose | License |
+|---------|---------|---------|
+| **language-tool-python** | Primary grammar + spelling checker with built-in AI/statistical models | LGPL 2.1+ |
+| **pyspellchecker** | Secondary spell checker using edit distance and word frequency algorithms | MIT |
+| **textstat** | Readability statistics using established statistical formulas | MIT |
 
 ## Usage
 
-The hook automatically integrates with PyLine's content processing. No additional commands required!
-
-1. Open PyLine with any text file
-2. The grammar checker runs automatically on content display
-3. Review grammar suggestions and statistics in the output
+The hook automatically integrates with PyLine's content processing. Press `g` in the editor to run grammar check on the current file.
 
 ## Output Example
 
 ```
 ============================================================
-PYLINE GRAMMAR CHECKER - AI ENHANCED
+PYLINE GRAMMAR & SPELL CHECKER
 ============================================================
 
 📊 TEXT STATISTICS:
-  Words: 46
-  Sentences: 9
-  Avg. Sentence Length: 5.11 words
-  Vocabulary Diversity: 28.3%
-  Readability Score: 95.0/100
+  Words: 227
+  Sentences: 17
+  Avg. Sentence Length: 13.4 words
+  Readability (Flesch): 64.0/100
+  Grade Level: 7.7
 
-🔍 GRAMMAR & STYLE ISSUES:
-  MEDIUM:
-⚠️ Line 6: Possible error: Missing 'is' in greeting phrases like 'Hello this' (62% confidence)
-      💡 Suggestion: Hello, is this some text, that I am typing?
-⚠️ Line 10: Possible error: Missing 'is' in greeting phrases like 'Hello this' (64% confidence)
-      💡 Suggestion: Hello this is some text, that I am typing
+🔍 ISSUES FOUND: 13 total (6 grammar + 7 spelling)
 
-  LOW:
-💡 Line 1: Short sentences (avg: 5.11 words) can feel choppy (49% confidence)
-      💡 Suggestion: Vary sentence length for better flow
+📝 GRAMMAR ISSUES:
+  Line 2: Did you mean "there"?
+    📍 "...World of Berry Fruits **Their** are many different types of berry..."
+    💡 There
+  Line 2: Use "an" instead of 'a'
+    📍 "...true berry but a aggregate fruit. **Its** interesting to learn..."
+    💡 an
+  Line 4: Did you mean "your"?
+    📍 "...very good for **you're** health. They contain many antioxidants..."
+    💡 your
+  Line 5: Comparison requires "than", not 'then'
+    📍 "...taste of fresh, ripe berrys more **then** anything else..."
+    💡 than
+
+🔤 SPELLING ISSUES:
+  Line 2: Spelling: 'bery' → 'very'
+    📍 "...My favorite type of **bery** is the strawberry, which are actually..."
+    💡 very
+  Line 2: Spelling: 'berrys' → 'berries'
+    📍 "...to learn about how **berrys** grow and their nutritional benefits..."
+    💡 berries
 
 📝 WRITING TIPS:
-  • Try varying your vocabulary for more engaging writing
-
-💡 Tip: Run this check after writing to catch common errors.
+  • Average sentence length (13.4) is short. Consider combining some sentences.
 ============================================================
 ```
 
 ## Configuration
 
-### Customizing Grammar Rules
-Edit `grammar_config.json` to modify:
+### Customizing via `grammar_config.json`
 
-- **Common Error Patterns**: Add new grammar rules
-- **Confidence Levels**: Adjust detection sensitivity
-- **Writing Style Rules**: Change readability thresholds
-- **Output Settings**: Customize display preferences
-
-### Example Configuration Snippet
 ```json
 {
-  "common_errors": {
-    "their_there_theyre": [
-      {
-        "pattern": "\\btheir\\b",
-        "suggestion": "they're",
-        "explanation": "their (possessive) vs they're (they are)",
-        "confidence": 0.7
-      }
+  "language_tool": {
+    "disabled_rules": [
+      "EN_QUOTES",
+      "COMMA_PARENTHESIS_WHITESPACE",
+      "WHITESPACE_RULE",
+      "EN_UNPAIRED_BRACKETS",
+      "UPPERCASE_SENTENCE_START"
+    ],
+    "language": "en-US"
+  },
+  
+  "content_filters": {
+    "exclude_lines_matching": [
+      "^#", "^##", "^###",
+      "^```", "^    ", "^\\t",
+      "^//", "^<!--",
+      "\\[IMPLEMENTED\\]",
+      "^\\s*$"
     ]
   },
-  "writing_style_rules": {
-    "sentence_length": {
-      "too_long_threshold": 25,
-      "too_short_threshold": 8
-    }
+  
+  "technical_vocabulary": [
+    "PyLine", "JSON", "XML", "HTML", "API", "CLI", "GUI",
+    "Python", "JavaScript", "Java", "C++", "regex", "config"
+  ],
+  
+  "spellcheck": {
+    "enabled": true,
+    "max_suggestions": 5,
+    "distance": 2,
+    "ignore_patterns": [
+      "^[A-Z]{2,}$",
+      "^[A-Z][a-z]+[A-Z]\\w*$",
+      "^\\d+$"
+    ]
+  },
+  
+  "output_settings": {
+    "max_issues": 30,
+    "show_statistics": true,
+    "show_readability": true,
+    "show_spelling": true,
+    "show_writing_tips": true
+  },
+  
+  "writing_tips": {
+    "readability_threshold": 60,
+    "sentence_length_ideal": [15, 20]
   }
 }
 ```
 
-## Supported Grammar Checks
+### Configuration Options
 
-### Common Errors
-- **Their/There/They're** confusion
-- **Your/You're** misuse
-- **Its/It's** confusion
-- **Then/Than** errors
-- Missing copula verbs
+| Section | Key | Description |
+|---------|-----|-------------|
+| `language_tool` | `disabled_rules` | LanguageTool rules to skip |
+| `language_tool` | `language` | Language code (e.g., "en-US") |
+| `content_filters` | `exclude_lines_matching` | Regex patterns for lines to skip |
+| `technical_vocabulary` | - | Words to ignore in spell checking |
+| `spellcheck` | `enabled` | Enable/disable pyspellchecker |
+| `spellcheck` | `max_suggestions` | Number of spelling suggestions |
+| `spellcheck` | `distance` | Edit distance for spell checking (1-3) |
+| `output_settings` | `max_issues` | Maximum issues to display |
+| `output_settings` | `show_statistics` | Show word/sentence counts |
+| `output_settings` | `show_readability` | Show readability scores |
+| `output_settings` | `show_spelling` | Show spelling issues |
+| `output_settings` | `show_writing_tips` | Show writing improvement tips |
+| `writing_tips` | `readability_threshold` | Score below which to suggest improvements |
+| `writing_tips` | `sentence_length_ideal` | Ideal sentence length range [min, max] |
+
+## Supported Checks
+
+### Grammar & Style (via LanguageTool's AI/statistical models)
+- Article usage (a/an/the)
+- Confused words (their/there/they're, your/you're, its/it's, then/than, etc.)
 - Subject-verb agreement
-- Question structure issues
-- Sentence ending punctuation
+- Punctuation errors
+- Redundant phrases
+- Style suggestions
+- And hundreds more built-in rules
 
-### Writing Style Analysis
-- Sentence length optimization
-- Vocabulary diversity scoring
-- Readability assessment (Flesch Reading Ease)
-- Passive voice detection
-- Repetition analysis
+### Spelling
+- **Primary**: LanguageTool's MORFOLOGIK rule
+- **Secondary**: pyspellchecker's edit distance and word frequency algorithms
+- **Automatic deduplication** between checkers
+
+### Readability (via textstat's statistical formulas)
+- Flesch Reading Ease
+- Flesch-Kincaid Grade Level
+- Gunning Fog Index
+- Difficult word count
+- Average sentence length
 
 ## Technical Details
 
-**Hook Type**: `editing_ops/search_replace`  
-**Priority**: 70 (balanced priority for grammar checking)  
-**Language**: Python 3.6+  
-**AI Components**: LanguageTool, pandas, numpy  
-
-## License and Attribution
-
-This hook is licensed under **GNU GPL v3+**, compatible with PyLine's license.
-
-### Third-Party Components
-
-| Component | License | Notes |
-|-----------|---------|-------|
-| **LanguageTool** | LGPL 2.1+ | Grammar checking engine |
-| **LanguageTool Dictionaries** | Mixed (GPL, BSD, etc.) | Language data files may have various open-source licenses |
-| **NumPy** | BSD 3-Clause | Numerical computing library |
-| **pandas** | BSD 3-Clause | Data analysis library |
-
-**Important**: While LanguageTool's code is under LGPL, some of its language dictionaries (data files) may be under different licenses like GPL or BSD. When using this hook, you are also subject to the license terms of these dictionary files.
+**Hook Type**: `editing_ops/process_content`  
+**Priority**: 75  
+**Language**: Python 3.8+  
+**Modules**: language-tool-python, pyspellchecker, textstat
 
 ### How It Works
 
-1. **Text Analysis**: Uses pandas/numpy for statistical text analysis
-2. **Grammar Checking**: Integrates LanguageTool for comprehensive grammar checking
-3. **Pattern Matching**: Applies custom regex patterns for common errors
-4. **Context Analysis**: Uses context to improve suggestion accuracy
-5. **Confidence Scoring**: AI-powered confidence levels for each suggestion
+1. **Content Filtering**: Technical content (code, headers, comments) is filtered out
+2. **Grammar Checking**: LanguageTool analyzes text using its built-in statistical NLP models and rule-based engine
+3. **Spell Checking**: pyspellchecker uses edit distance algorithms and word frequency analysis for additional coverage
+4. **Deduplication**: Words flagged by LanguageTool are skipped by pyspellchecker to avoid duplicates
+5. **Readability Analysis**: textstat calculates established readability formulas
+6. **Output Formatting**: Issues are sorted by line number with highlighted context
 
 ## Performance
 
-- **Initial Load**: May take 2-3 seconds to load LanguageTool
-- **Subsequent Checks**: Fast processing with cached analysis
-- **Memory Usage**: Moderate (LanguageTool Java process)
-- **CPU**: Low during normal operation
+- **First Run**: 2-3 seconds to download LanguageTool data (one-time)
+- **Subsequent Runs**: Fast processing
+- **Memory**: ~50MB (LanguageTool)
+- **No Java Required**: Uses LanguageTool's Python server
 
 ## Troubleshooting
 
-### LanguageTool Not Loading?
+### Missing Dependencies
 ```bash
-# Install language-tool-python
-pip install language-tool-python
-
-# Test installation
-python -c "import language_tool_python; print('OK')"
+pip install language-tool-python pyspellchecker textstat
 ```
 
-### Pandas/Numpy Issues?
+### LanguageTool First-Run Download
 ```bash
-# Install data science packages
-pip install pandas numpy
-
-# Test installation
-python -c "import pandas, numpy; print('OK')"
+# First run downloads language data (~200MB)
+python -c "import language_tool_python; language_tool_python.LanguageTool('en-US')"
 ```
 
-### Hook Not Working?
+### Config File Issues
 ```bash
-# Check file permissions
-chmod +x ~/.pyline/hooks/editing_ops/search_replace/grammar_checker__70.py
+# Validate JSON config
+python -c "import json; json.load(open('grammar_config.json')); print('Valid JSON')"
+```
 
+### Hook Not Running
+```bash
 # Test the hook directly
+cd ~/.pyline/hooks/editing_ops/process_content/
 python grammar_checker__70.py
+
+# Check permissions
+chmod +x grammar_checker__70.py
 ```
-
-## Customization
-
-### Adding New Grammar Rules
-1. Edit `grammar_config.json`
-2. Add patterns to `common_errors` section
-3. Define pattern, suggestion, and confidence level
-4. Restart PyLine to apply changes
-
-### Modifying Writing Style Preferences
-Adjust thresholds in `writing_style_rules`:
-- `sentence_length`: Ideal sentence length ranges
-- `readability`: Score thresholds for different levels
-- `vocabulary`: Diversity and richness targets
 
 ## Uninstallation
 
 ```bash
-# Remove hook files
 rm ~/.pyline/hooks/editing_ops/process_content/grammar_checker__70.py
 rm ~/.pyline/hooks/editing_ops/process_content/grammar_config.json
 ```
@@ -232,13 +255,20 @@ rm ~/.pyline/hooks/editing_ops/process_content/grammar_config.json
 
 GNU GPL v3+ - See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) for details.
 
+### Third-Party Components
+
+| Component | License | Usage |
+|-----------|---------|-------|
+| **LanguageTool** | LGPL 2.1+ | Grammar checking engine with built-in AI/statistical models |
+| **pyspellchecker** | MIT | Secondary spell checker (edit distance + frequency analysis) |
+| **textstat** | MIT | Readability analysis (established statistical formulas) |
+
 ## Compatibility
 
-- **Python**: 3.6+
-- **PyLine**: Version 1.1.0
-- **Systems**: Cross-platform (WSL, Linux, macOS)
-- **Dependencies**: language-tool-python, pandas, numpy
+- **Python**: 3.8+
+- **PyLine**: Version 1.1.0+
+- **Systems**: Cross-platform (Linux, BSD, macOS, WSL)
 
 ---
 
-*Enhance your writing with AI-powered grammar checking directly in PyLine!*
+*Professional grammar checking for PyLine - simple, universal, configurable.*

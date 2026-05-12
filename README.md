@@ -1,6 +1,10 @@
 # PyLine - Lightweight Terminal Text Editor
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/leukanic.peter) - If you wish to support me for future updates with some spare change
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) 
+[![Top Language](https://img.shields.io/github/languages/top/Peter-L-SVK/Pyline)](https://github.com/Peter-L-SVK/PyLine)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/Peter-L-SVK/PyLine)](https://github.com/Peter-L-SVK/PyLine/releases/latest)
+[![GitHub last commit](https://img.shields.io/github/last-commit/Peter-L-SVK/PyLine)](https://github.com/Peter-L-SVK/PyLine/commits/main)
+<a href="https://buymeacoffee.com/leukanic.peter"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" height="20px"></a>
 
 ![PyLine Demo](scrshots/demo.png) 
 
@@ -186,16 +190,97 @@ To unninstall the program:
 ```bash
 ./install.sh -u
 ```
+
+### Editor Menu
+
+|Command|Action|
+|---|---|
+|`1`|Edit existing file|
+|`2`|Create new file|
+|`3`|Truncate existing or create new file|
+|`cls`|Clear screen|
+|`cw`|Count words in the file|
+|`hm`|Hook manager|
+|`hs`|Hook status|
+|`tm`|Theme manager|
+|`x`|Enter file management mode (exec mode)|
+|`i`|Info|
+|`q`|Exit program|
+|`Ctrl+D`|Escape from function|
+|`Ctrl+C`|Interupt the program|
+
+### Hook Management Commands
+
+| Command | Action |
+|---|---|
+| `hm` | Enter hook manager interface |
+| `ls` | List all available hooks |
+| `info` | Show detailed hook information |
+| `enable` | Enable a specific hook |
+| `disable` | Disable a specific hook |
+| `reload` | Reload hook system from filesystem |
+
+### Editor Controls
+
+|Command|Action|
+|---|---|
+|`↑`/`↓`|Navigate between lines / Scroll by lines|
+|`PgUp` / `PgDn`|Scroll by 52 lines buffer|
+|`Ctrl+B` / `F`|Undo/Redo|
+|`Ctrl+D` / `End`|Jump to end of the file|
+|`Ctrl+Alt+f`|Search for text|
+|`Ctrl+Alt+r`|Search and replace|
+|`c`|Copy current line or multiple selected|
+|`d`|Delete current line or multiple selected|
+|`Enter`/`e`|Edit current line|
+|`g`|Grammar check|
+|`h`|Help screen|
+|`Home`|Jump to beginning of the file|
+|`i`|Insert new line|
+|`j`|Jump to user specified line|
+|`v`|Paste from clipboard|
+|`o`|Overwrite lines|
+|`s`|Start / End of selection|
+|`q` /`Esc`|Quit editor|
+|`w`|Write/save changes|
+
+### File Management Mode
+
+| Command   | Action                               |
+|-----------|--------------------------------------|
+| `af`      | List all files                       |
+| `cwd`     | Change working directory             |
+| `cdp`     | Change the default path              |
+| `mkdir`   | Create new directory                 |
+| `rename`  | Rename a file/directory              |
+| `rmdir`   | Remove a non empty/empty directory   |
+| `rmfile`  | Remove a file                        |
+| `cls`     | Clear screen                         |
+| `q`       | Exit file management                 |
+| `Ctrl+D`  | Escape from function                 |
+
+### Theme Manager Commands
+
+| Command | Action |
+|---------|--------|
+| `tm` | Enter theme manager |
+| `ls` | List all available themes |
+| `use <theme>` | Switch to specified theme |
+| `info <theme>` | Show theme details |
+| `create <name>` | Create new theme based on current |
+| `delete <name>` | Delete a theme (cannot delete built-in) |
+| `edit <name>` | Show theme file location for editing |
+
 ## Core Hook System Structure with all possible features and hooks in mind
 **Advanced Hook System**
 
 More about hooks in: [hooks-creation](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/hooks-creation.md) and [hooks-overview](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/hooks-overview.md)  
 Manual on how to perform various types of search and replace within core hook in [serach-replace manual](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/search_replace/readme.md)  
   
-Manual on AI asisted grammar hook in  [AI-grammar-check](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/AI-grammar-check/readme.md)  
+Manual on statistical AI asisted grammar hook in  [AI-grammar-check](https://github.com/Peter-L-SVK/PyLine/blob/main/hooks/AI-grammar-check/readme.md)  
 For it's proper usage and functionality, install:
 ```sh
-pip install language-tool-python numpy pandas
+pip install language-tool-python pyspellchecker textstat
 ```
   
 PyLine features a comprehensive hook system that allows extending functionality through plugins. The hook system supports multiple programming languages and follows a structured directory hierarchy:
@@ -284,87 +369,6 @@ Theme file structure (`~/.pyline/themes/my-theme.json`):
   }
 }
 ```
-
-### Editor Menu
-
-|Command|Action|
-|---|---|
-|`1`|Edit existing file|
-|`2`|Create new file|
-|`3`|Truncate existing or create new file|
-|`cls`|Clear screen|
-|`cw`|Count words in the file|
-|`hm`|Hook manager|
-|`hs`|Hook status|
-|`tm`|Theme manager|
-|`x`|Enter file management mode (exec mode)|
-|`i`|Info|
-|`q`|Exit program|
-|`Ctrl+D`|Escape from function|
-|`Ctrl+C`|Interupt the program|
-
-### Hook Management Commands
-
-| Command | Action |
-|---|---|
-| `hm` | Enter hook manager interface |
-| `ls` | List all available hooks |
-| `info` | Show detailed hook information |
-| `enable` | Enable a specific hook |
-| `disable` | Disable a specific hook |
-| `reload` | Reload hook system from filesystem |
-
-### Editor Controls
-
-|Command|Action|
-|---|---|
-|`↑`/`↓`|Navigate between lines / Scroll by lines|
-|`PgUp` / `PgDn`|Scroll by 52 lines buffer|
-|`Ctrl+B` / `F`|Undo/Redo|
-|`Ctrl+D` / `End`|Jump to end of the file|
-|`Ctrl+Alt+f`|Search for text|
-|`Ctrl+Alt+r`|Search and replace|
-|`c`|Copy current line or multiple selected|
-|`d`|Delete current line or multiple selected|
-|`Enter`/`e`|Edit current line|
-|`g`|Grammar check|
-|`h`|Help screen|
-|`Home`|Jump to beginning of the file|
-|`i`|Insert new line|
-|`j`|Jump to user specified line|
-|`v`|Paste from clipboard|
-|`o`|Overwrite lines|
-|`s`|Start / End of selection|
-|`q` /`Esc`|Quit editor|
-|`w`|Write/save changes|
-
-### File Management Mode
-
-| Command   | Action                               |
-|-----------|--------------------------------------|
-| `af`      | List all files                       |
-| `cwd`     | Change working directory             |
-| `cdp`     | Change the default path              |
-| `mkdir`   | Create new directory                 |
-| `rename`  | Rename a file/directory              |
-| `rmdir`   | Remove a non empty/empty directory   |
-| `rmfile`  | Remove a file                        |
-| `cls`     | Clear screen                         |
-| `q`       | Exit file management                 |
-| `Ctrl+D`  | Escape from function                 |
-
-### Theme Manager Commands
-
-| Command | Action |
-|---------|--------|
-| `tm` | Enter theme manager |
-| `ls` | List all available themes |
-| `use <theme>` | Switch to specified theme |
-| `info <theme>` | Show theme details |
-| `create <name>` | Create new theme based on current |
-| `delete <name>` | Delete a theme (cannot delete built-in) |
-| `edit <name>` | Show theme file location for editing |
-
 
 ## Requirements
 
