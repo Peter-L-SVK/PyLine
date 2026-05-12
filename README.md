@@ -1,7 +1,7 @@
 # PyLine - Lightweight Terminal Text Editor
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) 
-[![Top Language](https://img.shields.io/github/languages/top/Peter-L-SVK/TermTalk)](https://github.com/Peter-L-SVK/PyLine)
+[![Top Language](https://img.shields.io/github/languages/top/Peter-L-SVK/Pyline)](https://github.com/Peter-L-SVK/PyLine)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Peter-L-SVK/PyLine)](https://github.com/Peter-L-SVK/PyLine/releases/latest)
 [![GitHub last commit](https://img.shields.io/github/last-commit/Peter-L-SVK/PyLine)](https://github.com/Peter-L-SVK/PyLine/commits/main)
 <a href="https://buymeacoffee.com/leukanic.peter"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" height="20px"></a>
