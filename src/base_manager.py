@@ -1,8 +1,9 @@
 # ----------------------------------------------------------------
-# PyLine 1.1 - Base Manager (GPLv3)
-# Copyright (C) 2025 Peter Leukanič
+# PyLine 1.2 - Base Manager (GPLv3)
+# Copyright (C) 2025-2026 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
+# Feel free to distribute and modify.
 # ----------------------------------------------------------------
 
 from hook_utils import HookUtils

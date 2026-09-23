@@ -1,8 +1,9 @@
 # ----------------------------------------------------------------
-# PyLine 1.1 - Buffer Manager (GPLv3)
-# Copyright (C) 2025 Peter Leukanič
+# PyLine 1.2 - Buffer Manager (GPLv3)
+# Copyright (C) 2025-2026 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
+# Feel free to distribute and modify.
 # ----------------------------------------------------------------
 
 from typing import List, Optional
@@ -30,23 +31,19 @@ class BufferManager(BaseManager):
 
             # Handle the JSON wrapper from LanguageHookExecutor
             if isinstance(pre_load_result, dict):
-                # Try multiple possible content fields
                 for field in ["content", "output", "text", "data"]:
                     if field in pre_load_result:
                         content = pre_load_result[field]
                         break
 
-                # If no content field found but hook succeeded, assume content was transformed
                 if content is None and pre_load_result.get("success"):
                     content = None
 
             elif isinstance(pre_load_result, str):
-                # Hook returned plain text directly
                 content = pre_load_result
 
             # If hooks didn't provide valid content or returned failure, load from file
             if content is None or content == "":
-                # Normal file loading with UTF-8 encoding
                 with open(filename, "r", encoding="utf-8") as f:
                     content = [line.rstrip("\n") for line in f]
 
@@ -84,7 +81,6 @@ class BufferManager(BaseManager):
             return True
 
         except Exception as e:
-            # Error handling
             error_context = {"filename": filename, "error": str(e), "action": "load_error", "operation": "file_load"}
             self.hook_utils.execute_event_handlers("error", error_context)
             return False
@@ -106,7 +102,6 @@ class BufferManager(BaseManager):
 
             lines_to_save = self.lines
             if pre_save_result and "content" in pre_save_result:
-                # Hook modified the content
                 lines_to_save = pre_save_result["content"]
 
             # Content processing hooks
@@ -140,7 +135,6 @@ class BufferManager(BaseManager):
             return True
 
         except Exception as e:
-            # Error hooks
             error_context = {
                 "filename": self.filename,
                 "error": str(e),
@@ -152,7 +146,6 @@ class BufferManager(BaseManager):
 
     def insert_line(self, index: int, text: str) -> str:
         """Insert line at index with hook integration."""
-        # Pre-insert hooks
         pre_insert_context = {
             "line_number": index,
             "text": text,
@@ -166,13 +159,11 @@ class BufferManager(BaseManager):
         if pre_insert_result and "text" in pre_insert_result:
             text_to_insert = pre_insert_result["text"]
         if pre_insert_result and "cancel" in pre_insert_result:
-            return text_to_insert  # Insertion cancelled
+            return text_to_insert
 
-        # Actual insertion
         self.lines.insert(index, text_to_insert)
         self.dirty = True
 
-        # Post-insert hooks
         post_insert_context = {
             "line_number": index,
             "text": text_to_insert,
@@ -191,7 +182,6 @@ class BufferManager(BaseManager):
 
         line_text = self.lines[index]
 
-        # Pre-delete hooks
         pre_delete_context = {
             "line_number": index,
             "text": line_text,
@@ -202,17 +192,15 @@ class BufferManager(BaseManager):
         pre_delete_result = self.hook_utils.execute_pre_delete(pre_delete_context)
 
         if pre_delete_result and "cancel" in pre_delete_result:
-            return ""  # Deletion cancelled
+            return ""
 
-        # Actual deletion
         deleted = self.lines.pop(index)
         self.dirty = True
 
         # CRITICAL: Ensure buffer never becomes completely empty
         if len(self.lines) == 0:
-            self.lines = [""]  # Always keep at least one empty line
+            self.lines = [""]
 
-        # Post-delete hooks
         post_delete_context = {
             "line_number": index,
             "text": deleted,
@@ -231,7 +219,6 @@ class BufferManager(BaseManager):
 
         old_text = self.lines[index]
 
-        # Pre-edit hooks
         pre_edit_context = {
             "line_number": index,
             "old_text": old_text,
@@ -246,13 +233,11 @@ class BufferManager(BaseManager):
         if pre_edit_result and "new_text" in pre_edit_result:
             text_to_set = pre_edit_result["new_text"]
         if pre_edit_result and "cancel" in pre_edit_result:
-            return old_text  # Edit cancelled
+            return old_text
 
-        # Actual edit
         self.lines[index] = text_to_set
         self.dirty = True
 
-        # Post-edit hooks
         post_edit_context = {
             "line_number": index,
             "old_text": old_text,

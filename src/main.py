@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # ----------------------------------------------------------------
-# PyLine 1.1 - Line Editor (GPLv3)
+# PyLine 1.2 - Line Editor (GPLv3)
 # Copyright (C) 2018-2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -82,13 +82,13 @@ def main() -> NoReturn:
                 # Create directory structure if needed
                 if dirops.ensure_directory_exists(filepath):
                     print(f"Creating new file: {filepath}")
-                    buffer.filename = filepath
+                    buffer.set_filename(filepath)
                     buffer.edit_interactive()
                 else:
                     print("Failed to create directory structure")
             utils.clean_exit()
 
-        print("PyLine 1.1 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič")
+        print("PyLine 1.2 - (GPLv3) for Linux/BSD  Copyright (C) 2018-2025  Peter Leukanič")
         print("This program comes with ABSOLUTELY NO WARRANTY; for details type 'i'.\n")
 
         utils.history_manager.set_context("main")
@@ -249,7 +249,8 @@ def handle_new_file(buffer: Any) -> None:
                     print("Error, file must have a name!\n")
                     continue
 
-                buffer.buffer_manager.filename = name_of_file
+                # Use set_filename so autosave starts for this new file
+                buffer.set_filename(name_of_file)
                 # Get save status from editor
                 save_status = buffer.edit_interactive()
 
@@ -289,7 +290,8 @@ def handle_truncate_file(buffer: Any) -> None:
                     print("Error, file must have a name!\n")
                     continue
 
-                buffer.buffer_manager.filename = name_of_file
+                # Use set_filename so autosave starts for this new file
+                buffer.set_filename(name_of_file)
                 buffer.lines = []  # Truncate by clearing buffer
                 buffer.dirty = True  # Mark as dirty immediately after truncation
 

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# PyLine 1.1 - Utils (GPLv3)
+# PyLine 1.2 - Utils (GPLv3)
 # Copyright (C) 2025 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
@@ -252,7 +252,25 @@ def theme_manager_menu() -> None:
     print("  cls - Clear screen")
     print("  q - Exit theme manager\n")
 
+def display_backup_menu(backup_mode) -> None:
+    """Display the backup manager menu."""
+    from pathlib import Path
 
+    current_file = backup_mode.text_buffer.buffer_manager.filename or "(no file)"
+    count = len(backup_mode.backups)
+
+    print("Backup Manager - Restore / Clean Auto-Saves:\n")
+    print(f"  File:    {current_file}")
+    print(f"  Backups: {count}\n")
+    print("  ls       - List backups (detailed)")
+    print("  info     - Show details for one backup")
+    print("  restore  - Restore a backup into the buffer")
+    print("  diff     - Compare a backup to current content")
+    print("  clean    - Keep latest 3, delete older ones")
+    print("  cleanall - Delete ALL backups for this file")
+    print("  cls      - Clear screen")
+    print("  q        - Return to editor\n")
+    
 # =============================================================================
 # HELP SYSTEM
 # =============================================================================
@@ -276,7 +294,7 @@ def help_scr_prepare() -> str:
     ╚══════════════════════════════════════════════════════════════════════════════╝{RESET}
 
     {HEADER_COLOR}Navigation Commands:{RESET}
-    {COMMAND_COLOR}  ↑ / ↓{DESCRIPTION_COLOR}          - Move cursor up/down line by line
+    {COMMAND_COLOR}  ↑ / ↓{DESCRIPTION_COLOR}           - Move cursor up/down line by line
     {COMMAND_COLOR}  PgUp / PgDn{DESCRIPTION_COLOR}     - Move page up/down
     {COMMAND_COLOR}  Home / End{DESCRIPTION_COLOR}      - Jump to beginning/end of file
     {COMMAND_COLOR}  J{DESCRIPTION_COLOR}               - Jump to specific line number
@@ -302,6 +320,7 @@ def help_scr_prepare() -> str:
     {HEADER_COLOR}File Operations:{RESET}
     {COMMAND_COLOR}  G{DESCRIPTION_COLOR}               - Check grammar
     {COMMAND_COLOR}  W{DESCRIPTION_COLOR}               - Write/save file
+    {COMMAND_COLOR}  B{DESCRIPTION_COLOR}               - Backup manager (browse/restore auto-saves)
     {COMMAND_COLOR}  Q / Esc{DESCRIPTION_COLOR}         - Quit (with save prompt if modified)
 
     {HEADER_COLOR}Other Commands:{RESET}

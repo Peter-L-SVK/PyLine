@@ -1,8 +1,9 @@
 # ----------------------------------------------------------------
-# PyLine 1.1 - Selection Manager (GPLv3)
-# Copyright (C) 2025 Peter Leukanič
+# PyLine 1.2 - Selection Manager (GPLv3)
+# Copyright (C) 2025-2026 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
+# Feel free to distribute and modify.
 # ----------------------------------------------------------------
 
 from typing import Optional, Tuple, List, Any
@@ -20,7 +21,6 @@ class SelectionManager(BaseManager):
 
     def start_selection(self, line_number: int, filename: Optional[str] = None) -> None:
         """Begin selection at line number with hooks."""
-        # Pre-selection hooks
         pre_select_context = {
             "line_number": line_number,
             "filename": filename,
@@ -30,12 +30,11 @@ class SelectionManager(BaseManager):
         pre_select_result = self.hook_utils.execute_editing_handlers("pre_selection", pre_select_context)
 
         if pre_select_result and "cancel" in pre_select_result:
-            return  # Selection cancelled
+            return
 
         self.selection_start = line_number
         self.in_selection_mode = True
 
-        # Post-selection hooks
         post_select_context = {
             "line_number": line_number,
             "filename": filename,
@@ -49,7 +48,6 @@ class SelectionManager(BaseManager):
         if not self.in_selection_mode:
             return
 
-        # Pre-selection-end hooks
         pre_end_context = {
             "start_line": self.selection_start,
             "end_line": line_number,
@@ -60,14 +58,13 @@ class SelectionManager(BaseManager):
         pre_end_result = self.hook_utils.execute_editing_handlers("pre_selection", pre_end_context)
 
         if pre_end_result and "cancel" in pre_end_result:
-            return  # Selection end cancelled
+            return
 
         self.selection_end = line_number
         if self.selection_start is not None and self.selection_end is not None:
             if self.selection_start > self.selection_end:
                 self.selection_start, self.selection_end = self.selection_end, self.selection_start
 
-        # Post-selection-end hooks
         post_end_context = {
             "start_line": self.selection_start,
             "end_line": self.selection_end,
@@ -87,7 +84,6 @@ class SelectionManager(BaseManager):
         selected_lines = lines[start : end + 1]
         selected_text = "\n".join(selected_lines)
 
-        # Process selected text through hooks
         selection_context = {
             "start_line": start,
             "end_line": end,

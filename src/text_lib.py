@@ -1,8 +1,9 @@
 # ----------------------------------------------------------------
-# PyLine 1.1 - TextBuffer Library (GPLv3)
-# Copyright (C) 2025 Peter Leukanič
+# PyLine 1.2 - TextBuffer Library (GPLv3)
+# Copyright (C) 2025-2026 Peter Leukanič
 # License: GNU GPL v3+ <https://www.gnu.org/licenses/gpl-3.0.txt>
 # This is free software with NO WARRANTY.
+# Feel free to distribute and modify.
 # ----------------------------------------------------------------
 
 import fcntl
@@ -65,11 +66,16 @@ class TextLib:
 
     @staticmethod
     def show_status_message(message: str) -> None:
-        """Display status messages consistently"""
-        print(f"\n{message}", end="")
-        time.sleep(0.455)
-        sys.stdout.flush()
-        sys.stdout.write("\033[F\033[K")  # Move up and clear line
+        """Display status messages consistently.
+
+        Delegates to the non-blocking StatusManager so every status message
+        renders in the integrated status bar line inside display_buffer().
+        Kept as a compatibility shim for older call sites (e.g. paste_buffer).
+        """
+        # Late import to avoid a circular import at module load time.
+        from status_manager import status_manager
+
+        status_manager.show_message(message)
 
     @staticmethod
     def init_color_support() -> bool:
@@ -93,15 +99,18 @@ class TextLib:
         selection_end: Optional[int],
         syntax_highlighter: Any,
         is_python: bool,
+        status_bar: str = "",
     ) -> None:
-        """Display the buffer contents with UTF-8 support"""
+        """Display the buffer contents with UTF-8 support and a status bar."""
         utils.clear_screen()
 
         # Get colors from theme manager
         RESET = theme_manager.get_color("reset")
         SELECTION_COLOR = theme_manager.get_color("selection")
-        HEADER_COLOR = theme_manager.get_color("menu_title")
-        BORDER_COLOR = theme_manager.get_color("line_numbers")
+        HEADER_COLOR = theme_manager.get_color("menu_title")       # "Editing:" line
+        COMMANDS_COLOR = theme_manager.get_color("menu_item")      # "Commands:" line
+        BORDER_COLOR = theme_manager.get_color("line_numbers")     # separator
+        STATUS_COLOR = theme_manager.get_color("status_bar") or HEADER_COLOR
 
         sys.stdout.write(f"\033[?25h{RESET}")  # Ensure cursor visible and reset
 
@@ -113,9 +122,13 @@ class TextLib:
         try:
             # Header lines
             header = f"{HEADER_COLOR}Editing: {filename or 'New file'}{RESET}\n"
-            header += f"""{HEADER_COLOR}Commands: ↑/↓, PgUp/PgDn/Home/End - Navigate, Enter - Edit, Ctrl+B/F - Undo/Redo,
-          C - Copy, V - Paste, O - Overwrite lines, W - Write changes, J - Jump, S - Select, H - Help,  Q - Quit{RESET}\n"""
-            header += f"{BORDER_COLOR}" + "-" * 115 + f"{RESET}\n"
+            header += (
+                f"{COMMANDS_COLOR}"
+                f"Commands: ↑/↓, PgUp/PgDn/Home/End - Navigate, Enter - Edit, "
+                f"Ctrl+B/F - Undo/Redo, C - Copy, V - Paste, S - Select, H - Help, Q - Quit"
+                f"{RESET}\n"
+            )
+            header += f"{BORDER_COLOR}" + "-" * 125 + f"{RESET}\n"
 
             sys.stdout.buffer.write(header.encode("utf-8", errors="replace"))
 
@@ -177,6 +190,14 @@ class TextLib:
                 line_display = f"{RESET}{prefix}{line_num:4d}: {display_line_text}{RESET}\n"
                 sys.stdout.buffer.write(line_display.encode("utf-8", errors="replace"))
 
+            # ---- Status bar line ----
+            if status_bar:
+                status_line = f"{STATUS_COLOR}{status_bar}{RESET}\n"
+            else:
+                # Blank status line so layout doesn't jump
+                status_line = " " * 115 + "\n"
+            sys.stdout.buffer.write(status_line.encode("utf-8", errors="replace"))
+
             sys.stdout.flush()
 
         except (OSError, UnicodeEncodeError):
@@ -199,6 +220,9 @@ class TextLib:
                         prefix = " "
                     # Use original lines (without color codes) in fallback mode
                     print(f"{prefix}{line_num:4d}: {lines[idx]}")
+
+            # Status bar in fallback mode
+            print(status_bar if status_bar else " " * 115)
 
     @staticmethod
     def edit_line(line_num: int, old_text: str) -> str:
